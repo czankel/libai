@@ -277,6 +277,7 @@ endif()
 ##
 
 add_subdirectory(tensor)
+add_subdirectory(util)
 
 set(gridtensor_HEADER_DIRS
   "tensor/include"
