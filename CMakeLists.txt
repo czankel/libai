@@ -203,7 +203,10 @@ if(NOT MSVC)
   check_cxx_compiler_flag_and_append("-fno-math-errno")
   check_cxx_compiler_flag_and_append("-fno-trapping-math")
   check_cxx_compiler_flag_and_append("-Werror=format")
-  check_cxx_compiler_flag_and_append("-Werror=cast-function-type")
+  ## Foundation/NSObject.hpp:214:39: error: cast from 'void (*)()' to 'SendMessageProc'
+  if(NOT APPLE)
+    check_cxx_compiler_flag_and_append("-Werror=cast-function-type")
+  endif()
 endif()
 
 ##
