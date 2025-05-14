@@ -330,7 +330,7 @@ class Worker
   unsigned int GetThreadCount() const             { return thread_count_; }
 
   /// GetConcurrentThreadCount returns the maximum number of concurrent threads.
-  unsigned int GetConcurrentThreadCount()
+  static unsigned int GetConcurrentThreadCount()
   {
     return std::thread::hardware_concurrency();
   }

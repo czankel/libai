@@ -7,6 +7,7 @@
 grid_add_sources(gridtensor
 	tensor.cc
 	mmap.cc
+	base/device.cc
 )
 
 if (BUILD_METAL)
