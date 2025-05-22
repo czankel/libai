@@ -24,11 +24,9 @@
 
 namespace grid {
 
-
 using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 using Duration = std::chrono::duration<float>;
 using SteadyClock = std::chrono::steady_clock;
-
 
 // When a job is added to the queue, it can be scheduled to run at a specific
 // time or with these values:

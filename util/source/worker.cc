@@ -180,6 +180,7 @@ void Worker::KillJob(const Job& job)
     std::lock_guard lock(queue_mutex_);
     if (wjob.is_queued_)
       DequeueWorkerJobLocked(wjob);
+
     ReleaseWorkerJobLocked(wjob);
   }
 }
@@ -252,7 +253,7 @@ Job::Id Worker::AllocateJob(size_t size)
 
   WorkerJob& wjob = jobs_[slot];
 
-  wjob.refcount_ = 1;
+  wjob.refcount_ = 2;
   wjob.block_refcount_ = 0;
 
   // reset important fields
@@ -609,7 +610,7 @@ bool Worker::ReleaseBlockedLocked(WorkerJob& job)
   {
     ReleaseWorkerJobLocked(job);        // release as a blocked reference
     DequeueWorkerJobLocked(job);
-  
+
     // TODO: support other options than immediate
     job.scheduled_time_ = kScheduleImmediate;
     job.is_queued_ = false;

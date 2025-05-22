@@ -12,74 +12,56 @@
 #include <grid/util/worker.h>
 #include <grid/tensor/device.h>
 
-namespace  grid::device { class Base; }
 namespace grid::base {
-
 
 class Queue
 {
  public:
   Queue();
 
-  /// Enqueue splits the task into blocks for the .. ranges...
-  ///
-  /// Enqueue({dim_x, dim_y}, [](...)
-  template <typename F, typename... Args>
-  void Enqueue(F&&, Args&&...);
+  /// Enqueue splits the task into blocks of one to three dimensions
+  template <size_t N, typename F, typename... Args>
+  void Enqueue(size_t[N], F&&, Args&&...);
 
-  /// Sync synchronizes all outstanding jobs, waiting
-  ///
+  /// Sync synchronizes all outstanding jobs waiting for the jobs to complete.
   void Sync();
 
  private:
+  Worker worker_;
   Job current_job_;
   size_t thread_count_;
 };
 
-template <typename F, typename... Args>
-void Queue::Enqueue(/*Range range,*/ F&& function, Args&&... args)
+// 8 threads 13 x X blocks --> (0,0-7), (0,8-13i & (1,0-2), ( ...
+// for i = 0 to 13 * X, i += thread_count; x = (i + thread) % width, y = thread
+// size_t[] tile = GetTile(thread_index, dims)
+//
+
+// FIXME: are tiles really needed here? Number of threads should be sufficient?
+template <size_t N, typename F, typename... Args>
+void Queue::Enqueue(size_t dims[N], F&& function, Args&&... args)
 {
-    //mutex;
+  Job job = current_job_;
 
-  if (!current_job_.IsValid())
-    current_job_ = worker.PostBlocked([&]() { return false; });
+  if (!job.IsValid())
+    job = current_job_ = worker_.PostBlocked([&]() { return false; });
 
-  size_t width = 0; // range.size();
+  size_t width = dims[N - 1];
   size_t w = ((((width + thread_count_ - 1) / thread_count_) + 7) & ~7);
 
   for (size_t i = 0; i < thread_count_; i++)
   {
-    size3 pos{ i * w, 0, 0 };
-    size3 dim{ i * w > width ? width - i * w : w, 0, 0 };
-    worker.PostRunBefore(current_job_, SinusJob<double>, pos, dim, d, x);
-  }
-  worker.ReleaseBlocked(current_job_);
-}
-
-
-// FIXME: needs to take the current job and replace it??
-void Queue::Sync()
-{
-  // FIXME: is an addiitional mutex necessary??? multiple calls to SyncThreads?? Protect current_job_?
-  mutex;
-  if (current_job_.IsValid())
-  {
-    std::condition_variable wait_cond;
-    Job sync_job = worker.PostRunAfter(current_job_, [&]() -> bool {
-        wait_cond.notify_all();
+    size_t pos[]{ i * w, 0, 0 };
+    //size_t dim[]{ i * w > width ? width - i * w : w, 0, 0 };
+    //worker_.PostRunBefore(current_job_, std::forward<F>(function), pos, dim); // FIXME , d, x);
+    worker_.PostRunBefore(current_job_, [](auto f, size_t thread_id) -> bool {
+        //f(pos);
         return false;
-        });
-
-    if (sync.IsValid())
-    {
-      current_job_ = sync_job;  // FIXME
-
-      ///std::mutex wait_mutex;
-      std::unique_lock lock(wait_mutex);
-      wait_cond.wait(lock);
-    }
+    }, std::forward<F>(function), i);
   }
+  worker_.ReleaseBlock(current_job_);
 }
+
 
 } // end of namespace grid::base
 

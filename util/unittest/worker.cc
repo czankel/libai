@@ -77,6 +77,7 @@ class SimplePost_Class
 TEST(Worker, SimplePost)
 {
   Worker worker;
+
   {
     SimplePost_Reset();
     Job job = worker.Post(SimplePost_StaticFuncVoid);
