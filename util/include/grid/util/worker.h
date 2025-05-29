@@ -93,6 +93,10 @@ class Job
   Job& operator=(const Job& other);
   Job& operator=(Job&& other)                     { id_ = other.id_; return *this; }
 
+
+  // Comparison operator
+  bool operator==(const Job& other) const         { return id_ == other.id_; }
+
   /// not-operator to check if job is valid
   bool operator!() const                          { return id_ == kInvalid; }
 
