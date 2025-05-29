@@ -52,12 +52,14 @@ Worker::Worker(unsigned int job_capacity, unsigned int thread_count)
 
   unsigned int max_threads = GetConcurrentThreadCount();
   thread_count_adjust_ = std::min(thread_count, max_threads);
-  CreateThreads();
+  UpdateThreadCount(Duration::zero());
 }
 
 Worker::~Worker()
 {
-  SetThreadCount(0, Duration::max());
+  thread_count_adjust_ = 0;
+  UpdateThreadCount(Duration::max());
+
   for (auto& t: thread_pool_)
     t.join();
 
@@ -98,15 +100,13 @@ bool Worker::Run()
 
 // TODO: all threads created will remain in the thread_pool_ until "joined" in the worker destructor
 // TODO: simply delete all threads and re-create them; reducing threds is not relaly a use case
-bool Worker::SetThreadCount(unsigned int thread_count, Duration timeout)
+bool Worker::UpdateThreadCount(Duration timeout)
 {
   std::scoped_lock lock(thread_mutex_);
 
-  thread_count_adjust_ = thread_count;
   if (thread_count_adjust_ > thread_count_)
   {
-    thread_count_adjust_ = thread_count;
-    return CreateThreads();
+    return CreateThreadsLocked();
   }
   else
   {
@@ -126,7 +126,7 @@ bool Worker::SetThreadCount(unsigned int thread_count, Duration timeout)
   return timeout > Duration::zero();
 }
 
-bool Worker::CreateThreads()
+bool Worker::CreateThreadsLocked()
 {
   while (thread_count_ < thread_count_adjust_)
   {
@@ -365,8 +365,13 @@ void Worker::WorkerRun()
   while (1)
   {
     unsigned int count = thread_count_;
-    if (thread_count_adjust_ < count && thread_count_.compare_exchange_strong(count, count - 1))
-      return;
+    if (thread_count_adjust_ < count)
+    {
+      if (thread_count_.compare_exchange_strong(count, count - 1))
+        return;
+
+      continue;
+    }
 
     // Debugging: DumpQueue();
 

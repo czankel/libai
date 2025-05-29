@@ -322,11 +322,10 @@ class Worker
   bool Run();
 
 
-  /// SetThreadCount sets the number of concurrent threads for the worker.
+  /// UpdateThreadCount updates the thread count to align with thread_count_adjust_
   ///
-  /// @params[in] count  Max concurrently running threads
   /// @returns True if thread count was changed
-  bool SetThreadCount(unsigned int count, Duration timeout);
+  bool UpdateThreadCount(Duration timeout);
 
   /// GetThreadCount returns the number of concurrent threads for the worker.
   ///
@@ -334,7 +333,7 @@ class Worker
   unsigned int GetThreadCount() const             { return thread_count_; }
 
   /// GetConcurrentThreadCount returns the maximum number of concurrent threads.
-  unsigned int GetConcurrentThreadCount()
+  static unsigned int GetConcurrentThreadCount()
   {
     return std::thread::hardware_concurrency();
   }
@@ -565,7 +564,7 @@ class Worker
   template <typename R, typename C, typename... Args>
   Job::Id AllocateJob(R(C::*)(Args...), C&, Args&&...);
 
-  bool CreateThreads();
+  bool CreateThreadsLocked();
 
   // returns false if timeout
   void WorkerRun();
