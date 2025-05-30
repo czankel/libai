@@ -604,6 +604,8 @@ class Worker
   // The job must not be queued or blocked
   void ReleaseWorkerJobLocked(WorkerJob& wjob);
 
+  void KillWorkerJob(WorkerJob& wjob);
+
   void AddRefBlockedLocked(WorkerJob& wjob);
   bool ReleaseBlockedLocked(WorkerJob& wjob);
 

@@ -173,14 +173,21 @@ void Worker::KillJob(const Job& job)
 
   WorkerJob& wjob = *reinterpret_cast<WorkerJob*>(id);
 
+  KillWorkerJob(wjob);
+}
+
+void Worker::KillWorkerJob(WorkerJob& wjob)
+{
   // modify reschedule, once set to kKill, it cannot change
   wjob.reschedule_ = WorkerJob::kKill;
 
   {
     std::lock_guard lock(queue_mutex_);
     if (wjob.is_queued_)
+    {
       DequeueWorkerJobLocked(wjob);
-    ReleaseWorkerJobLocked(wjob);
+      ReleaseWorkerJobLocked(wjob);
+    }
   }
 }
 
