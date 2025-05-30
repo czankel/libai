@@ -102,7 +102,7 @@ bool Worker::Run()
 // TODO: simply delete all threads and re-create them; reducing threds is not relaly a use case
 bool Worker::UpdateThreadCount(Duration timeout)
 {
-  std::scoped_lock lock(thread_mutex_);
+  std::unique_lock lock(thread_mutex_);
 
   if (thread_count_adjust_ > thread_count_)
   {
@@ -527,7 +527,7 @@ void Worker::WorkerRun()
 // Find a free slot from the allocation bitmap
 int Worker::AllocateSlot()
 {
-  std::scoped_lock lock(job_mutex_);
+  std::unique_lock lock(job_mutex_);
 
   for (unsigned int i = 0; i < job_capacity_ / 32; i++)
   {
@@ -560,7 +560,7 @@ int Worker::AllocateSlot()
 
 void Worker::FreeSlot(int index)
 {
-  std::scoped_lock lock(job_mutex_);
+  std::unique_lock lock(job_mutex_);
   job_alloc_bitmap_[index/32] &= ~ (1 << (index & 31));
 }
 

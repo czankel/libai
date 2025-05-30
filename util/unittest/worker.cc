@@ -27,13 +27,13 @@ static volatile bool SimplePost_Complete;
 
 static bool SimplePost_IsComplete()
 {
-  std::scoped_lock lock(SimplePost_Mutex);
+  std::unique_lock lock(SimplePost_Mutex);
   return SimplePost_Complete;
 }
 
 static void SimplePost_Reset()
 {
-  std::scoped_lock lock(SimplePost_Mutex);
+  std::unique_lock lock(SimplePost_Mutex);
   SimplePost_Complete = false;
 }
 
@@ -55,18 +55,18 @@ class SimplePost_Class
   SimplePost_Class() : complete_(false) {}
   void reset()
   {
-    std::scoped_lock lock(mutex_);
+    std::unique_lock lock(mutex_);
     complete_ = false;
   }
   bool MemberFunc()
   {
-    std::scoped_lock lock(mutex_);
+    std::unique_lock lock(mutex_);
     complete_ = true;
     return false;
   }
   bool IsComplete()
   {
-    std::scoped_lock lock(mutex_);
+    std::unique_lock lock(mutex_);
     return complete_;
   }
  private:
