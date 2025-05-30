@@ -160,6 +160,16 @@ class Job
   /// Note that the job cannot be rescheduled once it is 'killed'.
   void Kill();
 
+
+  /// Wait waits for the job to complete; returns true if it was completed and not killed.
+  bool Wait();
+
+  /// Wait waits for the job to complete; returns true if it was completed and not killed or timeout.
+  bool WaitFor(Duration);
+
+  /// Wait waits for the job to complete; returns true if it was completed and not killed or timeout.
+  bool WaitUntil(TimePoint);
+
   /// ChangeScheduledTime changes the reschedule time for the job.
   ///
   /// @param[in] time  New scheduled time for the job.
@@ -391,12 +401,18 @@ class Worker
   /// Wait for a job to complete
   /// Note that jobs that are rescheduled are not complete
   /// @param[in] job to wait for
-  /// @returns true if job has completed or false if wait was canceled
+  /// @returns true if job has completed
   bool WaitForJob(const Job& job);
 
-  /// Cancel any wait for a specific job to complete
-  /// @param[in] job for someone to wait for
-  void CancelWaitForJob(const Job& job);
+  /// Wait for a job to complete for the specific time
+  ///
+  /// @returns true if job has completed
+  bool WaitForJobFor(const Job&, Duration);
+
+  /// Wait for a job to complete
+  ///
+  /// @returns true if job has completed
+  bool WaitForJobUntil(const Job&, TimePoint);
 
 
   /// Post posts a new job to the current queue.
@@ -662,6 +678,9 @@ struct WorkerJob
   std::atomic<Reschedule> reschedule_;
   std::atomic<int>        refcount_;
 
+  std::mutex              wait_mutex_;
+  std::condition_variable wait_cond_;
+
   char                    function_buffer_[kMaxFunctorSize];
 };
 
@@ -880,6 +899,21 @@ inline void Job::Kill()
 {
   if (id_ != kInvalid)
     GetWorker().KillJob(*this);
+}
+
+inline bool Job::Wait()
+{
+  return id_ != kInvalid && GetWorker().WaitForJob(*this);
+}
+
+inline bool Job::WaitFor(Duration timeout)
+{
+  return id_ != kInvalid && GetWorker().WaitForJobFor(*this, timeout);
+}
+
+inline bool Job::WaitUntil(TimePoint time)
+{
+  return id_ != kInvalid && GetWorker().WaitForJobUntil(*this, time);
 }
 
 inline void Job::ChangeScheduledTime(TimePoint time)

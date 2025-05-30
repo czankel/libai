@@ -226,16 +226,76 @@ bool Worker::IsRescheduledWaiting(const Job& job)
   return wjob->scheduled_time_ > now;;
 }
 
-// TODO implement Worker::WaitForJob
+
 bool Worker::WaitForJob(const Job& job)
 {
-  return false;
+  bool completed = false;
+
+  Job::Id id = job.GetId();
+  if (id == Job::kInvalid)
+    throw std::runtime_error("invalid job");
+
+  WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
+  std::unique_lock lock(wjob->wait_mutex_);
+
+  while (true)
+  {
+    // FIXME: this is not atomic with wait_cond_
+    Job::Status status = GetJobStatus(id) ;
+    completed = (status == Job::kDone || status == Job::kError);
+    if (completed)
+      break;
+
+    wjob->wait_cond_.wait(lock);
+  }
+
+  return completed;
 }
 
-// TODO implement Worker::CancelWaitForJob
-void Worker::CancelWaitForJob(const Job& job)
+
+bool Worker::WaitForJobFor(const Job& job, Duration timeout)
 {
+  bool completed = false;
+
+  Job::Id id = job.GetId();
+  if (id == Job::kInvalid)
+    throw std::runtime_error("invalid job");
+
+  WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
+  std::unique_lock lock(wjob->wait_mutex_);
+
+  std::cv_status s;
+  do
+  {
+    Job::Status status = GetJobStatus(id) ;
+    completed = (status == Job::kDone || status == Job::kError);
+  } while (!completed && (s = wjob->wait_cond_.wait_for(lock, timeout)) == std::cv_status::no_timeout);
+
+  return completed;
 }
+
+
+bool Worker::WaitForJobUntil(const Job& job, TimePoint time)
+{
+  bool completed = false;
+
+  Job::Id id = job.GetId();
+  if (id == Job::kInvalid)
+    throw std::runtime_error("invalid job");
+
+  WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
+  std::unique_lock lock(wjob->wait_mutex_);
+
+  std::cv_status s;
+  do
+  {
+    Job::Status status = GetJobStatus(id) ;
+    completed = (status == Job::kDone || status == Job::kError);
+  } while (!completed && (s = wjob->wait_cond_.wait_until(lock, time)) == std::cv_status::no_timeout);
+
+  return completed;
+}
+
 
 //
 // Worker Protected Functions
