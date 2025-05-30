@@ -552,14 +552,13 @@ class Worker
   bool RescheduleAfterJob(Job::Id id, Job::Id yield, bool inherit_priority = false);
 
  private:
-  template <typename... Args>
-  Job::Id AllocateJob(std::function<bool()>&& f, Args... args);
+  inline Job::Id AllocateJob(std::function<bool()>&&);
 
-  template <typename... Args>
-  Job::Id AllocateJob(const std::function<bool()>& f, Args... args);
+  template <typename F, typename... Args>
+  inline Job::Id AllocateJob(F&&, Args&&...);
 
   template <typename R, typename... Args>
-  Job::Id AllocateJob(R(&&function)(Args...), Args...);
+  Job::Id AllocateJob(R(&&function)(Args&&...), Args&&...);
 
   template <typename R, typename C, typename... Args>
   Job::Id AllocateJob(R(C::*)(Args...), C&, Args&&...);
@@ -670,34 +669,27 @@ struct WorkerJob
 // Worker Implementation
 //
 
-template <typename... Args>
-inline Job::Id Worker::AllocateJob(std::function<bool()>&& f, Args... args)
+template <typename F, typename... Args>
+inline Job::Id Worker::AllocateJob(F&& function, Args&&... args)
 {
+  auto f = std::bind(function, std::forward<Args>(args)...);
   Job::Id id = AllocateJob(sizeof(f));
   if (id != Job::kInvalid)
-    new (reinterpret_cast<std::function<bool()>*>(GetFunctionPointer(id))) std::function<bool()>(f);
-  return id;
-}
-
-
-template <typename... Args>
-inline Job::Id Worker::AllocateJob(const std::function<bool()>& f, Args... args)
-{
-  Job::Id id = AllocateJob(sizeof(f));
-  if (id != Job::kInvalid)
-    *reinterpret_cast<std::function<bool()>*>(GetFunctionPointer(id)) = f;
+    new (reinterpret_cast<std::function<bool(Args...)>*>(GetFunctionPointer(id)))
+      std::function<bool(Args...)>(std::move(f));
   return id;
 }
 
 
 template <typename R, typename... Args>
-inline Job::Id Worker::AllocateJob(R(&&function)(Args...), Args... args)
+inline Job::Id Worker::AllocateJob(R(&&function)(Args&&...), Args&&... args)
 {
   auto f = std::bind(&function, std::forward<Args>(args)...);
 
   Job::Id id = AllocateJob(sizeof(f));
   if (id != Job::kInvalid)
-    new (reinterpret_cast<std::function<bool()>*>(GetFunctionPointer(id))) std::function<bool()>(std::move(f));
+    new (reinterpret_cast<std::function<bool()>*>(GetFunctionPointer(id)))
+      std::function<bool()>(std::move(f));
   return id;
 }
 
