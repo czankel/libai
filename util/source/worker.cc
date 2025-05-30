@@ -58,24 +58,24 @@ Worker::Worker(unsigned int job_capacity, unsigned int thread_count)
 Worker::~Worker()
 {
   thread_count_adjust_ = 0;
-  UpdateThreadCount(Duration::max());
 
+  for (unsigned int i = 0; i < job_capacity_; i++)
+    if (jobs_[i].refcount_ > 0)
+      KillWorkerJob(jobs_[i]);
+
+  UpdateThreadCount(Duration::max());
   for (auto& t: thread_pool_)
     t.join();
 
   for (unsigned int i = 0; i < job_capacity_; i++)
   {
-    if (--jobs_[i].refcount_ > 0)
-      std::cerr << "job still referenced" << std::endl;
-    FreeSlot(i);
-  }
-
-  for (unsigned int i = 0; i < (job_capacity_ + 31) / 32; i++)
-  {
     if (job_alloc_bitmap_[i] != 0)
     {
-      std::cerr << "jobs still allocated" << i <<  std::endl;
-      exit(-1);
+      if (--jobs_[i].refcount_ > 0)
+      {
+        std::cerr << "jobs still referenced" << std::endl;
+        exit(-1);
+      }
     }
   }
 
@@ -247,7 +247,6 @@ bool Worker::WaitForJob(const Job& job)
 
   while (true)
   {
-    // FIXME: this is not atomic with wait_cond_
     Job::Status status = GetJobStatus(id) ;
     completed = (status == Job::kDone || status == Job::kError);
     if (completed)
@@ -319,7 +318,7 @@ Job::Id Worker::AllocateJob(size_t size)
 
   WorkerJob& wjob = jobs_[slot];
 
-  wjob.refcount_ = 1;
+  wjob.refcount_ = 2;
   wjob.block_refcount_ = 0;
 
   // reset important fields
@@ -507,9 +506,15 @@ void Worker::WorkerRun()
     }
     else
     {
+      // Job has completed
       std::lock_guard lock (queue_mutex_);
       WakeBlockedLocked(*wjob);
       ReleaseWorkerJobLocked(*wjob);
+
+      wjob->wait_mutex_.lock();
+      wjob->wait_mutex_.unlock();
+
+      wjob->wait_cond_.notify_all();
       wjob = nullptr;
     }
   }
@@ -592,6 +597,8 @@ bool Worker::QueueWorkerJobLocked(WorkerJob& wjob)
     return false;
 
   TimePoint time = wjob.scheduled_time_;
+  if (time < SteadyClock::now())
+    time = kScheduleImmediate;
 
   // add job as sleeping
   if (time == kScheduleSleeping)
@@ -645,6 +652,8 @@ bool Worker::QueueWorkerJobLocked(WorkerJob& wjob)
       queue_scheduled_ = &wjob.next_;
     if (queue_sleeping_ == &queue_ready_)
       queue_sleeping_ = &wjob.next_;
+
+    queue_needs_reschedule_ = true;
   }
 
   // insert job at the end of any ready job and before any 'scheduled' job
@@ -664,6 +673,15 @@ bool Worker::QueueWorkerJobLocked(WorkerJob& wjob)
   }
   wjob.is_queued_ = true;
   wjob.refcount_++;
+
+  // ensure a worker thread is taking up the job
+  if (time != kScheduleSleeping)
+  {
+    queue_mutex_.unlock();
+    queue_wait_cond_.notify_one();
+    queue_mutex_.lock();
+  }
+
   return true;
 }
 
@@ -681,7 +699,7 @@ bool Worker::ReleaseBlockedLocked(WorkerJob& job)
   {
     ReleaseWorkerJobLocked(job);        // release as a blocked reference
     DequeueWorkerJobLocked(job);
-  
+
     // TODO: support other options than immediate
     job.scheduled_time_ = kScheduleImmediate;
     job.is_queued_ = false;
@@ -703,6 +721,9 @@ bool Worker::ReleaseBlockedLocked(WorkerJob& job)
 bool Worker::QueueWorkerJobBlockedLocked(WorkerJob& wblock, WorkerJob& wyield)
 {
   if (wblock.reschedule_.load() == WorkerJob::kKill)// || wblock.is_queued_)
+    return false;
+
+  if (wyield.reschedule_.load() == WorkerJob::kKill)
     return false;
 
   if (wyield.block_ != nullptr && wblock.block_refcount_ > 0)
@@ -800,18 +821,9 @@ bool Worker::WakeJobLocked(WorkerJob& wjob)
     DequeueWorkerJobLocked(wjob);
 
     wjob.scheduled_time_ = kScheduleNormal;
-    if (QueueWorkerJobLocked(wjob))
-    {
-      queue_needs_reschedule_ = true;
-      queue_mutex_.unlock();
-      queue_wait_cond_.notify_one();
-      queue_mutex_.lock();
-      woken = true;
-    }
-    else
-    {
+    woken = QueueWorkerJobLocked(wjob);
+    if (!woken)
       ReleaseWorkerJobLocked(wjob);
-    }
   }
 
   return woken;
@@ -836,13 +848,9 @@ bool Worker::PostWorkerJob(WorkerJob& wjob, TimePoint time)
 {
   wjob.reschedule_ = WorkerJob::kOnce;
   wjob.scheduled_time_ = time;
-  {
-    std::lock_guard thread_lock(queue_mutex_);
-    if (!QueueWorkerJobLocked(wjob))
-      return false;
-  }
-  queue_wait_cond_.notify_one();
-  return true;
+
+  std::lock_guard thread_lock(queue_mutex_);
+  return QueueWorkerJobLocked(wjob);
 }
 
 // Note that when the yield job is not alive, this job will automatically be
@@ -871,7 +879,6 @@ bool Worker::PostWorkerJobBlocking(WorkerJob& wjob, TimePoint time, WorkerJob& w
       return false;
   }
 
-  queue_wait_cond_.notify_one();
   return true;
 }
 
@@ -895,7 +902,7 @@ bool Worker::RescheduleWorkerJob(WorkerJob& wjob, TimePoint time)
   /// don't force a reschedule if the job is currently running and not
   /// scheduled for a later time. (job is normally running at this point)
   if (wjob.is_queued_ || time > kScheduleNormal)
-    queue_needs_reschedule_ = true;
+    queue_needs_reschedule_ = true; // FIMXE: wake job??
 
   return true;
 }
