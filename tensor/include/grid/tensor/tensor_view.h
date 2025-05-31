@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_TENSOR_VIEW_H
-#define GRID_TENSOR_BASE_TENSOR_VIEW_H
+#ifndef GRID_TENSOR_TENSOR_VIEW_H
+#define GRID_TENSOR_TENSOR_VIEW_H
 
 #include <algorithm>
 
@@ -302,4 +302,4 @@ inline auto Reshape(TTensor& tensor,
 } // end of namespace view
 } // end of namespace grid
 
-#endif  // GRID_TENSOR_BASE_TENSOR_VIEW_H
+#endif  // GRID_TENSOR_TENSOR_VIEW_H

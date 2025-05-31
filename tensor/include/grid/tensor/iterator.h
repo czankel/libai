@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_TENSOR_ITERAOR_H
-#define GRID_TENSOR_BASE_TENSOR_ITERAOR_H
+#ifndef GRID_TENSOR_TENSOR_ITERATOR_H
+#define GRID_TENSOR_TENSOR_ITERATOR_H
 
 namespace grid {
 namespace details {
@@ -262,4 +262,4 @@ class ConstIterator
 } // end of namespace details
 } // end of namespace grid
 
-#endif  // GRID_TENSOR_BASE_TENSOR_ITERAOR_H
+#endif  // GRID_TENSOR_TENSOR_ITERATOR_H
