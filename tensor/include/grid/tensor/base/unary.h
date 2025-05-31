@@ -25,14 +25,14 @@ namespace grid {
 ///
 ///  @tparm TOperator unary operator
 template <template <typename> typename TOperator>
-class UnaryOperation<TOperator, device::Base>
+class UnaryOperation<TOperator, device::CPU>
 {
 
   // scalar operation
   template <typename T>
   inline void Eval(T* d, const T* x) const
   {
-    d[0] = TOperator<device::Base>()(x[0]);
+    d[0] = TOperator<device::CPU>()(x[0]);
   }
 
   // contiguous vector
@@ -40,7 +40,7 @@ class UnaryOperation<TOperator, device::Base>
   inline void Eval(T* d, const T* x, std::span<const size_t, 1> dimensions) const
   {
     for (size_t i = 0; i < dimensions[0]; i++) {
-      d[i] = TOperator<device::Base>()(x[i]);
+      d[i] = TOperator<device::CPU>()(x[i]);
     }
   }
 
@@ -52,7 +52,7 @@ class UnaryOperation<TOperator, device::Base>
                    std::span<const ssize_t, 1> strides_x) const
   {
     for (size_t i = 0; i < dimensions[0]; i++)
-      d[i * strides_d[0]] = TOperator<device::Base>()(x[i * strides_x[0]]);
+      d[i * strides_d[0]] = TOperator<device::CPU>()(x[i * strides_x[0]]);
   }
 
   // rank 2 and greater, discontiguous
@@ -132,12 +132,12 @@ class UnaryOperation<TOperator, device::Base>
 // Elementary Unary Operators
 //
 
-template <> struct CopyOperator<device::Base>
+template <> struct CopyOperator<device::CPU>
 {
   template<typename T> inline T operator()(const T x) const { return x; }
 };
 
-template <> struct NegOperator<device::Base>
+template <> struct NegOperator<device::CPU>
 {
   template<typename T> inline T operator()(const T x) const { return -x; }
 };
@@ -146,7 +146,7 @@ template <> struct NegOperator<device::Base>
 // Unary Operations
 //
 
-template <> struct SiluFunction<device::Base>
+template <> struct SiluFunction<device::CPU>
 {
   template<typename T> inline T operator()(const T x) const { return x / (T{1} + exp(-x)); }
 };

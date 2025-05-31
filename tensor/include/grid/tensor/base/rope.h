@@ -20,7 +20,7 @@
 namespace grid {
 
 // requires (std::is_floating_point_v<value_type> && rank > 0)
-template <> class RopeOperator<device::Base>
+template <> class RopeOperator<device::CPU>
 {
  public:
   template<std::ranges::input_range I,

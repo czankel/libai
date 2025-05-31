@@ -93,7 +93,7 @@ LLaMAModel* LLaMAModel::Load(LLaMAFile& file, std::string_view device_name, bool
   else
 #endif
   if (device_name == "")
-    return LLaMAModelT<float, device::Base>::Load(file);
+    return LLaMAModelT<float, device::CPU>::Load(file);
   else
     throw std::runtime_error("invalid device name");
 }

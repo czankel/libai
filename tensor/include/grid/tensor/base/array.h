@@ -22,7 +22,7 @@ namespace grid {
 
 /// brief: Array is a specialization for a dynamically allocated buffer.
 template <typename T>
-class Array<T, DeviceMemory<device::Base>>
+class Array<T, DeviceMemory<device::CPU>>
 {
   using value_type = T;
   using pointer = value_type*;

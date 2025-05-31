@@ -21,7 +21,7 @@
 namespace grid {
 
 // requires (std::is_floating_point_v<value_type> && rank > 0)
-template <> class RmsNormOperator<device::Base>
+template <> class RmsNormOperator<device::CPU>
 {
  private:
 
@@ -56,7 +56,7 @@ template <> class RmsNormOperator<device::Base>
     {
       auto sum = SumSquare(&*first_x, row_size, stride_x);
       value_type scale = sqrtf(sum / row_size + eps);
-      BinaryOperation<DivOperator, device::Base>()(in, Tensor(scale), out);
+      BinaryOperation<DivOperator, device::CPU>()(in, Tensor(scale), out);
     }
     else
     {
@@ -72,7 +72,7 @@ template <> class RmsNormOperator<device::Base>
         scale.Data()[row] = sqrtf(sum / row_size + eps);
         x += first_x.Strides()[rank - 2];
       }
-      BinaryOperation<DivOperator, device::Base>()(in, scale, out);
+      BinaryOperation<DivOperator, device::CPU>()(in, scale, out);
     }
   }
 };

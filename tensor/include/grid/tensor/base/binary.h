@@ -27,17 +27,17 @@ namespace grid {
 ///
 ///  @tparm TOperator binary operator
 template <template <typename> typename TOperator>
-class BinaryOperation<TOperator, device::Base>
+class BinaryOperation<TOperator, device::CPU>
 {
   // TODO: gcc doesn't like this constexpr, which would be use later as just Operator(args).
   // Should it? See P0386R2 change: 9.2.3.2p3
-  // static constexpr TOperator<device::Base> Operator;
+  // static constexpr TOperator<device::CPU> Operator;
 
   // scalar operation
   template <typename T>
   inline void Eval(T* d, const T* x, const T* y) const
   {
-    d[0] = TOperator<device::Base>()(x[0], y[0]);
+    d[0] = TOperator<device::CPU>()(x[0], y[0]);
   }
 
   // contiguous vector
@@ -45,7 +45,7 @@ class BinaryOperation<TOperator, device::Base>
   inline void Eval(T* d, const T* x, const T* y, std::span<const size_t, 1> dimensions) const
   {
     for (size_t i = 0; i < dimensions[0]; i++)
-      d[i] = TOperator<device::Base>()(x[i], y[i]);
+      d[i] = TOperator<device::CPU>()(x[i], y[i]);
   }
 
   // discontiguous vector or scalar
@@ -57,7 +57,7 @@ class BinaryOperation<TOperator, device::Base>
                    std::span<const ssize_t, 1> strides_y) const
   {
     for (size_t i = 0; i < dimensions[0]; i++)
-      d[i * strides_d[0]] = TOperator<device::Base>()(x[i * strides_x[0]], y[i * strides_y[0]]);
+      d[i * strides_d[0]] = TOperator<device::CPU>()(x[i * strides_x[0]], y[i * strides_y[0]]);
   }
 
   // rank 2 and greater, discontiguous
@@ -147,22 +147,22 @@ class BinaryOperation<TOperator, device::Base>
 // Elementary Binary Operators
 //
 
-template<> struct AddOperator<device::Base>
+template<> struct AddOperator<device::CPU>
 {
   template<typename T> inline T operator()(T a, T b) const { return a + b; }
 };
 
-template<> struct SubOperator<device::Base>
+template<> struct SubOperator<device::CPU>
 {
   template<typename T> inline T operator()(T a, T b) const { return a - b; }
 };
 
-template<> struct MulOperator<device::Base>
+template<> struct MulOperator<device::CPU>
 {
   template<typename T> inline T operator()(T a, T b) const { return a * b; }
 };
 
-template<> struct DivOperator<device::Base>
+template<> struct DivOperator<device::CPU>
 {
   template<typename T> inline T operator()(T a, T b) const { return a / b; }
 };

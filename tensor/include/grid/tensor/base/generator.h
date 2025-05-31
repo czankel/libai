@@ -15,7 +15,7 @@
 
 namespace grid {
 
-template <> class GeneratorOperation<device::Base>
+template <> class GeneratorOperation<device::CPU>
 {
   template <typename T, std::copy_constructible F>
   inline void generate(T* d,
@@ -64,14 +64,14 @@ template <> class GeneratorOperation<device::Base>
 //
 
 #if 0 // FIXME how to implement?
-template <> struct FillOperator<device::Base>
+template <> struct FillOperator<device::CPU>
 {
   template <typename T> inline void operator()() const { return val; }
 };
 #endif
 
 
-template <> struct RandomFunction<device::Base>
+template <> struct RandomFunction<device::CPU>
 {
   template <typename T> inline T operator()() const
   {

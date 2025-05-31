@@ -18,7 +18,7 @@ namespace grid {
 /// MatmulOperator implements a multiplication operation for tensors
 /// different ranks, such as matrix multiplication (Matmul) and vector dot-product (VecDot).
 /// Note that all dimensions are assumed to be correct.
-template <> class MatmulOperator<device::Base>
+template <> class MatmulOperator<device::CPU>
 {
   // optimized vector dot multiplication for contiguous vectors.
   template <typename T>

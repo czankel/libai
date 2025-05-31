@@ -13,7 +13,7 @@
 
 namespace grid::device {
 
-class Base : public Device {};
+class CPU : public Device {};
 
 } // end of namespace grid::device
 

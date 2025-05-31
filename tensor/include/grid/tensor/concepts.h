@@ -119,7 +119,7 @@ struct tensor_is_convertible_to
 {};
 
 // Use "Base" as the default device if none is defined. TODO: can this be removed (and include above)?
-template <typename> struct tensor_device { using type = device::Base; };
+template <typename> struct tensor_device { using type = device::CPU; };
 
 template <template <typename, size_t, typename> typename TTensor, typename T, size_t TRank, typename TDevice>
 struct tensor_device<TTensor<T, TRank, DeviceMemory<TDevice>>> { using type = TDevice; };

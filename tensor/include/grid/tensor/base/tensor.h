@@ -16,7 +16,7 @@
 namespace grid {
 
 template <AnyTensor T1, AnyTensor T2>
-requires has_memory_type_v<T1, DeviceMemory<device::Base>>
+requires has_memory_type_v<T1, DeviceMemory<device::CPU>>
 inline void Copy(T1& tensor1, const T2& tensor2)
 {
   auto dimensions = tensor1.Dimensions();

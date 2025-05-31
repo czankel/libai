@@ -20,7 +20,7 @@
 namespace grid {
 
 /// SoftMaxOperator implements the softmax operator.
-template <> class SoftMaxOperator<device::Base>
+template <> class SoftMaxOperator<device::CPU>
 {
  private:
 
@@ -106,7 +106,7 @@ template <> class SoftMaxOperator<device::Base>
     auto sum = SumExp(&*first_d, &*first_x, max, std::span(extents), std::span(first_x.Strides()));
 
     value_type scale = static_cast<value_type>(1)/(sum + eps);
-    BinaryOperation<MulOperator, device::Base>()(out, Tensor(scale), out);
+    BinaryOperation<MulOperator, device::CPU>()(out, Tensor(scale), out);
   }
 };
 
