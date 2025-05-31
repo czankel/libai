@@ -11,9 +11,9 @@
 
 // FIXME IFDEF??
 /// CPU
-#include <grid/tensor/base/rope.h>
-#include <grid/tensor/base/tensor.h>
-#include "tensor_base.h"
+#include <grid/tensor/cpu/rope.h>
+#include <grid/tensor/cpu/tensor.h>
+#include "tensor_cpu.h"
 
 /// Metal
 #if 0

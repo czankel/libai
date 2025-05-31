@@ -28,8 +28,8 @@
 #include "tensor_view.h"
 #include "unary.h"
 
-// "Base" is the default device for Tensors
-#include "base/device.h"
+// "CPU" is the default device for Tensors
+#include "cpu/device.h"
 
 namespace grid {
 

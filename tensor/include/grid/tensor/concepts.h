@@ -12,8 +12,8 @@
 #include "device.h"
 #include "memory.h"
 
-// "Base" is the default device for Tensors
-#include "base/device.h"
+// "CPU" is the default device for Tensors
+#include "cpu/device.h"
 
 namespace grid {
 
@@ -118,7 +118,7 @@ struct tensor_is_convertible_to
   : std::is_assignable<TTensor<typename TFrom::value_type, TFrom::rank, DeviceMemory<TDevice>>, TFrom>
 {};
 
-// Use "Base" as the default device if none is defined. TODO: can this be removed (and include above)?
+// Use "CPU" as the default device if none is defined. TODO: can this be removed (and include above)?
 template <typename> struct tensor_device { using type = device::CPU; };
 
 template <template <typename, size_t, typename> typename TTensor, typename T, size_t TRank, typename TDevice>

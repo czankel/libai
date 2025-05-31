@@ -11,7 +11,7 @@
 
 #include <grid/util/demangle.h>
 
-#include <grid/tensor/tensor_base.h>
+#include <grid/tensor/tensor_cpu.h>
 #ifdef BUILD_CUDA
 #include <grid/tensor/tensor_cuda.h>
 #endif

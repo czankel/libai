@@ -12,8 +12,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include <grid/tensor/base/tensor.h>
-#include "tensor_base.h"
+#include <grid/tensor/cpu/tensor.h>
+#include "tensor_cpu.h"
 
 using testing::ElementsAre;
 

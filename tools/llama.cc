@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 #include <grid/models/llama.h>
-#include <grid/tensor/tensor_base.h>
+#include <grid/tensor/tensor_cpu.h>
 #include <grid/util/demangle.h>
 
 int main(int argc, char** argv)

@@ -13,15 +13,15 @@
 #include "tensor_parameters.h"
 #include "mmap.h"
 
-#include "base/tensor.h"
+#include "cpu/tensor.h"
 
-#include "base/binary.h"
-#include "base/device.h"
-#include "base/generator.h"
-#include "base/matmul.h"
-#include "base/rms_norm.h"
-#include "base/rope.h"
-#include "base/softmax.h"
-#include "base/unary.h"
+#include "cpu/binary.h"
+#include "cpu/device.h"
+#include "cpu/generator.h"
+#include "cpu/matmul.h"
+#include "cpu/rms_norm.h"
+#include "cpu/rope.h"
+#include "cpu/softmax.h"
+#include "cpu/unary.h"
 
 #endif  // GRID_TENSOR_TENSOR_CPU_H

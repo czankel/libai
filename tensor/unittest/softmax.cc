@@ -13,10 +13,10 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include <grid/tensor/base/tensor.h>
-#include <grid/tensor/base/generator.h>
-#include <grid/tensor/base/softmax.h>
-#include "tensor_base.h"
+#include <grid/tensor/cpu/tensor.h>
+#include <grid/tensor/cpu/generator.h>
+#include <grid/tensor/cpu/softmax.h>
+#include "tensor_cpu.h"
 
 #ifdef BUILD_METAL
 #include <grid/tensor/metal/tensor.h>
