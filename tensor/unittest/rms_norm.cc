@@ -84,7 +84,7 @@ REGISTER_TYPED_TEST_SUITE_P(RmsNormTestSuite,
     TensorRmsNormRank2Large);
 
 
-INSTANTIATE_TYPED_TEST_SUITE_P(RmsNormTestBase, RmsNormTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(RmsNormTestCPU, RmsNormTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(RmsNormTestMetal, RmsNormTestSuite, TensorMetalType);
 #endif

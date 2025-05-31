@@ -10,7 +10,7 @@
 #include <grid/tensor/function.h>
 
 // FIXME IFDEF??
-/// Base
+/// CPU
 #include <grid/tensor/base/rope.h>
 #include <grid/tensor/base/tensor.h>
 #include "tensor_base.h"
@@ -78,8 +78,8 @@ REGISTER_TYPED_TEST_SUITE_P(RopeTestSuite,
     TensorRopeTestRank2
 );
 
-INSTANTIATE_TYPED_TEST_SUITE_P(RopeTestBase, RopeTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(RopeTestCPU, RopeTestSuite, TensorCPUType);
 // IFDEF METAL
 #if 0
-INSTANTIATE_TYPED_TEST_SUITE_P(MetalTestBase, RopeTestSuite, TensorMetalType);
+INSTANTIATE_TYPED_TEST_SUITE_P(MetalTestCPU, RopeTestSuite, TensorMetalType);
 #endif

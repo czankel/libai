@@ -648,4 +648,4 @@ REGISTER_TYPED_TEST_SUITE_P(TensorParametersTestSuite,
     TensorFoldBroadcastOperations
     );
 
-INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestBase, TensorParametersTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestCPU, TensorParametersTestSuite, TensorCPUType);

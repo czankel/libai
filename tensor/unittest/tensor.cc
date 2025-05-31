@@ -336,7 +336,7 @@ REGISTER_TYPED_TEST_SUITE_P(TensorTestSuite,
     TensorBroadcast);
 
 
-INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestBase, TensorTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestCPU, TensorTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestMetal, TensorTestSuite, TensorMetalType);
 #endif

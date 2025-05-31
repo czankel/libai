@@ -85,7 +85,7 @@ REGISTER_TYPED_TEST_SUITE_P(UnaryTestSuite,
     TensorUnaryElementaryRank3);
 
 
-INSTANTIATE_TYPED_TEST_SUITE_P(UnaryTestBase, UnaryTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(UnaryTestCPU, UnaryTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(UnaryTestMetal, UnaryTestSuite, TensorMetalType);
 #endif

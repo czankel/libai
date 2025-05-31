@@ -72,7 +72,7 @@ REGISTER_TYPED_TEST_SUITE_P(SiLUTestSuite,
     TensorSiLURank2Large);
 
 
-INSTANTIATE_TYPED_TEST_SUITE_P(SiLUTestBase, SiLUTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(SiLUTestCPU, SiLUTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(SiLUTestMetal, SiLUTestSuite, TensorMetalType);
 #endif

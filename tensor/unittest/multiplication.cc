@@ -370,7 +370,7 @@ REGISTER_TYPED_TEST_SUITE_P(MultiplicationTestSuite,
     TensorElemMulRank2ContiguousLarge);
 
 
-INSTANTIATE_TYPED_TEST_SUITE_P(MultiplicationTestBase, MultiplicationTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(MultiplicationTestCPU, MultiplicationTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(MultiplicationTestMetal, MultiplicationTestSuite, TensorMetalType);
 #endif

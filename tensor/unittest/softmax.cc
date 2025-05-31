@@ -70,7 +70,7 @@ REGISTER_TYPED_TEST_SUITE_P(SoftMaxTestSuite,
     TensorSoftMaxRank1,
     TensorSoftMaxRank1Large);
 
-INSTANTIATE_TYPED_TEST_SUITE_P(SoftMaxTestBase, SoftMaxTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(SoftMaxTestCPU, SoftMaxTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(SoftMaxTestMetal, SoftMaxTestSuite, TensorMetalType);
 #endif

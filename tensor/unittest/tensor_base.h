@@ -12,7 +12,7 @@
 
 #if __cpp_deduction_guides >= 201907L
 
-struct TensorBaseType
+struct TensorCPUType
 {
   template <typename T, size_t N, typename M>
   using Tensor = grid::Tensor<T, N, M>;
@@ -20,7 +20,7 @@ struct TensorBaseType
 
 #else
 
-struct TensorBaseType
+struct TensorCPUType
 {
   template <typename T, size_t TRank, typename TMemory>
   class Tensor : public grid::Tensor<T, TRank, TMemory>

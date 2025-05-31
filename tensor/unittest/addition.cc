@@ -143,7 +143,7 @@ REGISTER_TYPED_TEST_SUITE_P(AdditionTestSuite,
     TensorAddRank2ContiguousLarge);
 
 
-INSTANTIATE_TYPED_TEST_SUITE_P(AdditionTestBase, AdditionTestSuite, TensorBaseType);
+INSTANTIATE_TYPED_TEST_SUITE_P(AdditionTestCPU, AdditionTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(AdditionTestMetal, AdditionTestSuite, TensorMetalType);
 #endif
