@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_MATMUL_H
-#define GRID_TENSOR_BASE_MATMUL_H
+#ifndef GRID_TENSOR_CPU_MATMUL_H
+#define GRID_TENSOR_CPU_MATMUL_H
 
 #include "../device.h"
 
@@ -262,4 +262,4 @@ template <> class MatmulOperator<device::CPU>
 
 } // end of namespace grid
 
-#endif  // GRID_TENSOR_BASE_MATMUL_H
+#endif  // GRID_TENSOR_CPU_MATMUL_H

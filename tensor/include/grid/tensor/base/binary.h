@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_BINARY_H
-#define GRID_TENSOR_BASE_BINARY_H
+#ifndef GRID_TENSOR_CPU_BINARY_H
+#define GRID_TENSOR_CPU_BINARY_H
 
 #include <span>
 #include <algorithm>
@@ -170,4 +170,4 @@ template<> struct DivOperator<device::CPU>
 
 } // end of namespace grid
 
-#endif // GRID_TENSOR_BASE_BINARY_H
+#endif // GRID_TENSOR_CPU_BINARY_H

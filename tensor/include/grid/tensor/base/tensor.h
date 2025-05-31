@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_TENSOR_H
-#define GRID_TENSOR_BASE_TENSOR_H
+#ifndef GRID_TENSOR_CPU_TENSOR_H
+#define GRID_TENSOR_CPU_TENSOR_H
 
 #include "array.h"
 
@@ -33,4 +33,4 @@ inline void Copy(T1& tensor1, const T2& tensor2)
 } // end of namespace grid
 
 
-#endif  // GRID_TENSOR_BASE_TENSOR_H
+#endif  // GRID_TENSOR_CPU_TENSOR_H

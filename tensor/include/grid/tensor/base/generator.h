@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_BASE_GENERATOR_H
-#define GRID_TENSOR_BASE_GENERATOR_H
+#ifndef GRID_TENSOR_CPU_GENERATOR_H
+#define GRID_TENSOR_CPU_GENERATOR_H
 
 #include <span>
 #include <algorithm>
@@ -81,4 +81,4 @@ template <> struct RandomFunction<device::CPU>
 
 } // end of namespace grid
 
-#endif  // GRID_TENSOR_BASE_GENERATOR_H
+#endif  // GRID_TENSOR_CPU_GENERATOR_H

@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_UNARY_H
-#define GRID_TENSOR_BASE_UNARY_H
+#ifndef GRID_TENSOR_CPU_UNARY_H
+#define GRID_TENSOR_CPU_UNARY_H
 
 #include <span>
 #include <algorithm>
@@ -154,4 +154,4 @@ template <> struct SiluFunction<device::CPU>
 
 } // end of namespace grid
 
-#endif // GRID_TENSOR_BASE_UNARY_H
+#endif // GRID_TENSOR_CPU_UNARY_H

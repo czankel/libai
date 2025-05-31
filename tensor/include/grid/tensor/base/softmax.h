@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_SOFTMAX_H
-#define GRID_TENSOR_BASE_SOFTMAX_H
+#ifndef GRID_TENSOR_CPU_SOFTMAX_H
+#define GRID_TENSOR_CPU_SOFTMAX_H
 
 #include <limits>
 #include <math.h>
@@ -112,4 +112,4 @@ template <> class SoftMaxOperator<device::CPU>
 
 } // end of namespace grid
 
-#endif // GRID_TENSOR_BASE_SOFTMAX_H
+#endif // GRID_TENSOR_CPU_SOFTMAX_H

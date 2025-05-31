@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_BASE_RMS_NORM_H
-#define GRID_TENSOR_BASE_RMS_NORM_H
+#ifndef GRID_TENSOR_CPU_RMS_NORM_H
+#define GRID_TENSOR_CPU_RMS_NORM_H
 
 #include <math.h>
 #include <tuple>
@@ -79,4 +79,4 @@ template <> class RmsNormOperator<device::CPU>
 
 } // end of namespace grid
 
-#endif  // GRID_TENSOR_BASE_RMS_NORM_H
+#endif  // GRID_TENSOR_CPU_RMS_NORM_H

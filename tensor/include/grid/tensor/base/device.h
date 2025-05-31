@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_BASE_DEVICE_H
-#define GRID_TENSOR_BASE_DEVICE_H
+#ifndef GRID_TENSOR_CPU_DEVICE_H
+#define GRID_TENSOR_CPU_DEVICE_H
 
 #include <grid/tensor/device.h>
 
@@ -17,4 +17,4 @@ class CPU : public Device {};
 
 } // end of namespace grid::device
 
-#endif  // GRID_TENSOR_BASE_DEVICE_H
+#endif  // GRID_TENSOR_CPU_DEVICE_H
