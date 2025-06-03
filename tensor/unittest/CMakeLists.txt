@@ -8,4 +8,5 @@ grid_add_sources(gridtensor_test
   rope.cc
   silu.cc
   softmax.cc
+  tensor_cpu.cc
 )
