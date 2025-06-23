@@ -56,26 +56,26 @@ class Array<T, DeviceMemory<device::Metal>>
   // TODO: size is in bytes not element numbers, revisit...
 
   // @brief Constructor for a contiguous array with the provided size.
-  Array(size_t size) : size_(size), buffer_(Allocate(size)) {}
+  Array(size_t size) : size_(size), buffer_(Allocate(size * sizeof(value_type))) {}
 
   // @brief Constructor for a contiguous array with the provided size with initialization.
-  Array(size_t size, value_type init) : size_(size), buffer_(Allocate(size))
+  Array(size_t size, value_type init) : size_(size), buffer_(Allocate(size * sizeof(value_type)))
   {
-    details::initialize_unsafe(Data(), size_ / sizeof(value_type), init);
+    details::initialize_unsafe(Data(), size_, init);
   }
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
     : size_(get_buffer_size<value_type>(dimensions, strides)),
-      buffer_(Allocate(size_))
+      buffer_(Allocate(size_ * sizeof(value_size)))
   {}
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
     : size_(get_buffer_size<value_type>(dimensions, strides)),
-      buffer_(Allocate(size_))
+      buffer_(Allocate(size_ * sizeof(value_size)))
   {
     details::initialize_unsafe(Data(), dimensions, strides, init);
   }
@@ -85,9 +85,9 @@ class Array<T, DeviceMemory<device::Metal>>
   // TODO use GPU for copy
   Array(const Array& other)
     : size_(other.size_),
-      buffer_(Allocate(size_))
+      buffer_(Allocate(size_ * sizeof(value_size)))
   {
-    memcpy(Data(), other.Data(), other.size);
+    memcpy(Data(), other.Data(), other.size * sizeof(value_size));
   }
 
   // @brief Copy constructor with dimensions and strides
@@ -97,7 +97,7 @@ class Array<T, DeviceMemory<device::Metal>>
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
     : size_(get_buffer_size<value_type>(dimensions, strides1)),
-      buffer_(Allocate(size_))
+      buffer_(Allocate(size_ * sizeof(value_size)))
   {
     details::copy_unsafe(Data(), data,
                          std::span<const size_t, N>(dimensions.begin(), N),
@@ -137,7 +137,8 @@ class Array<T, DeviceMemory<device::Metal>>
     {
       if (buffer_ != nullptr)
         Free(buffer_);
-      buffer_ = Allocate(device::Metal::GetDevice(), size);
+      buffer_ = Allocate(device::Metal::GetDevice(), size * sizeof(value_size));
+      size_ = size;
     }
 
     return *this;

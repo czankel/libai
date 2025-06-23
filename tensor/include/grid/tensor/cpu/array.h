@@ -31,33 +31,32 @@ class Array<T, DeviceMemory<device::CPU>>
  public:
   Array() = default;
 
-  // @brief Constructor for a contiguous array with the provided size.
+  // @brief Constructor for a contiguous array with the provided size (number of elements)
   Array(size_t size)
     : size_(size),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
 
-  // @brief Constructor for a contiguous array with the provided size with initialization.
+  // @brief Constructor for a contiguous array with the provided size (number of elements) with initialization.
   Array(size_t size, value_type init)
     : size_(size),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
-    // FIXME
-    details::initialize_unsafe(data_, size_ / sizeof(value_type), init);
+    details::initialize_unsafe(data_, size_, init);
   }
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
-    : size_(get_buffer_size<value_type>(dimensions, strides)),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+    : size_(get_array_size<value_type>(dimensions, strides)),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
-    : size_(get_buffer_size<value_type>(dimensions, strides)),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+    : size_(get_array_size<value_type>(dimensions, strides)),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
     details::initialize_unsafe(data_, dimensions, strides, init);
   }
@@ -68,9 +67,9 @@ class Array<T, DeviceMemory<device::CPU>>
   // @brief Copy constructor of contiguous arrays.
   Array(const Array& other)
     : size_(other.size_),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
-    memcpy(data_, other.data_, other.size);
+    memcpy(data_, other.data_, other.size_ * sizeof(T));
   }
 
   // @brief Copy constructor from same array type with dimensions and strides
@@ -79,8 +78,8 @@ class Array<T, DeviceMemory<device::CPU>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_buffer_size<value_type>(dimensions, strides1)),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+    : size_(get_array_size<value_type>(dimensions, strides1)),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
     details::copy_unsafe(data_, other.Data(),
                          std::span<const size_t, N>(dimensions.begin(), N),
@@ -94,8 +93,8 @@ class Array<T, DeviceMemory<device::CPU>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_buffer_size<value_type>(dimensions, strides1)),
-      data_(static_cast<pointer>(operator new[](size_, std::align_val_t(16))))
+    : size_(get_array_size<value_type>(dimensions, strides1)),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
     details::copy_unsafe(data_, data,
                          std::span<const size_t, N>(dimensions.begin(), N),
@@ -134,7 +133,7 @@ class Array<T, DeviceMemory<device::CPU>>
     {
       if (data_ != nullptr)
         operator delete[](data_, std::align_val_t(16));
-      data_ = static_cast<pointer>(operator new[](size, std::align_val_t(16)));
+      data_ = static_cast<pointer>(operator new[](size * sizeof(T), std::align_val_t(16)));
       size_ = size;
     }
 

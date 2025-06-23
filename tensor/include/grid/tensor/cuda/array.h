@@ -38,30 +38,30 @@ class Array<T, DeviceMemory<device::Cuda>>
   // @brief Allocates a buffer of the provided size.
   Array(size_t size) : size_(size)
   {
-    CudaMallocManaged((void**)&data_, size_);
+    CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
   }
 
   // @brief Constructor for a contiguous array with the provided size with initialization.
   Array(size_t size, value_type init) : size_(size)
   {
-    CudaMallocManaged((void**)&data_, size_);
-    details::initialize_unsafe(Data(), size_ / sizeof(value_type), init);
+    CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
+    details::initialize_unsafe(Data(), size_, init);
   }
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
-    : size_(get_buffer_size<value_type>(dimensions, strides))
+    : size_(get_array_size<value_type>(dimensions, strides))
   {
-    CudaMallocManaged((void**)&data_, size_);
+    CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
   }
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
-    : size_(get_buffer_size<value_type>(dimensions, strides))
+    : size_(get_array_size<value_type>(dimensions, strides))
   {
-    CudaMallocManaged((void**)&data_, size_);
+    CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
     details::initialize_unsafe(Data(), dimensions, strides, init);
   }
 
@@ -78,9 +78,9 @@ class Array<T, DeviceMemory<device::Cuda>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_buffer_size<value_type>(dimensions, strides1))
+    : size_(get_array_size<value_type>(dimensions, strides1))
   {
-    CudaMallocManaged((void**)&data_, size_);
+    CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
     details::copy_unsafe(data_, data,
                          std::span<const size_t, N>(dimensions.begin(), N),
                          std::span<const ssize_t, N>(strides1.begin(), N),
@@ -100,9 +100,9 @@ class Array<T, DeviceMemory<device::Cuda>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_buffer_size<value_type>(dimensions, strides1))
+    : size_(get_array_size<value_type>(dimensions, strides1))
   {
-    CudaMallocManaged((void**)&data_, size_);
+    CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
     details::copy_unsafe(data_, other.Data(),
                          std::span<const size_t, N>(dimensions.begin(), N),
                          std::span<const ssize_t, N>(strides1.begin(), N),
@@ -138,7 +138,7 @@ class Array<T, DeviceMemory<device::Cuda>>
     {
       if (data_ != nullptr)
         CudaFree(data_);
-      CudaMallocManaged((void**)&data_, size);
+      CudaMallocManaged((void**)&data_, size * sizeof(value_type));
       size_ = size;
     }
 

@@ -67,7 +67,6 @@ get_array(std::initializer_list<std::initializer_list<std::initializer_list<T>>>
   return arr;
 }
 
-
 // get_array(T(&)[])
 // returns a std::array from a c-array.
 template <Arithmetic T, size_t N>
@@ -149,6 +148,19 @@ std::array<ssize_t, TRank> make_strides(const std::array<size_t, TRank>& dimensi
 }
 
 
+// get_array_size returns the required size for the given dimensions and strides in numner of elements.
+template <typename T, typename U, typename V>
+size_t get_array_size(U&& dimensions, V&& strides)
+{
+  size_t size = 1;  // default is rank-0, which has size 1
+  auto di = std::forward<U>(dimensions).begin();
+  auto si = std::forward<V>(strides).begin();
+  for (; di != dimensions.end() && si != strides.end(); ++di, ++si)
+    size = std::max(size, *di * *si);
+  return size;
+}
+
+
 // get_buffer_size returns the required size for the given dimensions and strides.
 template <typename T, typename U, typename V>
 size_t get_buffer_size(U&& dimensions, V&& strides)
@@ -171,7 +183,7 @@ size_t get_block_size(U&& dimensions, V&& strides)
   auto si = std::forward<V>(strides).begin();
   for (; di != dimensions.end() && si != strides.end(); ++di, ++si)
     size += std::max(*di - 1, 0UL) * *si;
-  return size * sizeof(T);
+  return size;
 }
 
 

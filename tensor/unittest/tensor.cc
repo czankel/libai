@@ -206,7 +206,7 @@ TYPED_TEST_P(TensorTestSuite, TensorMMap)
   grid::MMapView view(std::move(mmap));
   auto dimensions1 = view.Read<std::array<size_t, 2>>();
   auto strides1 = view.Read<std::array<ssize_t, 2>>();
-  auto size1 = grid::get_buffer_size<double>(dimensions1, strides1);
+  auto size1 = grid::get_array_size<double>(dimensions1, strides1);
   double* addr1 = reinterpret_cast<double*>(view.Address());
 
   // Note: MemoryMapped Tensor
@@ -215,10 +215,10 @@ TYPED_TEST_P(TensorTestSuite, TensorMMap)
   typename TypeParam::Tensor result1 = grid::Tensor{ {1.2, 2.3, 3.4, 4.5}, {1.2, 2.3, 3.4, 4.5} };
   EXPECT_EQ(tensor1, result1);
 
-  view.Seek(size1);
+  view.Seek(size1 * sizeof(size_t));
   auto dimensions2 = view.Read<std::array<size_t, 2>>();
   auto strides2 = view.Read<std::array<ssize_t, 2>>();
-  auto size2 = grid::get_buffer_size<double>(dimensions2, strides2);
+  auto size2 = grid::get_array_size<double>(dimensions2, strides2);
   double* addr2 = reinterpret_cast<double*>(view.Address());
 
   // Note: MemoryMapped Tensor
@@ -276,7 +276,7 @@ TYPED_TEST_P(TensorTestSuite, TensorViewAllocInitializationTensor)
   EXPECT_EQ(view_index.Rank(), 1);
   EXPECT_THAT(view_index.Dimensions(), ElementsAre(5UL));
   EXPECT_THAT(view_index.Strides(), ElementsAre(1));
-  EXPECT_EQ(view_index.Size(), 20); // one row, 5 elements
+  EXPECT_EQ(view_index.Size(), 5); // one row, 5 elements
   EXPECT_EQ(view_index.Data(), data + 2 * 5);
 
   // tensor[2:] -> (2, 5)
@@ -284,7 +284,7 @@ TYPED_TEST_P(TensorTestSuite, TensorViewAllocInitializationTensor)
   EXPECT_EQ(view_span.Rank(), 2);
   EXPECT_THAT(view_span.Dimensions(), ElementsAre(2UL, 5UL));
   EXPECT_THAT(view_span.Strides(), ElementsAre(5, 1));
-  EXPECT_EQ(view_span.Size(), 40);  // 2 x 5 matrix
+  EXPECT_EQ(view_span.Size(), 10);  // 2 x 5 matrix
   EXPECT_EQ(view_span.Data(), data + 2 * 5);
 }
 

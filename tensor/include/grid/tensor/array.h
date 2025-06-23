@@ -91,6 +91,7 @@ inline void initialize_unsafe(T* dst, size_t size, T init)
 /// Array manages a buffer of elements of a specific type.
 ///
 /// The buffer can be statically or dynamically allocated, and in system memory or device memory.
+/// The array size defines the number of elements and is not the size in bytes.
 template <typename, typename> class Array;
 
 
@@ -120,7 +121,7 @@ class Array<T, Scalar>
   }
 
   /// Size returns the size of the entire buffer.
-  size_t Size() const                                     { return sizeof(value_type); }
+  size_t Size() const                                     { return 1UL; }
 
   /// Data returns a pointer to the data buffer.
   pointer Data()                                          { return &data_; }
@@ -158,7 +159,7 @@ class Array<T, StaticMemory<Ns...>>
   Array& operator=(const Array& other) = delete;
 
   /// Size returns the size of the entire buffer.
-  size_t Size() const                                     { return sizeof(value_type) * size; }
+  size_t Size() const                                     { return size; }
 
   /// Data returns a pointer to the data buffer.
   pointer Data()                                          { return array_.data(); }

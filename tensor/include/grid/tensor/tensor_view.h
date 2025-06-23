@@ -115,12 +115,12 @@ class TensorView
   /// Data returns a pointer to the data buffer of the view.
   pointer Data()
   {
-    return reinterpret_cast<pointer>(pointer_cast<char*>(tensor_.Data()) + offset_);
+    return reinterpret_cast<pointer>(pointer_cast<char*>(tensor_.Data())) + offset_;
   }
 
   const_pointer Data() const
   {
-    return reinterpret_cast<pointer>(pointer_cast<char*>(tensor_.Data()) + offset_);
+    return reinterpret_cast<pointer>(pointer_cast<char*>(tensor_.Data())) + offset_;
   }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
@@ -253,7 +253,7 @@ inline auto View(TTensor& tensor, Ts&&... ts)
         view_index++;
       }
 
-      view_offset += start * tensor_strides[tensor_index] * sizeof(typename TTensor::value_type);
+      view_offset += start * tensor_strides[tensor_index];
 
       if (++tensor_index > tensor.Rank())
         throw std::runtime_error("index exceeds tensor rank");
@@ -273,7 +273,7 @@ inline auto View(TTensor& tensor, Ts&&... ts)
   return TensorView(tensor, view_dims, view_strides, view_size, view_offset);
 }
 
-
+// FIXME: offset should be in n-lemes
 /// Reshape returns a view of the provide tensor with a new shape.
 template <typename TTensor, size_t Rank>
 inline auto Reshape(TTensor& tensor,
@@ -282,7 +282,7 @@ inline auto Reshape(TTensor& tensor,
 {
   using value_type = typename TTensor::value_type;
   auto strides = make_strides(dimensions);
-  size_t size = get_buffer_size<value_type>(dimensions, strides);
+  size_t size = get_array_size<value_type>(dimensions, strides);
   // assert orig-size >= size + offset
   return TensorView(tensor, dimensions, strides, size, offset);
 }
@@ -294,7 +294,7 @@ inline auto Reshape(TTensor& tensor,
                     size_t offset = 0)
 {
   using value_type = typename TTensor::value_type;
-  size_t size = get_buffer_size<value_type>(dimensions, strides);
+  size_t size = get_array_size<value_type>(dimensions, strides);
   // assert orig-size >= size + offset
   return TensorView(tensor, dimensions, strides, size, offset);
 }
