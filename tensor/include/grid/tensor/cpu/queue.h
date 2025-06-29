@@ -57,19 +57,19 @@ void Queue::Enqueue(size_t (&dims)[N], size_t (&sizes)[N], F&& function, Args&&.
 
   for (size_t thread_id = 0; thread_id < n_threads; thread_id++)
   {
-    worker_.PostRunBefore(current_job_, [n_threads, &dims, &sizes](auto f, size_t thread_id) -> bool {
+    worker_.PostRunBefore(current_job_, [n_threads, &dims, &sizes, args...](auto f, size_t thread_id) -> bool {
 
         if constexpr (N == 1)
         {
           for (size_t pos = thread_id; pos < (dims[0] + sizes[0] - 1) / sizes[0]; pos += n_threads)
-              f({pos});
+              f({pos}, args...);
         }
         else if constexpr (N == 2)
         {
           size_t n_rows = (dims[0] + sizes[0] - 1) / sizes[0];
           size_t n_cols = (dims[1] + sizes[1] - 1) / sizes[1];
           for (size_t pos = thread_id; pos < n_rows * n_cols; pos += n_threads)
-            f({pos / n_cols, pos % n_cols});
+            f({pos / n_cols, pos % n_cols}, args...);
         }
         else if constexpr (N == 3)
         {
@@ -77,7 +77,7 @@ void Queue::Enqueue(size_t (&dims)[N], size_t (&sizes)[N], F&& function, Args&&.
           size_t n_rows = (dims[1] + sizes[1] - 1) / sizes[1];
           size_t n_cols = (dims[2] + sizes[2] - 1) / sizes[2];
           for (size_t pos = thread_id; pos < n_depths * n_rows * n_cols; pos += n_threads)
-            f({pos / n_cols / n_rows, (pos / n_cols) % n_rows, pos % n_cols});
+            f({pos / n_cols / n_rows, (pos / n_cols) % n_rows, pos % n_cols}, args...);
         }
         return false;
     }, std::forward<F>(function), thread_id);
