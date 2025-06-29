@@ -316,7 +316,7 @@ class CurrentJob
 class Worker
 {
  public:
-  static const unsigned int kDefaultJobCapacity = 100;
+  static const unsigned int kDefaultJobCapacity = 512;
   static const unsigned int kMaxThreadCount = std::numeric_limits<unsigned int>::max();
 
   Worker (const Worker&) = delete;
@@ -653,7 +653,7 @@ class Worker
 
 struct WorkerJob
 {
-  static const int kMaxFunctorSize = 200;
+  static const int kMaxFunctorSize = 256;
 
   enum Reschedule
   {
