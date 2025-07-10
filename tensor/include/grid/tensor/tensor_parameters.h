@@ -220,38 +220,65 @@ inline auto BroadcastDimensions(const TTensor1& tensor1, const TTensor2& tensor2
   }
 }
 
-/// @brief Helper function to align strides returning an array if a stride needs to be extended.
-template <size_t S1, size_t S2>
-inline auto BroadcastStrides(std::span<const ssize_t, S1> strides1, std::span<const ssize_t, S2> strides2)
+/// @brief Broadcast (expand the dimensions of the strides) to the provided rank R by inserting zeros.
+//
+/// Returns the provided strides directly if the rank is already R or a new std::array with the
+/// original strides copied to the right-most dimensions.
+///
+/// The array size must be at most R or an assertion error is generated.
+///
+/// @param<in> strides... list of strides with
+template <size_t R, typename... Ts>
+requires (sizeof...(Ts) > 1)
+inline auto BroadcastStrides(Ts&&... strides)
 {
-  if constexpr (S1 == S2)
-    return std::make_tuple(std::move(strides1), std::move(strides2));
-  else if constexpr (S1 == 0)
-    return std::make_tuple(std::move(std::array<const ssize_t, S2>{}), std::move(strides2));
-  else if constexpr (S2 == 0)
-    return std::make_tuple(std::move(strides1), std::move(std::array<const ssize_t, S1>{}));
-  else if constexpr (S2 > S1)
-  {
-    std::array<ssize_t, S2> strides{};
-    std::ranges::copy(strides1, strides.begin() + S2 - S1);
-    return std::make_tuple(std::move(strides), std::move(strides2));
-  }
-  else
-  {
-    std::array<ssize_t, S1> strides{};
-    std::ranges::copy(strides2, strides.begin() + S1 - S2);
-    return std::make_tuple(std::move(strides1), std::move(strides));
-  }
+  return std::make_tuple([&]() {
+    using type = std::remove_cvref_t<Ts>;
+    using value_type = type::value_type;
+
+    // compiler complains about strides.size() not being constexpr
+    constexpr size_t rank = std::remove_cvref_t<Ts>{}.size();
+    static_assert(rank <= R);
+
+    if constexpr (rank == R)
+      return std::forward<Ts>(strides);
+    else if constexpr (rank < R)
+    {
+      std::array<value_type, R> res{};
+      std::ranges::copy(strides, res.begin() + R - strides.size());
+      return res;
+    }
+  }() ...);
+}
+
+template <size_t R, typename T>
+inline auto BroadcastStrides(T&& strides)
+{
+    using type = std::remove_cvref_t<T>;
+    using value_type = type::value_type;
+
+    // compiler complains about strides.size() not being constexpr
+    constexpr size_t rank = std::remove_cvref_t<T>{}.size();
+    static_assert(rank <= R);
+
+    if constexpr (rank == R)
+      return std::forward<T>(strides);
+    else if constexpr (rank < R)
+    {
+      std::array<value_type, R> res{};
+      std::ranges::copy(strides, res.begin() + R - strides.size());
+      return res;
+    }
 }
 
 // TODO: the CUDA nvcc compiler doesn't support trailing return types
 #if !defined(__CUDACC__)
 
-
 /// @brief Helper function to check if all provided strides are contiguous (strides[last] == 1)
-inline bool IsContiguous(auto... strides)
+template <typename... Ts>
+inline bool IsContiguous(Ts&&... strides)
 {
-  return ((strides.size() > 0 && strides[strides.size() - 1] == 1) && ...);
+  return ((std::forward<Ts>(strides).size() > 0 && std::forward<Ts>(strides)[std::forward<Ts>(strides).size() - 1] == 1) && ...);
 }
 
 /// @brief Helper function to reduce the rank for contiguous data
