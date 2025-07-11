@@ -16,6 +16,15 @@
 
 namespace grid {
 
+// helper class to determine rank from a reference; constexpr cannot bind to a reference
+namespace
+{
+template <typename> struct container_template_args;
+template <template <typename, size_t> typename C, typename T, size_t R>
+struct container_template_args<C<T, R>> { using value_type = T; constexpr static size_t size = R; };
+}
+
+
 // get_array(iniitlizer_list)
 // returns a std::array initialized from a initializer list.
 template <typename T, size_t... Ns>
@@ -236,8 +245,7 @@ inline auto BroadcastStrides(Ts&&... strides)
     using type = std::remove_cvref_t<Ts>;
     using value_type = type::value_type;
 
-    // compiler complains about strides.size() not being constexpr
-    constexpr size_t rank = std::remove_cvref_t<Ts>{}.size();
+    constexpr size_t rank = container_template_args<std::decay_t<Ts>>::size;
     static_assert(rank <= R);
 
     if constexpr (rank == R)
@@ -298,14 +306,6 @@ inline bool IsContiguous(Ts&&... strides)
 ///                         multiplied by the lower stride)
 ///   (3) stride: [0],0  -> note: special case of (2)
 ///
-
-// helper class to determine rank from a reference; constexpr cannot bind to a reference
-namespace
-{
-template <typename> struct container_template_args;
-template <template <typename, size_t> typename C, typename T, size_t R>
-struct container_template_args<C<T, R>> { using value_type = T; constexpr static size_t size = R; };
-}
 
 template <typename TOp, typename T>
 void Fold(TOp&& op, T&& dims, const auto... strides)
