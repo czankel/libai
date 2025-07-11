@@ -120,26 +120,41 @@ class BinaryOperation<TOperator, device::CPU>
     auto first_x = std::ranges::cbegin(in1);
     auto first_y = std::ranges::cbegin(in2);
 
-    FoldBroadcast([&](auto dimensions, auto strides_d, auto strides_x, auto strides_y) {
+    Fold([&](const auto dimensions, const auto strides_d, const auto strides_x, const auto strides_y) {
         static_assert(dimensions.size() != std::dynamic_extent, "dynamic_extent not supported");
         bool is_cont = IsContiguous(strides_d, strides_x, strides_y);
 
         if constexpr (dimensions.size() == 0)
           Eval(&*first_d, &*first_x, &*first_y);
         else if constexpr (dimensions.size() == 1)
+        {
+          const auto [b_strides_x, b_strides_y] = BroadcastStrides<1>(strides_x, strides_y);
           if (is_cont)
-            Eval(&*first_d, &*first_x, &*first_y, dimensions);
+            Eval(&*first_d, &*first_x, &*first_y, std::span(dimensions));
           else
-            Eval(&*first_d, &*first_x, &*first_y, dimensions, strides_d, strides_x, strides_y);
+            Eval(&*first_d, &*first_x, &*first_y,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x),
+                 std::span(b_strides_y));
+        }
         else if constexpr (dimensions.size() > 1)
         {
+          const auto [b_strides_x, b_strides_y] = BroadcastStrides<dimensions.size()>(strides_x, strides_y);
           if (is_cont)
-            EvalContiguous(&*first_d, &*first_x, &*first_y, dimensions, strides_d, strides_x, strides_y);
+            EvalContiguous(&*first_d, &*first_x, &*first_y,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x),
+                 std::span(b_strides_y));
           else
-            Eval(&*first_d, &*first_x, &*first_y, dimensions, strides_d, strides_x, strides_y);
+            Eval(&*first_d, &*first_x, &*first_y,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x),
+                 std::span(b_strides_y));
         }
-    }, std::span(first_d.Extents()), std::span(first_d.Strides()),
-       std::span(first_x.Strides()), std::span(first_y.Strides()));
+    }, first_d.Extents(), first_d.Strides(), first_x.Strides(), first_y.Strides());
   }
 };
 
