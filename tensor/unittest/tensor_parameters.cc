@@ -274,7 +274,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank3)
     constexpr ssize_t strides1[] = { 2, 0 };
     grid::Fold([&callback](auto f_dims, auto f_strides1) {
         EXPECT_THAT(f_dims, ElementsAre(4, 5, 6));
-        EXPECT_THAT(f_strides1, ElementsAre(2, 0));
+        EXPECT_THAT(f_strides1, ElementsAre(0, 2, 0));
         callback = true;
     }, std::span(dims), std::span(strides1));
     EXPECT_TRUE(callback);
@@ -361,7 +361,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr ssize_t strides2[] = { 30, 6 };
     grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(3, 5));
-        EXPECT_THAT(f_strides1, ElementsAre(6));
+        EXPECT_THAT(f_strides1, ElementsAre(0, 6));
         EXPECT_THAT(f_strides2, ElementsAre(30, 6));
         callback = true;
     }, std::span(dims), std::span(strides1), std::span(strides2));
@@ -377,7 +377,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(3, 5));
         EXPECT_THAT(f_strides1, ElementsAre(30, 6));
-        EXPECT_THAT(f_strides2, ElementsAre(6));
+        EXPECT_THAT(f_strides2, ElementsAre(0, 6));
         callback = true;
     }, std::span(dims), std::span(strides1), std::span(strides2));
     EXPECT_TRUE(callback);
@@ -406,7 +406,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr ssize_t strides2[] = { 30, 6, 1 };
     grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(4,30));
-        EXPECT_THAT(f_strides1, ElementsAre(1));
+        EXPECT_THAT(f_strides1, ElementsAre(0, 1));
         EXPECT_THAT(f_strides2, ElementsAre(30,1));
         callback = true;
     }, std::span(dims), std::span(strides1), std::span(strides2));

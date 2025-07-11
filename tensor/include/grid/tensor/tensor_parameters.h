@@ -284,8 +284,9 @@ inline bool IsContiguous(Ts&&... strides)
 /// @brief Helper function to reduce the rank for contiguous data
 ///
 /// The Fold function calls the provided function with the folded dimensions and strides.
-/// Strides are reduced by the folded dimensions. An empty span is used if the original
-/// rank of the stride was smaller than the residual rank.
+/// Strides are reduced by the folded dimensions. The stride array is extended with 0s
+/// if the original rank of the stride was smaller than the residual rank unless it was empty,
+/// in which case it returned an empty array.
 ///
 /// Folding rules:
 ///
@@ -293,94 +294,101 @@ inline bool IsContiguous(Ts&&... strides)
 ///   (1) dim:      _,1  -> fold
 ///
 /// Dimensions can be folded if one of the following conditions is true:
-///   (2) stride: [0],0  -> foldable, the sclar is applied to any folded dimensions)
-///   (3) stride: f*x,f  -> foldable, the upper stride must match the "folded" dimension (x)
+///   (2) stride: f*x,f  -> foldable, the upper stride must match the "folded" dimension (x)
 ///                         multiplied by the lower stride)
+///   (3) stride: [0],0  -> note: special case of (2)
 ///
-template <size_t R, typename TOp>
-void Fold(TOp&& op, std::span<const size_t, R> dims, auto... strides)
+
+// helper class to determine rank from a reference; constexpr cannot bind to a reference
+namespace
 {
-  // rank-0: scalars return empty dimensions, and are 'contiguous'
-  if constexpr (R == 0)
-    std::apply(op, std::tuple_cat(std::tuple(std::span<const size_t, 0>{}),
-                                  std::array<std::span<const ssize_t, 0>, sizeof...(strides)>{}));
+template <typename> struct container_template_args;
+template <template <typename, size_t> typename C, typename T, size_t R>
+struct container_template_args<C<T, R>> { using value_type = T; constexpr static size_t size = R; };
+}
+
+template <typename TOp, typename T>
+void Fold(TOp&& op, T&& dims, const auto... strides)
+{
+  // TODO: constexpr size_t rank = dims.size()
+  constexpr size_t rank = container_template_args<std::decay_t<T>>::size;
+
+  // rank-0: scalars return empty dimensions and strides
+  if constexpr (rank == 0)
+    std::apply(op, std::tuple_cat(std::tuple(std::array<size_t, 0>{}),
+                                  std::array<std::array<ssize_t, 0>, sizeof...(strides)>{}));
 
   // rank-1: scalar if dim is one, otherwise, keep strides
-  else if constexpr (R == 1)
+  else if constexpr (rank == 1)
     if (dims[0] == 1)
-      std::apply(op, std::tuple_cat(std::tuple(std::span<const size_t, 0>{}),
-                                    std::array<std::span<const ssize_t, 0>, sizeof...(strides)>{}));
+      std::apply(op, std::tuple_cat(std::tuple(std::array<size_t, 0>{}),
+                                    std::array<std::array<ssize_t, 0>, sizeof...(strides)>{}));
     else
-      op(dims, strides...);
+      op(dims, std::move(strides)...);
 
+  // rank-2 and higher
   else
   {
-    size_t skip_idx = 0;  // track index for the first non-broadcast stride (i.e. dim != 1)
-    size_t prev_idx = 0;  // track stride index to skip_idx "broadcast" entries (i.e. where dim == 1)
     size_t folded_dim = 1;
+    size_t last = 0;  // track index from right to left, skip indices where the dimension is 1
+    size_t skip = 0;  // first rank from the right where dimensions is not 1
 
     auto foldfn = [&]<size_t I>() -> bool
     {
-      // find first non-broadcast index (dim != 1)
-      size_t dim = dims[R - I - 1];
-      if (skip_idx == 0)
+      size_t dim = dims[rank - I - 1];
+      if (skip == 0)
       {
         if (dim == 1)
           return true;
-        skip_idx = I + 1;
-        prev_idx = I + 1;
+        skip = I + 1;
+        last = rank - I - 1;
       }
 
       folded_dim *= dim;
-      if constexpr (I < R - 1) // R - I > 1
+
+      if constexpr (I < rank - 1)
       {
-        bool foldable = dims[R - I - 2] == 1;
+        bool foldable = dims[rank - I - 2] == 1;
         if (!foldable)
         {
-          foldable = (... && ([&](auto s) mutable {
-              constexpr size_t sz = s.size();
-              ssize_t first_str = strides[sz - skip_idx];
-              ssize_t curr_str = strides[sz - I - 2];
-              return ((sz >= I + 2 && curr_str - dims[R - prev_idx] * strides[sz - prev_idx] == 0) ||
-                      ((sz < I + 2 || curr_str == 0) && (sz > skip_idx && first_str == 0)));
-          }(strides)));
-          prev_idx = I + 2;
+          foldable = (... && ([&]() {
+              constexpr int sz = strides.size();
+              return (sz < I + 2) ?
+                (sz < skip || strides[sz - skip] == 0) :
+                ((strides[sz - I - 2] - dims[last] * strides[last + sz - rank]) == 0);
+          }()));
+          last = rank - I - 2;
         }
 
         if (foldable)
           return true;
       }
 
-      std::array<size_t, R - I> folded_dims;
-      std::ranges::copy(dims.template first<R - I - 1>(), folded_dims.begin());
-      folded_dims[R - I - 1] = folded_dim;
+      std::array<size_t, rank - I> folded_dims;
+      std::copy(dims.begin(), dims.begin() + rank - I, folded_dims.begin());
+      folded_dims[rank - I - 1] = folded_dim;
 
-      // TODO: check if folded_strides is dangling or lifetime extended
-      // TODO: assumes lambda is called in reverse order of arguments!
-      op(std::span(std::as_const(folded_dims)),
-         std::span<const ssize_t, strides.size() <= I ? 0 : strides.size() - I>([&](auto s) {
-
-          constexpr size_t sz = s.size();
-          if constexpr (sz <= I)
-            return std::span<const ssize_t, 0>{};
-          else
-          {
-            std::array<ssize_t, sz - I> folded_strides{};
-            std::ranges::copy(s.template first<sz - I>(), folded_strides.begin());
-            if (sz > skip_idx)
-              folded_strides[sz - I - 1] = s[sz - skip_idx];
-            return std::as_const(folded_strides);
-          }
-      }(strides))...);
+      op(std::move(folded_dims), [&](auto s) {
+            constexpr size_t sz = s.size();
+            if constexpr (sz <= I)
+              return std::array<ssize_t, 0>{};
+            else
+            {
+              std::array<ssize_t, rank - I> folded_strides{};
+              std::copy(s.begin(), s.begin() + sz - I, folded_strides.begin() + rank - sz);
+              if (sz > skip)
+                folded_strides[rank - I - 1] = s[sz - skip];
+              return folded_strides;
+            }
+          }(strides)...);
       return false;
     };
 
-    [&] <std::size_t... I>(std::index_sequence<I...>)
-    {
+    [&]<std::size_t... I>(std::index_sequence<I...>) {
       if (((foldfn.template operator()<I>()) && ...))
-        std::apply(op, std::tuple_cat(std::tuple(std::span<const size_t, 0>{}),
-                                      std::array<std::span<const ssize_t, 0>, sizeof...(strides)>{}));
-    }(std::make_index_sequence<R>{});
+        std::apply(op, std::tuple_cat(std::tuple(std::array<size_t, 0>{}),
+                                      std::array<std::array<ssize_t, 0>, sizeof...(strides)>{}));
+    }(std::make_index_sequence<rank>{});
   }
 }
 
