@@ -663,6 +663,89 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldBroadcastOperations)
   }
 #endif
 
+TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
+{
+  // can fold if scalar
+  {
+    bool callback = false;
+    constexpr std::array<size_t, 2>  dims{4, 5};
+    constexpr std::array<ssize_t, 0> strides{};
+    grid::Fold([&callback](auto f_dims, auto f_strides) {
+        EXPECT_THAT(f_dims, ElementsAre(20));
+        EXPECT_THAT(f_strides, ElementsAre());
+        callback = true;
+    }, dims, strides);
+    EXPECT_TRUE(callback);
+  }
+
+  // can fold if scalar
+  {
+    bool callback = false;
+    constexpr std::array<size_t, 2>  dims{4, 5};
+    constexpr std::array<ssize_t, 1> strides{0};
+    grid::Fold([&callback](auto f_dims, auto f_strides) {
+        EXPECT_THAT(f_dims, ElementsAre(20));
+        EXPECT_THAT(f_strides, ElementsAre());
+        callback = true;
+    }, dims, strides);
+    EXPECT_TRUE(callback);
+  }
+
+  // cannot fold non-scalar
+  {
+    bool callback = false;
+    constexpr std::array<size_t, 2>  dims{4, 5};
+    constexpr std::array<ssize_t, 1> strides{2};
+    grid::Fold([&callback](auto f_dims, auto f_strides) {
+        EXPECT_THAT(f_dims, ElementsAre(4, 5));
+        EXPECT_THAT(f_strides, ElementsAre(0, 2));
+        callback = true;
+    }, dims, strides);
+    EXPECT_TRUE(callback);
+  }
+
+  // Same as above but using rank-3 dimensions
+  {
+    bool callback = false;
+    constexpr std::array<size_t, 3>  dims{3, 4, 5};
+    constexpr std::array<ssize_t, 0> strides{};
+    grid::Fold([&callback](auto f_dims, auto f_strides) {
+        EXPECT_THAT(f_dims, ElementsAre(60));
+        EXPECT_THAT(f_strides, ElementsAre());
+        callback = true;
+    }, dims, strides);
+    EXPECT_TRUE(callback);
+  }
+
+  // Note that ideally strides{0} would reduce to skalar, but that's tricky
+  {
+    bool callback = false;
+    constexpr std::array<size_t, 3>  dims{3, 4, 5};
+    constexpr std::array<ssize_t, 1> strides{0};
+    grid::Fold([&callback](auto f_dims, auto f_strides) {
+        EXPECT_THAT(f_dims, ElementsAre(60));
+        EXPECT_THAT(f_strides, ElementsAre());
+        callback = true;
+    }, dims, strides);
+    EXPECT_TRUE(callback);
+  }
+
+  // Must keep strides
+  {
+    bool callback = false;
+    constexpr std::array<size_t, 3>  dims{3, 4, 5};
+    constexpr std::array<ssize_t, 1> strides{2};
+    grid::Fold([&callback](auto f_dims, auto f_strides) {
+        EXPECT_THAT(f_dims, ElementsAre(3, 4, 5));
+        EXPECT_THAT(f_strides, ElementsAre(0, 0, 2));
+        callback = true;
+    }, dims, strides);
+    EXPECT_TRUE(callback);
+  }
+
+}
+
+
 REGISTER_TYPED_TEST_SUITE_P(TensorParametersTestSuite,
     TensorFoldSingleRank0,
     TensorFoldBroadcastSingleRank0,
@@ -673,7 +756,8 @@ REGISTER_TYPED_TEST_SUITE_P(TensorParametersTestSuite,
     TensorFoldSingleRank3,
     TensorFoldBroadcastSingleRank3,
     TensorFoldOperations,
-    TensorFoldBroadcastOperations
+    TensorFoldBroadcastOperations,
+    TensorFoldScalar
     );
 
 INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestCPU, TensorParametersTestSuite, TensorCPUType);
