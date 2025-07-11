@@ -109,22 +109,38 @@ class UnaryOperation<TOperator, device::CPU>
     auto first_d = std::ranges::begin(out);
     auto first_x = std::ranges::cbegin(in);
 
-    FoldBroadcast([&](auto dimensions, auto strides_d, auto strides_x) {
+    Fold([&](const auto dimensions, const auto strides_d, const auto strides_x) {
         static_assert(dimensions.size() != std::dynamic_extent, "dynamic_extent not supported");
         bool is_cont = IsContiguous(strides_d, strides_x);
 
         if constexpr (dimensions.size() == 0)
           Eval(&*first_d, &*first_x);
         else if constexpr (dimensions.size() == 1)
+        {
+          const auto b_strides_x = BroadcastStrides<1>(strides_x);
           if (is_cont)
-            Eval(&*first_d, &*first_x, dimensions);
+            Eval(&*first_d, &*first_x, std::span(dimensions));
           else
-            Eval(&*first_d, &*first_x, dimensions, strides_d, strides_x);
-        else if (is_cont)
-          EvalContiguous(&*first_d, &*first_x, dimensions, strides_d, strides_x);
-        else
-          Eval(&*first_d, &*first_x, dimensions, strides_d, strides_x);
-    }, std::span(first_d.Extents()), std::span(first_d.Strides()), std::span(first_x.Strides()));
+            Eval(&*first_d, &*first_x,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x));
+        }
+        else if constexpr (dimensions.size() > 1)
+        {
+          const auto b_strides_x = BroadcastStrides<dimensions.size()>(strides_x);
+          if (is_cont)
+            EvalContiguous(&*first_d, &*first_x,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x));
+          else
+            Eval(&*first_d, &*first_x,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x));
+        }
+    }, first_d.Extents(), first_d.Strides(), first_x.Strides());
   }
 };
 
