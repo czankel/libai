@@ -394,6 +394,8 @@ void Fold(TOp&& op, T&& dims, const auto... strides)
 
 /// @brief Helper function to reduce the rank for contiguous data and broadcasting strides.
 ///
+/// Note that this function is deprecated, use Fold(), and if necessary BroadcastStrides.
+///
 /// The Fold function calls the provided function with the folded dimensions and strides.
 /// Strides are "broadcast" to match the rank of the dimensions.
 ///
@@ -403,7 +405,7 @@ void Fold(TOp&& op, T&& dims, const auto... strides)
 /// are kept as "colunn" vectors. Thie means that row/col strides for RHS vectors get exchanged.
 ///
 template <size_t R, typename TOp>
-void FoldBroadcast(TOp&& op, std::span<const size_t, R> dims, auto... strides)
+[[deprecated]] void FoldBroadcast(TOp&& op, std::span<const size_t, R> dims, auto... strides)
 {
   // rank-0: scalars return empty dimensions, and are 'contiguous'
   if constexpr (R == 0)
