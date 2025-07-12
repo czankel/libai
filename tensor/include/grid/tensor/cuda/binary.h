@@ -66,25 +66,25 @@ class BinaryOperation<TOperator, device::Cuda>
     auto first_x = std::ranges::cbegin(in1);
     auto first_y = std::ranges::cbegin(in2);
 
-    Fold([&](auto dimensions, auto strides_d, auto strides_x, auto strides_y) {
+    Fold([&](const auto dimensions, const auto strides_d, const auto strides_x, const auto strides_y) {
 
         if constexpr (dimensions.size() > 3)
           throw std::runtime_error("non-coontiguous tensors of rank > 3 not supported");
 
-        constexpr size_t rank = dimensions.size();
         bool is_contiguous = IsContiguous(strides_d, strides_x, strides_y);
-        size_t dim = dimensions[0];
 
+        constexpr size_t rank = dimensions.size();
         constexpr size_t rank_x = strides_x.size();
         constexpr size_t rank_y = strides_y.size();
         if constexpr (rank_x == 0 && rank_y == 0)
         {
-          EvalSS(&*first_d, &*first_x, &*first_y, 1UL); // FIXME: what's the 1UL?
+          EvalSS(&*first_d, &*first_x, &*first_y, 1UL);
         }
         else if constexpr (rank == 1)
         {
           if (is_contiguous)
           {
+            size_t dim = dimensions[0];
             if (rank_x == 0)
               EvalSV(&*first_d, &*first_x, &*first_y, dim);
             else if (rank_y == 0)
@@ -94,37 +94,33 @@ class BinaryOperation<TOperator, device::Cuda>
           }
           else
           {
-            const auto [b_strides_x, b_strides_y] = BroadcastStrides(strides_x, strides_y);
-            EvalDiscontiguous(&*first_d, &*first_x, &*first_y, dimensions,
-                              strides_d.template first<rank>(),
-                              std::span(b_strides_x).template first<rank>(),
-                              std::span(b_strides_y).template first<rank>());
-           }
-        }
-        else if constexpr (rank < first_d.Rank())
-        {
-          constexpr size_t r_x = std::min(strides_x.size(), rank);
-          constexpr size_t r_y = std::min(strides_y.size(), rank);
-          const auto [b_strides_x, b_strides_y] =
-            BroadcastStrides(strides_x.template first<r_x>(), strides_y.template first<r_y>());
-          EvalContiguous(&*first_d, &*first_x, &*first_y, dimensions,
-                         strides_d.template first<rank>(),
-                         std::span(b_strides_x), std::span(b_strides_y));
+            const auto [b_strides_x, b_strides_y] = BroadcastStrides<rank>(strides_x, strides_y);
+            EvalDiscontiguous(&*first_d, &*first_x, &*first_y,
+                 std::span(dimensions),
+                 std::span(strides_d),
+                 std::span(b_strides_x),
+                 std::span(b_strides_y));
+          }
         }
         else
         {
-          const auto [b_strides_x, b_strides_y] = BroadcastStrides(strides_x, strides_y);
-          EvalDiscontiguous(&*first_d, &*first_x, &*first_y, dimensions,
-                            strides_d, std::span(b_strides_x), std::span(b_strides_y));
+          const auto [b_strides_x, b_strides_y] = BroadcastStrides<rank>(strides_x, strides_y);
+          if (is_contiguous)
+            EvalContiguous(&*first_d, &*first_x, &*first_y,
+                           std::span(dimensions),
+                           std::span(strides_d),
+                           std::span(b_strides_x),
+                           std::span(b_strides_y));
+          else
+            EvalDiscontiguous(&*first_d, &*first_x, &*first_y,
+                              std::span(dimensions),
+                              std::span(strides_d),
+                              std::span(b_strides_x),
+                              std::span(b_strides_y));
         }
 
-         CudaDeviceSynchronize(); // FIXME
-    }, std::span(first_d.Extents()), std::span(first_d.Strides()),
-       std::span(first_x.Strides()), std::span(first_y.Strides()));
-
-    std::span strides_d(first_d.Strides());
-    std::span strides_x(first_x.Strides());
-    std::span strides_y(first_y.Strides());
+        CudaDeviceSynchronize(); // FIXME
+    }, first_d.Extents(), first_d.Strides(), first_x.Strides(), first_y.Strides());
 
   }
 
