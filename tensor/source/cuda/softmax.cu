@@ -65,7 +65,7 @@ void SoftMaxCallKernel(T* d, const T* x, size_t rows, size_t cols)
   size_t dim_x = std::min(max_blocks, ((cols + 31) / 32) * 32);
 
   auto [grid_size, block_size] =
-    cuda::GetSizes({dim_x, rows}, dim_x, 1);
+    cuda::GetSizes({rows, dim_x}, dim_x, 1);
 
   size_t n_threads = block_size.x;
   int n_threads_log2 = sizeof(n_threads) * 8 - __builtin_clzll(n_threads - 1);

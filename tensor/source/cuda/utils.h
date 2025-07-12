@@ -14,6 +14,16 @@
 namespace grid {
 namespace cuda {
 
+namespace
+{
+template <std::size_t ... Is>
+constexpr auto index_sequence_reverse(std::index_sequence<Is...> const &)
+  -> decltype(std::index_sequence<sizeof...(Is) - 1U - Is...>{});
+
+template <std::size_t N>
+using make_index_sequence_reverse = decltype(index_sequence_reverse(std::make_index_sequence<N>{}));
+}
+
 // The number of threads implemented in GPUs is currently fixed to 1024
 static constexpr size_t MaxThreadCount = 1024;
 static constexpr size_t WarpSize = 32;
@@ -24,7 +34,7 @@ inline dim3 MakeDim3(std::span<T, R> s)
 {
   return [=] <std::size_t... I> (std::index_sequence<I...>) {
      return dim3{(static_cast<unsigned int>(s[I]))...};
-  }(std::make_index_sequence<R>());
+  }(make_index_sequence_reverse<R>());
 }
 
 // GetSizes returns a tuple of the grid and block sizes for the provided dimension.

@@ -18,25 +18,25 @@
 
 namespace grid {
 
-// Note that dimensions are ikj and strides are row (i) x column(j) i.e. .x: row (i), .y: column (j)
+// Note that dimensions are jki  (col, index, row)
 template <typename T>
 __global__ void CudaMatmulGeneric(T* d, const T* a, const T* b,
                                   dim3 dims,
                                   dim3 strides_d, dim3 strides_a, dim3 strides_b)
 {
-  size_t idx_i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (idx_i < dims.x)
+  size_t idx_i = blockIdx.y * blockDim.y + threadIdx.y;
+  if (idx_i < dims.z)
   {
-    size_t idx_j = blockIdx.y * blockDim.y + threadIdx.y;
-    if (idx_j < dims.z)
+    size_t idx_j = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx_j < dims.x)
     {
-      size_t idx_d = idx_i * strides_d.x + idx_j * strides_d.y;
-      size_t idx_a = idx_i * strides_a.x;
-      size_t idx_b = idx_j * strides_b.y;
+      size_t idx_d = idx_i * strides_d.y + idx_j * strides_d.x;
+      size_t idx_a = idx_i * strides_a.y;
+      size_t idx_b = idx_j * strides_b.x;
 
       T sum{0};
       for (size_t idx_k = 0; idx_k < dims.y; idx_k++)
-        sum += a[idx_a + idx_k * strides_a.y] * b[idx_b + idx_k * strides_b.x];
+        sum += a[idx_a + idx_k * strides_a.x] * b[idx_b + idx_k * strides_b.y];
       d[idx_d] = sum;
     }
   }
