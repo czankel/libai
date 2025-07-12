@@ -53,18 +53,26 @@ class UnaryOperation<TOperator, device::Cuda>
     auto first_d = std::ranges::begin(out);
     auto first_x = std::ranges::cbegin(in);
 
-    FoldBroadcast([&](auto dimensions, auto strides_d, auto strides_x) {
+    Fold([&](const auto dimensions, const auto strides_d, const auto strides_x) {
 
         if constexpr (dimensions.size() > 3)
           throw std::runtime_error("non-coontiguous tensors of rank > 3 not supported");
 
+        const auto b_strides_x = BroadcastStrides<dimensions.size()>(strides_x);
+
         if (IsContiguous(strides_d, strides_x))
-          EvalContiguous(&*first_d, &*first_x, dimensions, strides_d, strides_x);
+          EvalContiguous(&*first_d, &*first_x,
+                         std::span(dimensions),
+                         std::span(strides_d),
+                         std::span(b_strides_x));
         else
-          EvalDiscontiguous(&*first_d, &*first_x, dimensions, strides_d, strides_x);
+          EvalDiscontiguous(&*first_d, &*first_x,
+                            std::span(dimensions),
+                            std::span(strides_d),
+                            std::span(b_strides_x));
 
         CudaDeviceSynchronize(); // FIXME
-    }, std::span(first_d.Extents()), std::span(first_d.Strides()), std::span(first_x.Strides()));
+    }, first_d.Extents(), first_d.Strides(), first_x.Strides());
   }
 
 #endif  // !__CUDACC__
