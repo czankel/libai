@@ -22,7 +22,7 @@ namespace grid {
 template <template <typename> typename TOperator>
 class BinaryOperation<TOperator, device::Metal>
 {
-  template <typename T>
+  template <typename T, bool Continuous>
   void Eval(MTL::Buffer* d_buf, const MTL::Buffer* x_buf, const MTL::Buffer* y_buf,
             size_t d_ofs, size_t x_ofs, size_t y_ofs,
             auto dimensions, auto strides_d, auto strides_x, auto strides_y) const
@@ -40,6 +40,7 @@ class BinaryOperation<TOperator, device::Metal>
     size_t s_y = strides_y.size();
 
     MTL::ComputePipelineState* pipeline;
+    // FIXME: is this same as Contiguous
     if (rank == 0 ||
         (rank == 1 && (s_x == 0 || strides_x[s_x - 1] == 1) && (s_y == 0 || strides_y[s_y - 1] == 1)))
     {
@@ -75,11 +76,11 @@ class BinaryOperation<TOperator, device::Metal>
       pipeline = kernel.ComputePipelineState();
       encoder->setComputePipelineState(pipeline);
 
-      auto [b_strides_x, b_strides_y] = BroadcastStrides(strides_x, strides_y);
+      auto [b_strides_x, b_strides_y] = BroadcastStrides<rank>(strides_x, strides_y);
       encoder->setBytes(b_strides_x.data(), b_strides_x.size() * sizeof(size_t), 3);
       encoder->setBytes(b_strides_y.data(), b_strides_y.size() * sizeof(size_t), 4);
 
-      auto [ grid_size, group_size] = GetBlockSize(dimensions);
+      auto [ grid_size, group_size] = GetBlockSize<rank>(dimensions);
       encoder.DispatchThreads(grid_size, group_size);
 
       device.Wait(); // TODO: use callback or manage dispaltched jobs
@@ -100,24 +101,28 @@ class BinaryOperation<TOperator, device::Metal>
     auto first_x = std::ranges::cbegin(in1);
     auto first_y = std::ranges::cbegin(in2);
 
-    std::span strides_d(first_d.Strides());
-    std::span strides_x(first_x.Strides());
-    std::span strides_y(first_y.Strides());
+    Fold([&](const auto dimensions, const auto strides_d, const auto strides_x, const auto strides_y) {
 
-    FoldOld([&](auto dimensions, bool contiguous) {
-        if (contiguous)
-          Eval<value_type>(
+        bool is_cont = IsContiguous(strides_d, strides_x, strides_y);
+
+        if (is_cont)
+          Eval<value_type, true>(
               first_d.Buffer(), first_x.Buffer(), first_y.Buffer(),
               first_d.Offset(), first_x.Offset(), first_y.Offset(),
               dimensions,
-              strides_d.template first<(dimensions.size() > 0) ? dimensions.size() - 1 : 0>(),
-              strides_x, strides_y);
+              std::move(strides_d),
+              std::move(strides_x),
+              std::move(strides_y));
         else
-          Eval<value_type>(
+          Eval<value_type, false>(
               first_d.Buffer(), first_x.Buffer(), first_y.Buffer(),
               first_d.Offset(), first_x.Offset(), first_y.Offset(),
-              dimensions, strides_d, strides_x, strides_y);
-    }, std::span(first_d.Extents()), strides_d, strides_x, strides_y);
+              dimensions,
+              std::move(strides_d),
+              std::move(strides_x),
+              std::move(strides_y));
+
+    }, first_d.Extents(), first_d.Strides(), first_x.Strides(), first_y.Strides());
   }
 };
 

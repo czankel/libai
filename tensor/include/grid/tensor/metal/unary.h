@@ -70,7 +70,7 @@ class UnaryOperation<TOperator, device::Metal>
 
       encoder->setBytes(strides_x.data(), strides_x.size() * sizeof(size_t), 3);
 
-      auto [ grid_size, group_size] = GetBlockSize(dimensions);
+      auto [ grid_size, group_size] = GetBlockSize<rank>(dimensions);
       encoder.DispatchThreads(grid_size, group_size);
 
       device.Wait(); // TODO: use callback or manage dispaltched jobs
@@ -92,18 +92,21 @@ class UnaryOperation<TOperator, device::Metal>
     std::span strides_d(first_d.Strides());
     std::span strides_x(first_x.Strides());
 
-    FoldOld([&](auto dimensions, bool contiguous) {
-      if (contiguous)
+    Fold([&](const auto dimensions, const auto strides_d, const auto strides_x) {
+      if (IsContiguous(strides_d, strides_x))
         Eval<value_type>(first_d.Buffer(), first_x.Buffer(),
                          first_d.Offset(), first_x.Offset(),
                          dimensions,
-                         strides_d.template first<(dimensions.size() > 0) ? dimensions.size() - 1 : 0>(),
-                         strides_x);
+// FIXME was: strides_d.template first<(dimensions.size() > 0) ? dimensions.size() - 1 : 0>(),
+                         std::move(strides_d),
+                         std::move(strides_x));
       else
         Eval<value_type>(first_d.Buffer(), first_x.Buffer(),
                          first_d.Offset(), first_x.Offset(),
-                         dimensions, strides_d, strides_x);
-    }, std::span(first_d.Extents()), strides_d, strides_x);
+                         dimensions,
+                         std::move(strides_d),
+                         std::move(strides_x));
+    }, first_d.Extents(), first_d.Strides(), first_x.Strides());
   }
 };
 
