@@ -68,14 +68,14 @@ class Array<T, DeviceMemory<device::Metal>>
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
     : size_(get_buffer_size<value_type>(dimensions, strides)),
-      buffer_(Allocate(size_ * sizeof(value_size)))
+      buffer_(Allocate(size_ * sizeof(value_type)))
   {}
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
     : size_(get_buffer_size<value_type>(dimensions, strides)),
-      buffer_(Allocate(size_ * sizeof(value_size)))
+      buffer_(Allocate(size_ * sizeof(value_type)))
   {
     details::initialize_unsafe(Data(), dimensions, strides, init);
   }
@@ -85,9 +85,9 @@ class Array<T, DeviceMemory<device::Metal>>
   // TODO use GPU for copy
   Array(const Array& other)
     : size_(other.size_),
-      buffer_(Allocate(size_ * sizeof(value_size)))
+      buffer_(Allocate(size_ * sizeof(value_type)))
   {
-    memcpy(Data(), other.Data(), other.size * sizeof(value_size));
+    memcpy(Data(), other.Data(), other.size_ * sizeof(value_type));
   }
 
   // @brief Copy constructor with dimensions and strides
@@ -97,7 +97,7 @@ class Array<T, DeviceMemory<device::Metal>>
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
     : size_(get_buffer_size<value_type>(dimensions, strides1)),
-      buffer_(Allocate(size_ * sizeof(value_size)))
+      buffer_(Allocate(size_ * sizeof(value_type)))
   {
     details::copy_unsafe(Data(), data,
                          std::span<const size_t, N>(dimensions.begin(), N),
@@ -137,7 +137,7 @@ class Array<T, DeviceMemory<device::Metal>>
     {
       if (buffer_ != nullptr)
         Free(buffer_);
-      buffer_ = Allocate(device::Metal::GetDevice(), size * sizeof(value_size));
+      buffer_ = Allocate(device::Metal::GetDevice(), size * sizeof(value_type));
       size_ = size;
     }
 
