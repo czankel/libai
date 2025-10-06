@@ -61,6 +61,8 @@ Metal::Metal()
     throw std::runtime_error("failed to create metal library");
 
   queue_ = mtl_device_->newCommandQueue();
+
+  max_threads_per_threadgroup_ = mtl_device_->maxThreadsPerThreadgroup();
 }
 
 

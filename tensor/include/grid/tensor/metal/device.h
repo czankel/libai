@@ -99,6 +99,8 @@ class Metal : public Device
   // TODO Sync queues, wait for completion, etc... set callback...
   void Wait();
 
+  MTL::Size max_threads_per_threadgroup_;
+  static const size_t max_thread_execution_width_ = 32; ///< Maximum SIMD width
 
  private:
   static Metal*       g_device_;
