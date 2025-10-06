@@ -53,7 +53,7 @@ TYPED_TEST_P(SoftMaxTestSuite, TensorSoftMaxRank1)
 }
 
 
-TYPED_TEST_P(SoftMaxTestSuite, TensorSoftMaxRank1Large)
+TYPED_TEST_P(SoftMaxTestSuite, TensorSoftMaxRank2Large)
 {
   grid::Precision p(100.f);
   auto random = grid::Random<grid::Tensor, float>({10000,7000})();
@@ -68,7 +68,7 @@ TYPED_TEST_P(SoftMaxTestSuite, TensorSoftMaxRank1Large)
 
 REGISTER_TYPED_TEST_SUITE_P(SoftMaxTestSuite,
     TensorSoftMaxRank1,
-    TensorSoftMaxRank1Large);
+    TensorSoftMaxRank2Large);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(SoftMaxTestCPU, SoftMaxTestSuite, TensorCPUType);
 #ifdef BUILD_METAL
