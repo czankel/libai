@@ -44,7 +44,6 @@ template <> class SoftMaxOperator<device::Metal>
 
     if (row_size > line_limit)
     {
-      printf("LOOP\n");
       static metal::Kernel<T> kernel("SoftMaxLoop");
       pipeline = kernel.ComputePipelineState();
       threadgroup_size = (((row_size + n_reads - 1) & -n_reads) + simd_size) & -simd_size;
