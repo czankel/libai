@@ -43,12 +43,14 @@ Worker::Worker(unsigned int job_capacity, unsigned int thread_count)
   if (job_capacity == 0)
     throw std::runtime_error("invalid job capacity");
 
+  // FIXME: use sizeof(), also, change to long and use typedef
   job_alloc_bitmap_ = new uint32_t[(job_capacity_ + 31) / 32];
   memset(job_alloc_bitmap_, 0, (job_capacity_ + 31) / 32 * sizeof(uint32_t));
 
   jobs_ = new WorkerJob[job_capacity_];
+
   for (unsigned int i = 0; i < job_capacity_; i++)
-    new (&jobs_[i]) Job();
+    new (&jobs_[i]) WorkerJob();
 
   unsigned int max_threads = GetConcurrentThreadCount();
   thread_count_adjust_ = std::min(thread_count, max_threads);
@@ -69,7 +71,7 @@ Worker::~Worker()
 
   for (unsigned int i = 0; i < job_capacity_; i++)
   {
-    if (job_alloc_bitmap_[i] != 0)
+    if ((job_alloc_bitmap_[i/(sizeof(job_alloc_bitmap_[0])*8)] & (1 << (i % (sizeof(job_alloc_bitmap_[0])*8)))) != 0)
     {
       if (--jobs_[i].refcount_ > 0)
       {
@@ -158,7 +160,7 @@ void Worker::WakeBlocked(const Job& job)
 {
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("invalid blocked job");
 
   WorkerJob& wjob = *reinterpret_cast<WorkerJob*>(id);
   std::lock_guard lock(queue_mutex_);
@@ -169,7 +171,7 @@ void Worker::KillJob(const Job& job)
 {
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("kill: invalid job");
 
   WorkerJob& wjob = *reinterpret_cast<WorkerJob*>(id);
 
@@ -184,10 +186,9 @@ void Worker::KillWorkerJob(WorkerJob& wjob)
   {
     std::lock_guard lock(queue_mutex_);
     if (wjob.is_queued_)
-    {
       DequeueWorkerJobLocked(wjob);
-      ReleaseWorkerJobLocked(wjob);
-    }
+
+    ReleaseWorkerJobLocked(wjob);
   }
 }
 
@@ -195,7 +196,7 @@ void Worker::Block(Job& job)
 {
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("block: invalid job");
 
   std::lock_guard lock(queue_mutex_);
   AddRefBlockedLocked(*reinterpret_cast<WorkerJob*>(id));
@@ -205,7 +206,7 @@ void Worker::ReleaseBlock(Job& job)
 {
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("release: invalid job");
 
   std::lock_guard lock(queue_mutex_);
   ReleaseBlockedLocked(*reinterpret_cast<WorkerJob*>(id));
@@ -240,7 +241,7 @@ bool Worker::WaitForJob(const Job& job)
 
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("wait: invalid job");
 
   WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
   std::unique_lock lock(wjob->wait_mutex_);
@@ -265,7 +266,7 @@ bool Worker::WaitForJobFor(const Job& job, Duration timeout)
 
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("wait: invalid job");
 
   WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
   std::unique_lock lock(wjob->wait_mutex_);
@@ -287,7 +288,7 @@ bool Worker::WaitForJobUntil(const Job& job, TimePoint time)
 
   Job::Id id = job.GetId();
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("wait: invalid job");
 
   WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
   std::unique_lock lock(wjob->wait_mutex_);
@@ -314,7 +315,7 @@ Job::Id Worker::AllocateJob(size_t size)
 
   int slot = AllocateSlot();
   if (slot < 0)
-    return Job::kInvalid;
+    throw std::runtime_error("queue full");
 
   WorkerJob& wjob = jobs_[slot];
 
@@ -339,7 +340,7 @@ Job::Id Worker::AllocateJob(size_t size)
 void* Worker::GetFunctionPointer(Job::Id id)
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("alloc: invalid job");
 
   return reinterpret_cast<WorkerJob*>(id)->function_buffer_;
 }
@@ -347,15 +348,16 @@ void* Worker::GetFunctionPointer(Job::Id id)
 void Worker::AddRefJob(Job::Id id)
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("addref: invalid job");
 
   ++reinterpret_cast<WorkerJob*>(id)->refcount_;
 }
 
+
 void Worker::ReleaseJob(Job::Id id)
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("releaseref: invalid job");
 
   std::lock_guard lock (queue_mutex_);
   ReleaseWorkerJobLocked(*reinterpret_cast<WorkerJob*>(id));
@@ -364,7 +366,7 @@ void Worker::ReleaseJob(Job::Id id)
 Job::Status Worker::GetJobStatus(Job::Id id) const
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("status: invalid job");
 
   WorkerJob* wjob = reinterpret_cast<WorkerJob*>(id);
   return wjob->is_queued_ ? Job::kWaiting : (
@@ -386,7 +388,7 @@ bool Worker::NeedsReschedule(Job::Id id) const
 bool Worker::Reschedule(Job::Id id)
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("reschedule: invalid job");
 
   return RescheduleWorkerJob(*reinterpret_cast<WorkerJob*>(id), kScheduleNormal);
 }
@@ -394,7 +396,7 @@ bool Worker::Reschedule(Job::Id id)
 bool Worker::RescheduleDelayedMsec(Job::Id id, int msec)
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("reschedule: invalid job");
 
   return RescheduleWorkerJob(*reinterpret_cast<WorkerJob*>(id),
                              SteadyClock::now() + std::chrono::milliseconds(msec));
@@ -403,7 +405,7 @@ bool Worker::RescheduleDelayedMsec(Job::Id id, int msec)
 bool Worker::RescheduleAtTime(Job::Id id, TimePoint time)
 {
   if (id == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("reschedule: invalid job");
 
   return RescheduleWorkerJob(*reinterpret_cast<WorkerJob*>(id), time);
 }
@@ -411,7 +413,7 @@ bool Worker::RescheduleAtTime(Job::Id id, TimePoint time)
 bool Worker::RescheduleAfterJob(Job::Id id, Job::Id yield, bool immediate)
 {
   if (id == Job::kInvalid || yield == Job::kInvalid)
-    throw std::runtime_error("invalid job");
+    throw std::runtime_error("reschedule: invalid job");
 
   // note that if yield is invalid, it will just reschedule the job normally
   TimePoint time = immediate ? kScheduleImmediate : kScheduleNormal;
@@ -697,7 +699,6 @@ bool Worker::ReleaseBlockedLocked(WorkerJob& job)
   bool unblocked = --job.block_refcount_ == 0;
   if (unblocked)
   {
-    ReleaseWorkerJobLocked(job);        // release as a blocked reference
     DequeueWorkerJobLocked(job);
 
     // TODO: support other options than immediate
@@ -943,6 +944,10 @@ void Worker::ReleaseWorkerJobLocked(WorkerJob& wjob)
   {
     if (wjob.is_queued_)
       throw std::runtime_error("trying to release queued job");
+
+    // FIXME: we don't have the actual "Args" here std::function<bool(Args...)>(std::move(f));
+    reinterpret_cast<std::function<bool()>*>(wjob.function_buffer_)->~function();
+
     FreeSlot(&wjob - jobs_);
   }
 }

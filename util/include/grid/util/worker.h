@@ -502,6 +502,7 @@ class Worker
   /// @param[in] id  Job id.
   void AddRefJob(Job::Id id);
 
+
   /// ReleaseJob releases the job and decrements the reference counter. The
   /// job is deleted when the count goes to 0.
   ///
@@ -693,11 +694,12 @@ struct WorkerJob
 template <typename F, typename... Args>
 inline Job::Id Worker::AllocateJob(F&& function, Args&&... args)
 {
-  auto f = std::bind(function, std::forward<Args>(args)...);
+  auto&& f = std::bind(function, std::forward<Args>(args)...);
+
   Job::Id id = AllocateJob(sizeof(f));
-  if (id != Job::kInvalid)
+  if (id != Job::kInvalid) // FIXME: shoudl this ever happen??
     new (reinterpret_cast<std::function<bool(Args...)>*>(GetFunctionPointer(id)))
-      std::function<bool(Args...)>(std::move(f));
+     std::function<bool(Args...)>(std::move(f));
   return id;
 }
 
@@ -705,12 +707,12 @@ inline Job::Id Worker::AllocateJob(F&& function, Args&&... args)
 template <typename R, typename... Args>
 inline Job::Id Worker::AllocateJob(R(&&function)(Args&&...), Args&&... args)
 {
-  auto f = std::bind(&function, std::forward<Args>(args)...);
+  auto&& f = std::bind(&function, std::forward<Args>(args)...);
 
   Job::Id id = AllocateJob(sizeof(f));
   if (id != Job::kInvalid)
-    new (reinterpret_cast<std::function<bool()>*>(GetFunctionPointer(id)))
-      std::function<bool()>(std::move(f));
+    new (reinterpret_cast<std::function<bool(Args...)>*>(GetFunctionPointer(id)))
+     std::function<bool(Args...)>(std::move(f));
   return id;
 }
 
@@ -718,11 +720,12 @@ inline Job::Id Worker::AllocateJob(R(&&function)(Args&&...), Args&&... args)
 template <typename R, typename C, typename... Args>
 inline Job::Id Worker::AllocateJob(R(C::*function)(Args...), C& c, Args&&... args)
 {
-  auto f = std::bind(std::mem_fn(function), &c, args...);
+  auto&& f = std::bind(std::mem_fn(function), &c, args...);
 
   Job::Id id = AllocateJob(sizeof(f));
   if (id != Job::kInvalid)
-    *reinterpret_cast<std::function<bool()>*>(GetFunctionPointer(id)) = std::move(f);
+    new (reinterpret_cast<std::function<bool(Args...)>*>(GetFunctionPointer(id)))
+     std::function<bool(Args...)>(std::move(f));
   return id;
 }
 
