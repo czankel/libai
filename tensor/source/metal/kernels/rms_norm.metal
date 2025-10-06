@@ -15,163 +15,26 @@
 
 #include "utils.h"
 
-template <typename T, int N_READS = 4>	 // 4 per simd thread?
+template <typename T, int N_READS = 4>
 [[kernel]] void RmsNormLine(device T* d,
                             const device T* x,
-                            const device T*,
                             constant float& eps,
-                            constant uint& dim,
-                            constant uint&,
-                            threadgroup float* local_inv_mean [[threadgroup(0)]],
-                            threadgroup float* local_sums [[threadgroup(1)]],
+                            constant uint& line_width,
+                            threadgroup float* local_sums [[threadgroup(0)]],
                             uint gid [[threadgroup_position_in_grid]],
                             uint lid [[thread_position_in_threadgroup]],
-                            __attribute__((unused)) uint line_size [[threads_per_threadgroup]],
+                            __attribute__((unused)) uint group_size [[threads_per_threadgroup]],
                             uint simd_lane_id [[thread_index_in_simdgroup]],
                             uint simd_group_id [[simdgroup_index_in_threadgroup]])
 {
+  threadgroup float local_inv_mean;
+
+  uint idx = gid * line_width + lid * N_READS;
+  d += idx;
+  x += idx;
+
   float acc = 0;
-  x += gid * dim + lid * N_READS;
-
-  if (lid * N_READS + N_READS <= dim)
-  {
-    for (int i = 0; i < N_READS; i++)
-    {
-      float xi = x[i];  // TODO: is there any perf difference to x[i]*x[i]?
-      acc += xi * xi;
-    }
-  }
-  else
-  {
-    for (int i = 0; i < N_READS; i++)
-    {
-      if ((lid * N_READS + i) < dim)
-      {
-        float xi = x[i];
-        acc += xi * xi;
-      }
-    }
-  }
-  acc = metal::simd_sum(acc);
-
-  if (simd_group_id == 0)
-    local_sums[simd_lane_id] = 0;
-
-  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
-
-  if (simd_lane_id == 0)
-    local_sums[simd_group_id] = acc;
-
-  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
-
-  if (simd_group_id == 0)
-  {
-    acc = metal::simd_sum(local_sums[simd_lane_id]);
-    if (simd_lane_id == 0)
-      local_inv_mean[0] = metal::precise::rsqrt(acc / dim + eps);
-  }
-
-  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
-
-  d += gid * dim + lid * N_READS;
-  if (lid * N_READS + N_READS <= dim)
-    for (int i = 0; i < N_READS; i++)
-      d[i] = static_cast<T>(x[i] * local_inv_mean[0]);
-  else
-    for (int i = 0; i < N_READS; i++)
-      if ((lid * N_READS + i) < dim)
-        d[i] = static_cast<T>(x[i] * local_inv_mean[0]);
-}
-
-
-template <typename T, int N_READS = 4>
-[[kernel]] void RmsNormLoop(device T* d,
-                            const device T* x,
-                            const device T*,
-                            constant float& eps,
-                            constant uint& dim,
-                            constant uint&,
-                            threadgroup float* local_inv_mean [[threadgroup(0)]],
-                            threadgroup float* local_sums [[threadgroup(1)]],
-                            uint gid [[threadgroup_position_in_grid]],
-                            uint lid [[thread_position_in_threadgroup]],
-                            uint line_size [[threads_per_threadgroup]],
-                            uint simd_lane_id [[thread_index_in_simdgroup]],
-                            uint simd_group_id [[simdgroup_index_in_threadgroup]])
-{
-  float acc = 0; // TODO: use T or float?
-
-  x += gid * dim + lid * N_READS;
-
-  for (uint r = 0; r < dim; r+= line_size * N_READS)
-    if (r + lid * N_READS + N_READS <= dim)
-      for (int i = 0; i < N_READS; i++)
-      {
-        float xi = x[i + r];
-        acc += xi * xi;
-      }
-    else
-      for (int i = 0; i < N_READS; i++)
-        if ((r + lid * N_READS + i) < dim)
-        {
-          float xi = x[i + r];
-          acc += xi * xi;
-        }
-
-  acc = metal::simd_sum(acc);
-
-  if (simd_group_id == 0)
-    local_sums[simd_lane_id] = 0;
-
-  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
-
-  if (simd_lane_id == 0)
-    local_sums[simd_group_id] = acc;
-
-  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
-
-  if (simd_group_id == 0)
-  {
-    acc = metal::simd_sum(local_sums[simd_lane_id]);
-    if (simd_lane_id == 0)
-      local_inv_mean[0] = metal::precise::rsqrt(acc / dim + eps);
-  }
-
-  metal::threadgroup_barrier(metal::mem_flags::mem_threadgroup);
-
-  d += gid * dim + lid + N_READS;
-  for (uint r = 0; r < dim; r += line_size * N_READS)
-    if (r + lid * N_READS + N_READS <= dim)
-      for (int i = 0; i < N_READS; i++)
-        d[r + i] = static_cast<T>(x[r + i] * local_inv_mean[0]);
-
-    else
-      for (int i = 0; i < N_READS; i++)
-        if ((r + lid * N_READS + i) < dim)
-          d[r + i] = static_cast<T>(x[r + i] * local_inv_mean[0]);
-}
-
-
-template <typename T, int N_READS = 4>	 // 4 per simd thread?
-[[kernel]] void RmsNormWeightLine(device T* d,
-                                  const device T* x,
-                                  const device T* w,
-                                  constant float& eps,
-                                  constant uint& dim,
-                                  constant uint& stride_w,
-                                  threadgroup float* local_inv_mean [[threadgroup(0)]],
-                                  threadgroup float* local_sums [[threadgroup(1)]],
-                                  uint gid [[threadgroup_position_in_grid]],
-                                  uint lid [[thread_position_in_threadgroup]],
-                                  __attribute__((unused)) uint line_size [[threads_per_threadgroup]],
-                                  uint simd_lane_id [[thread_index_in_simdgroup]],
-                                  uint simd_group_id [[simdgroup_index_in_threadgroup]])
-{
-  float acc = 0;
-  x += gid * dim + lid * N_READS;
-  w += stride_w * lid * N_READS;
-
-  if (lid * N_READS + N_READS <= dim)
+  if (lid * N_READS + N_READS <= line_width)
   {
     for (int i = 0; i < N_READS; i++)
     {
@@ -183,15 +46,19 @@ template <typename T, int N_READS = 4>	 // 4 per simd thread?
   {
     for (int i = 0; i < N_READS; i++)
     {
-      if ((lid * N_READS + i) < dim)
+      if (lid * N_READS + i < line_width)
       {
         float xi = x[i];
         acc += xi * xi;
       }
     }
   }
+
+  // Return the sum of the input values in acc across all active threads in the SIMD-group
+  // and broadcasts the result to all active threads in the SIMD-group
   acc = metal::simd_sum(acc);
 
+  // TODO: This assumes that the number of SIMD lanes is the same as the number of SIMD groups
   if (simd_group_id == 0)
     local_sums[simd_lane_id] = 0;
 
@@ -206,44 +73,43 @@ template <typename T, int N_READS = 4>	 // 4 per simd thread?
   {
     acc = metal::simd_sum(local_sums[simd_lane_id]);
     if (simd_lane_id == 0)
-      local_inv_mean[0] = metal::precise::rsqrt(acc / dim + eps);
+      local_inv_mean = metal::precise::rsqrt(acc / line_width + eps);
   }
 
   threadgroup_barrier(metal::mem_flags::mem_threadgroup);
 
-  d += gid * dim + lid * N_READS;
-  if (lid * N_READS + N_READS <= dim)
+  if (lid * N_READS + N_READS <= line_width)
     for (int i = 0; i < N_READS; i++)
-      d[i] = w[stride_w * i] * static_cast<T>(x[i] * local_inv_mean[0]);
+      d[i] = static_cast<T>(x[i] * local_inv_mean);
   else
     for (int i = 0; i < N_READS; i++)
-      if ((lid * N_READS + i) < dim)
-        d[i] = w[stride_w * i] * static_cast<T>(x[i] * local_inv_mean[0]);
+      if (lid * N_READS + i < line_width)
+        d[i] = static_cast<T>(x[i] * local_inv_mean);
 }
 
 
 template <typename T, int N_READS = 4>
-[[kernel]] void RmsNormWeightLoop(device T* d,
-                                  const device T* x,
-                                  const device T* w,
-                                  constant float& eps,
-                                  constant uint& dim,
-                                  constant uint& stride_w,
-                                  threadgroup float* local_inv_mean [[threadgroup(0)]],
-                                  threadgroup float* local_sums [[threadgroup(1)]],
-                                  uint gid [[threadgroup_position_in_grid]],
-                                  uint lid [[thread_position_in_threadgroup]],
-                                  uint line_size [[threads_per_threadgroup]],
-                                  uint simd_lane_id [[thread_index_in_simdgroup]],
-                                  uint simd_group_id [[simdgroup_index_in_threadgroup]])
+[[kernel]] void RmsNormLoop(device T* d,
+                            const device T* x,
+                            constant float& eps,
+                            constant uint& line_width,
+                            threadgroup float* local_sums [[threadgroup(0)]],
+                            uint gid [[threadgroup_position_in_grid]],
+                            uint lid [[thread_position_in_threadgroup]],
+                            uint group_size [[threads_per_threadgroup]],
+                            uint simd_lane_id [[thread_index_in_simdgroup]],
+                            uint simd_group_id [[simdgroup_index_in_threadgroup]])
 {
-  float acc = 0;
+  threadgroup float local_inv_mean;
 
-  x += gid * dim + lid * N_READS;
-  w += stride_w * lid * N_READS;
+  uint idx = gid * line_width + lid * N_READS;
+  d += idx;
+  x += idx;
 
-  for (uint r = 0; r < dim; r+= line_size * N_READS)
-    if (r + lid * N_READS + N_READS <= dim)
+  float acc = 0; // TODO: use T or float?
+
+  for (uint r = 0; r < line_width; r += group_size * N_READS)
+    if (r + lid * N_READS + N_READS <= line_width)
       for (int i = 0; i < N_READS; i++)
       {
         float xi = x[i + r];
@@ -251,7 +117,7 @@ template <typename T, int N_READS = 4>
       }
     else
       for (int i = 0; i < N_READS; i++)
-        if ((r + lid * N_READS + i) < dim)
+        if ((r + lid * N_READS + i) < line_width)
         {
           float xi = x[i + r];
           acc += xi * xi;
@@ -273,35 +139,31 @@ template <typename T, int N_READS = 4>
   {
     acc = metal::simd_sum(local_sums[simd_lane_id]);
     if (simd_lane_id == 0)
-      local_inv_mean[0] = metal::precise::rsqrt(acc / dim + eps);
+      local_inv_mean = metal::precise::rsqrt(acc / line_width + eps);
   }
 
-  metal::threadgroup_barrier(metal::mem_flags::mem_threadgroup);
+  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
 
-  d += gid * dim + lid + N_READS;
-  for (uint r = 0; r < dim; r += line_size * N_READS)
-    if (r + lid * N_READS + N_READS <= dim)
+  for (uint r = 0; r < line_width; r += group_size * N_READS)
+    if (r + lid * N_READS + N_READS <= line_width)
       for (int i = 0; i < N_READS; i++)
-        d[r + i] = w[stride_w * (i + r)] * static_cast<T>(x[r + i] * local_inv_mean[0]);
-
+        d[r + i] = static_cast<T>(x[r + i] * local_inv_mean);
     else
       for (int i = 0; i < N_READS; i++)
-        if ((r + lid * N_READS + i) < dim)
-          d[r + i] = w[stride_w * (i + r)] * static_cast<T>(x[r + i] * local_inv_mean[0]);
+        if ((r + lid * N_READS + i) < line_width)
+          d[r + i] = static_cast<T>(x[r + i] * local_inv_mean);
 }
 
-#define RMS_NORM_OPS Line, Loop, WeightLine, WeightLoop
+#define RMS_NORM_OPS Line, Loop
 #define RMS_NORM_TYPES uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, half, float, bfloat
 
 #define RMS_NORM_FUNCTION(O, T) \
   template [[host_name(stringify(RmsNorm ## O ## T))]]  \
   [[kernel]] void RmsNorm ## O<T>( \
     device T*, \
-    device const T*, device const T*, \
+    device const T*, \
     constant float&, \
     constant uint&, \
-    constant uint&, \
-    threadgroup float*, \
     threadgroup float*, \
     uint, uint, uint, uint, uint);
 
