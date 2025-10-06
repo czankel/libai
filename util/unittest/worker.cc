@@ -137,7 +137,7 @@ TEST(Worker, JobGroup)
   std::atomic<int> count;
   std::atomic<bool> woken = false;
 
-  Job main = worker.PostSleeping([&]() -> bool {
+  Job main = worker.PostBlocked([&]() -> bool {
       woken = true;
       return false;
   });
@@ -151,6 +151,8 @@ TEST(Worker, JobGroup)
           count++;
           return false;
     }));
+
+  worker.ReleaseBlock(main);
 
   int loop;
   for (loop = 0; (count != 20 || !woken) && loop < 200; loop++)
