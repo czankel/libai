@@ -27,76 +27,41 @@ namespace grid {
 template <template <typename> typename TOperator>
 class UnaryOperation<TOperator, device::CPU>
 {
-
-  // scalar operation
-  template <typename T>
-  inline void Eval(T* d, const T* x) const
+  template <typename T, size_t N, bool Contiguous>
+  static inline void Eval(std::span<const size_t, N> pos,
+                          std::span<const size_t, N> dimensions,
+                          std::span<const size_t, N> sizes,
+                          T* d, const T* x,
+                          std::span<const ssize_t, N> strides_d,
+                          std::span<const ssize_t, N> strides_x)
   {
-    d[0] = TOperator<device::CPU>()(x[0]);
-  }
-
-  // contiguous vector
-  template <typename T>
-  inline void Eval(T* d, const T* x, std::span<const size_t, 1> dimensions) const
-  {
-    for (size_t i = 0; i < dimensions[0]; i++) {
-      d[i] = TOperator<device::CPU>()(x[i]);
-    }
-  }
-
-  // discontiguous vector or scalar
-  template <typename T>
-  inline void Eval(T* d, const T* x,
-                   std::span<const size_t, 1>  dimensions,
-                   std::span<const ssize_t, 1> strides_d,
-                   std::span<const ssize_t, 1> strides_x) const
-  {
-    for (size_t i = 0; i < dimensions[0]; i++)
-      d[i * strides_d[0]] = TOperator<device::CPU>()(x[i * strides_x[0]]);
-  }
-
-  // rank 2 and greater, discontiguous
-  template <typename T>
-  inline void Eval(T* d, const T* x, auto dimensions, auto strides_d, auto strides_x) const
-  {
-    for (size_t i = 0; i < dimensions[0]; i++)
+    if constexpr (dimensions.size() == 1 && Contiguous)
     {
-      Eval(d, x,
-           dimensions.template last<dimensions.size() - 1>(),
-           strides_d.template last<strides_d.size() - 1>(),
-           strides_x.template last<strides_x.size() - 1>());
-      d += strides_d[0];
-      x += strides_x[0];
+      for (size_t i = pos[0] * sizes[0]; i < (pos[0] + 1) * sizes[0] && i < dimensions[0]; i++)
+        d[i] = TOperator<device::CPU>()(x[i]);
     }
-  }
-
-  // rank 2 and greater, contiguous
-  template <typename T>
-  inline void
-  EvalContiguous(T* d, const T* x, auto dimensions, auto strides_d, auto strides_x) const
-  {
-    for (size_t i = 0; i < dimensions[0]; i++)
+    else if constexpr (dimensions.size() == 1)
     {
-      if constexpr (dimensions.size() > 2)
+      for (size_t i = pos[0] * sizes[0]; i < (pos[0] + 1) * sizes[0] && i < dimensions[0]; i++)
+        d[i * strides_d[0]] = TOperator<device::CPU>()(x[i * strides_x[0]]);
+    }
+    else
+    {
+      size_t offset = pos[0] * sizes[0];
+      d += offset * strides_d[0];
+      x += offset * strides_x[0];
+
+      for (size_t i = offset; i < offset + sizes[0] && i < dimensions[0]; i++)
       {
-        EvalContiguous(d, x,
-             dimensions.template last<dimensions.size() - 1>(),
-             strides_d.template last<strides_d.size() - 1>(),
-             strides_x.template last<strides_x.size() - 1>());
+        Eval<T, N - 1, Contiguous>(pos.template last<N - 1>(),
+                                   dimensions.template last<N - 1>(),
+                                   sizes.template last<N - 1>(),
+                                   d, x,
+                                   strides_d.template last<N - 1>(),
+                                   strides_x.template last<N - 1>());
         d += strides_d[0];
         x += strides_x[0];
       }
-      else if constexpr (dimensions.size() > 1)
-      {
-        Eval(d, x,
-             dimensions.template last<dimensions.size() - 1>(),
-             strides_d.template last<strides_d.size() - 1>(),
-             strides_x.template last<strides_x.size() - 1>());
-        d += strides_d[0];
-        x += strides_x[0];
-      }
-      else
-        Eval(d, x, dimensions.template last<dimensions.size() - 1>());
     }
   }
 
@@ -111,34 +76,38 @@ class UnaryOperation<TOperator, device::CPU>
 
     Fold([&](const auto dimensions, const auto strides_d, const auto strides_x) {
         static_assert(dimensions.size() != std::dynamic_extent, "dynamic_extent not supported");
-        bool is_cont = IsContiguous(strides_d, strides_x);
 
-        if constexpr (dimensions.size() == 0)
-          Eval(&*first_d, &*first_x);
-        else if constexpr (dimensions.size() == 1)
+        using value_type = std::iter_value_t<std::ranges::iterator_t<O>>;
+        constexpr size_t rank = dimensions.size();
+
+        // special case: scaler
+        if constexpr (rank == 0)
+          *first_d = TOperator<device::CPU>()(*first_x);
+
+        else
         {
-          const auto b_strides_x = BroadcastStrides<1>(strides_x);
+          size_t type_size = sizeof(std::iter_value_t<std::ranges::iterator_t<O>>);
+          bool is_cont = IsContiguous(strides_d, strides_x);
+
+          const auto b_strides_x = BroadcastStrides<rank>(strides_x);
+
+          auto& CPU = grid::device::CPU::GetDevice();
+          auto& queue = CPU.GetQueue();
+
+          // use "tiling" by using the max size / max threads, aligned to cache line
+          size_t cache_line = std::hardware_destructive_interference_size; // FIXME: use device??
+          std::array<size_t, rank> sizes;
+          sizes.fill(1);
+          sizes[rank - 1] = ((dimensions[rank - 1] + cache_line - 1) & -cache_line) / type_size;
+
           if (is_cont)
-            Eval(&*first_d, &*first_x, std::span(dimensions));
+            queue.Enqueue(dimensions, sizes, Eval<value_type, rank, true>,
+                          &*first_d, &*first_x, std::move(strides_d), std::move(b_strides_x));
           else
-            Eval(&*first_d, &*first_x,
-                 std::span(dimensions),
-                 std::span(strides_d),
-                 std::span(b_strides_x));
-        }
-        else if constexpr (dimensions.size() > 1)
-        {
-          const auto b_strides_x = BroadcastStrides<dimensions.size()>(strides_x);
-          if (is_cont)
-            EvalContiguous(&*first_d, &*first_x,
-                 std::span(dimensions),
-                 std::span(strides_d),
-                 std::span(b_strides_x));
-          else
-            Eval(&*first_d, &*first_x,
-                 std::span(dimensions),
-                 std::span(strides_d),
-                 std::span(b_strides_x));
+            queue.Enqueue(dimensions, sizes, Eval<value_type, rank, false>,
+                          &*first_d, &*first_x, std::move(strides_d), std::move(b_strides_x));
+
+          queue.Sync();
         }
     }, first_d.Extents(), first_d.Strides(), first_x.Strides());
   }
