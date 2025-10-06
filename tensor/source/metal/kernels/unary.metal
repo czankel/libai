@@ -43,7 +43,7 @@ template <typename Op, typename T, typename U>
   [[kernel]] void UnaryOperation ## R <O ## Operator, T>(device T*, device const T*, uint);
 
 #define FAST_RANKS S, V
-#define FAST_OPS   Copy, Neg
+#define FAST_OPS   Copy, Neg, Silu
 #define FAST_TYPES uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, half, float, bfloat
 
 INSTANTIATE3(FAST_FUNCTION, (FAST_RANKS), (FAST_OPS), (FAST_TYPES))
