@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_CPU_ROPE_H
-#define GRID_TENSOR_CPU_ROPE_H
+#ifndef GRID_TENSOR_METAL_ROPE_H
+#define GRID_TENSOR_METAL_ROPE_H
 
 #include <math.h>
 #include <tuple>
@@ -20,7 +20,7 @@
 namespace grid {
 
 // requires (std::is_floating_point_v<value_type> && rank > 0)
-template <> class RopeOperator<device::CPU>
+template <> class RopeOperator<device::METAL>
 {
  public:
   template<std::ranges::input_range I,
@@ -30,13 +30,11 @@ template <> class RopeOperator<device::CPU>
   {
     auto first_d = std::ranges::begin(out);
     auto first_x = std::ranges::cbegin(in);
-
+#if 0
     std::span strides_d(first_d.Strides());
     std::span strides_x(first_x.Strides());
 
     std::span dimensions(first_d.Extents());
-
-// FIXME: need to Enqueue???
 
     static_assert(dimensions.size() != std::dynamic_extent, "dynamic_extent not allowed");
     static_assert(dimensions.size() <= 2, "rope only supports max rank-2 tensors");
@@ -67,9 +65,10 @@ template <> class RopeOperator<device::CPU>
         d[i+1] = v0 * fci + v1 * fcr;
       }
     }
+#endif
   }
 };
 
 } // end of namespace grid
 
-#endif  // GRID_TENSOR_CPU_ROPE_H
+#

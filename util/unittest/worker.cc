@@ -141,7 +141,7 @@ TEST(Worker, JobGroup)
       woken = true;
       return false;
   });
-  
+
   srand(time(NULL));
 
   std::list<Job> jobs;
@@ -158,4 +158,27 @@ TEST(Worker, JobGroup)
   for (loop = 0; (count != 20 || !woken) && loop < 200; loop++)
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   EXPECT_GT(200, loop);
+}
+
+TEST(Worker, WaitExited)
+{
+  Worker worker;
+  volatile bool exited = false;
+
+  // need helper job to wait for actual job to exit
+  Job blocked = worker.PostBlocked([&]() -> bool {
+    exited = true;
+    return false;
+  });
+
+  Job job = worker.PostRunBefore(blocked, [&]() -> bool { printf("job\n"); return false; });
+  worker.ReleaseBlock(blocked);
+
+  while (!exited)
+    ;
+
+  // should return immediately
+  job.Wait();
+
+  blocked.Wait();
 }

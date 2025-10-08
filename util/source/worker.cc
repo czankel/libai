@@ -185,8 +185,9 @@ void Worker::KillWorkerJob(WorkerJob& wjob)
 
   {
     std::lock_guard lock(queue_mutex_);
-    if (wjob.is_queued_)
-      DequeueWorkerJobLocked(wjob);
+    if (wjob.is_queued_) {
+    printf("4\n");
+      DequeueWorkerJobLocked(wjob); }
 
     ReleaseWorkerJobLocked(wjob);
   }
@@ -699,6 +700,7 @@ bool Worker::ReleaseBlockedLocked(WorkerJob& job)
   bool unblocked = --job.block_refcount_ == 0;
   if (unblocked)
   {
+    printf("1\n");
     DequeueWorkerJobLocked(job);
 
     // TODO: support other options than immediate
@@ -795,6 +797,7 @@ again:
 
   if (wjob != nullptr)
   {
+    printf("2\n");
     DequeueWorkerJobLocked(*wjob);
     if (wjob->reschedule_.load() == WorkerJob::kKill)
     {
@@ -819,6 +822,7 @@ bool Worker::WakeJobLocked(WorkerJob& wjob)
   // is job is already queued, we need to re-queue it; cannot wake blocked job (yet)
   if (wjob.is_queued_ && wjob.block_refcount_ == 0)
   {
+    printf("3\n");
     DequeueWorkerJobLocked(wjob);
 
     wjob.scheduled_time_ = kScheduleNormal;

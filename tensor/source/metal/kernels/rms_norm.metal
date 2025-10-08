@@ -15,6 +15,38 @@
 
 #include "utils.h"
 
+#undef USE_REDUCE
+#ifdef USE_REDUCE
+
+template <typename T, int N_READS = 4>
+[[kernel]] void RmsNorm(device T* d,
+                        const device T* x,
+                        constant float& eps,
+                        constant uint& line_width,
+                        threadgroup float* local_sums [[threadgroup(0)]],
+                        uint gid [[threadgroup_position_in_grid]],
+                        uint lid [[thread_position_in_threadgroup]],
+                        __attribute__((unused)) uint group_size [[threads_per_threadgroup]],
+                        uint simd_lane_id [[thread_index_in_simdgroup]],
+                        uint simd_group_id [[simdgroup_index_in_threadgroup]])
+{
+  threadgroup float sdata[metal::max_thread_];
+
+  MetalReduce<T, AddOperator, BlockSize>(sdata, tid, row + dim);
+  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
+
+  if (simd_group_id == 0)
+    sdata[row] = sqrt(sdata[row] / dim + eps);
+
+  threadgroup_barrier(metal::mem_flags::mem_threadgroup);
+
+  for (unsigned int i = idx_beg; i < idx_end; i += grid_size)
+    d[i] = x[i] / sdata[row];
+
+}
+
+#endif
+
 template <typename T, int N_READS = 4>
 [[kernel]] void RmsNormLine(device T* d,
                             const device T* x,
