@@ -1,12 +1,12 @@
-# grid-tensor
+# LibAI
 
-> **_NOTE:_**  This repository is still in its infancy and evolving.
-> It's completely unoptimized and incomplete and serves as an educational platform.
-> Please check back again in future.
+> **_NOTE:_**  This repository is still incomplete and serves for educational purposes
+>  at this time.
 
 ## Introduction
 
-Grid Tensor is a C++ implementation of tensors for machine learning applications.
+LibAI implements a C++ tensor library for machine learning applications.
+
 Tensors are defined as multi-dimensional arrays for storing data and supporting
 various arithmetic operations, such as matrix and vector operations, but also many
 machine-learning operations, including norms, 'neuron' (weights,biases).
@@ -30,24 +30,24 @@ Tensor t2(3, 4, 3.3);
 Tensor res = t1 + t2 * 3;
 ```
 
-## Building grid-tensor
+## Building LibAI
 
-Note that Grid Tensor requires cmake and a more recent version gcc or clang.
+Note that LibAI requires cmake and a more recent version gcc or clang.
 
-Assuming Grid Tensor should be built in the current (build) directory and having
-SRC pointing o the git repository, use the following commands:
+Assuming LibAI should be built in the current (build) directory and having
+SRC pointing to the git repository, use the following commands:
 
 ```
 cmake $SRC
 make
 ```
 
-This builds the library and a simple tool ```llama``` for running a LLaMA 2 model.
+This builds the library and the simple program ```llama``` for running a LLaMA 2 model.
 
 
-## Using the llama tool
+## Using the llama program
 
-Grid Tensor comes with a tool for running a LLaMA 2 large language model.
+LibAI comes with a tool for running a LLaMA 2 large language model.
 
 The current implementation only supports float32 and requires that the model parameters
 are stored in a GGUF file format. It also doesn't (yet) support entropy sampling,
@@ -65,7 +65,7 @@ llama -m $MODEL PROMPT
 
 ## Building unit tests
 
-Grid Tensor comes with a set of unit tests. They can be built setting the BUILD_TEST variable:
+LibAI comes with a set of unit tests. They can be built setting the BUILD_TEST variable:
 
 ```
 cmake -B $BUILD_DIRECTORY -DBUILD_TEST=1
