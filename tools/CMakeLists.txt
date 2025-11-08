@@ -5,4 +5,4 @@
 # The contents of this file are confidential and proprietary to Chris Zankel.
 
 add_executable(llama llama.cc)
-#target_link_libraries(llama gridstreamer)
+#target_link_libraries(llama streamer)

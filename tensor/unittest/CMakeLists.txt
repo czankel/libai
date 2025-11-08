@@ -1,4 +1,4 @@
-grid_add_sources(gridtensor_test
+grid_add_sources(libai_test
   tensor.cc
   tensor_parameters.cc
   unary.cc

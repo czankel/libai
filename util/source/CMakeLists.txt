@@ -4,6 +4,6 @@
 #
 # The contents of this file are confidential and proprietary to Chris Zankel.
 
-grid_add_sources(gridtensor
+grid_add_sources(libai
 	worker.cc
 )

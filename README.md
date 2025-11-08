@@ -69,5 +69,5 @@ LibAI comes with a set of unit tests. They can be built setting the BUILD_TEST v
 
 ```
 cmake -B $BUILD_DIRECTORY -DBUILD_TEST=1
-./gridtensor_test
+./libai_test
 ```

@@ -4,8 +4,8 @@
 #
 # The contents of this file are confidential and proprietary to Chris Zankel.
 
-set_property(GLOBAL PROPERTY gridtensor_metal_PATH ${CMAKE_CURRENT_BINARY_DIR})
-set(gridtensor_metal_PATH ${CMAKE_CURRENT_BINARY_DIR})
+set_property(GLOBAL PROPERTY libai_metal_PATH ${CMAKE_CURRENT_BINARY_DIR})
+set(libai_metal_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 set(
   KERNELS
@@ -38,14 +38,14 @@ foreach(KERNEL ${KERNELS})
 endforeach()
 
 add_custom_command(
-  OUTPUT ${gridtensor_metal_PATH}/gridtensor.metallib
-  COMMAND xcrun -sdk macosx metallib ${KERNELS_AIR} -o ${gridtensor_metal_PATH}/gridtensor.metallib
+  OUTPUT ${libai_metal_PATH}/libai.metallib
+  COMMAND xcrun -sdk macosx metallib ${KERNELS_AIR} -o ${libai_metal_PATH}/libai.metallib
   DEPENDS ${KERNELS_AIR}
-  COMMENT "Building gridtensor.metallib"
+  COMMENT "Building libai.metallib"
   VERBATIM
 )
 
 add_custom_target(
-  gridtensor_metallib
-  DEPENDS ${gridtensor_metal_PATH}/gridtensor.metallib
+  libai_metallib
+  DEPENDS ${libai_metal_PATH}/libai.metallib
 )
