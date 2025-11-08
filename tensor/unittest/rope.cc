@@ -6,19 +6,19 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/tensor.h>
-#include <grid/tensor/function.h>
+#include <libai/tensor/tensor.h>
+#include <libai/tensor/function.h>
 
 // FIXME IFDEF??
 /// CPU
-#include <grid/tensor/cpu/rope.h>
-#include <grid/tensor/cpu/tensor.h>
+#include <libai/tensor/cpu/rope.h>
+#include <libai/tensor/cpu/tensor.h>
 #include "tensor_cpu.h"
 
 /// Metal
 #if 0
-#include <grid/tensor/metal/rope.h>
-#include <grid/tensor/metal/tensor.h>
+#include <libai/tensor/metal/rope.h>
+#include <libai/tensor/metal/tensor.h>
 #include "tensor_metal.h"
 #endif
 

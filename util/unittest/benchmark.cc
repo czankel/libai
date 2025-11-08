@@ -9,7 +9,7 @@
 #include <numeric>
 #include <vector>
 
-#include <grid/util/worker.h>
+#include <libai/util/worker.h>
 
 int test_stl(const std::vector<double>& X)
 {

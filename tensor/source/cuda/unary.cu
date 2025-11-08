@@ -6,9 +6,9 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor//tensor.h>
-#include <grid/tensor/cuda/device.h>
-#include <grid/tensor/cuda/unary.h>
+#include <libai/tensor//tensor.h>
+#include <libai/tensor/cuda/device.h>
+#include <libai/tensor/cuda/unary.h>
 
 #include "../instantiate.h"
 #include "utils.h"

@@ -6,29 +6,29 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/generator.h>
-#include <grid/tensor/tensor.h>
+#include <libai/tensor/generator.h>
+#include <libai/tensor/tensor.h>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include <grid/tensor/cpu/binary.h>
-#include <grid/tensor/cpu/generator.h>
-#include <grid/tensor/cpu/matmul.h>
-#include <grid/tensor/cpu/tensor.h>
+#include <libai/tensor/cpu/binary.h>
+#include <libai/tensor/cpu/generator.h>
+#include <libai/tensor/cpu/matmul.h>
+#include <libai/tensor/cpu/tensor.h>
 #include "tensor_cpu.h"
 
 #ifdef BUILD_METAL
-#include <grid/tensor/metal/binary.h>
-#include <grid/tensor/metal/matmul.h>
-#include <grid/tensor/metal/tensor.h>
+#include <libai/tensor/metal/binary.h>
+#include <libai/tensor/metal/matmul.h>
+#include <libai/tensor/metal/tensor.h>
 #include "tensor_metal.h"
 #endif
 
 #ifdef BUILD_CUDA
-#include <grid/tensor/cuda/binary.h>
-#include <grid/tensor/cuda/matmul.h>
-#include <grid/tensor/cuda/tensor.h>
+#include <libai/tensor/cuda/binary.h>
+#include <libai/tensor/cuda/matmul.h>
+#include <libai/tensor/cuda/tensor.h>
 #include "tensor_cuda.h"
 #endif
 

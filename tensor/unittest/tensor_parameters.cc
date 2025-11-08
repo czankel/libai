@@ -6,13 +6,13 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/tensor.h>
-#include <grid/tensor/mmap.h>
+#include <libai/tensor/tensor.h>
+#include <libai/tensor/mmap.h>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include <grid/tensor/cpu/tensor.h>
+#include <libai/tensor/cpu/tensor.h>
 #include "tensor_cpu.h"
 
 using testing::ElementsAre;

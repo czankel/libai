@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include <grid/models/llama.h>
+#include <libai/models/llama.h>
 
 #include "karpathy.h"
 

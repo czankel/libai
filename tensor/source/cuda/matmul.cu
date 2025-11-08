@@ -8,10 +8,10 @@
 
 #include <utility>
 
-#include <grid/tensor/tensor.h>
+#include <libai/tensor/tensor.h>
 
-#include <grid/tensor/cuda/device.h>
-#include <grid/tensor/cuda/matmul.h>
+#include <libai/tensor/cuda/device.h>
+#include <libai/tensor/cuda/matmul.h>
 
 #include "../instantiate.h"
 #include "utils.h"

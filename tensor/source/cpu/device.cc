@@ -6,7 +6,7 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/cpu/device.h>
+#include <libai/tensor/cpu/device.h>
 
 using namespace libai::device;
 

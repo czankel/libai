@@ -6,6 +6,6 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/precision.h>
+#include <libai/tensor/precision.h>
 
 __thread float libai::Precision::g_margin_ = 1.f;

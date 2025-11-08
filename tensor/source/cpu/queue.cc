@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/cpu/device.h>
-#include <grid/tensor/cpu/queue.h>
+#include <libai/tensor/cpu/device.h>
+#include <libai/tensor/cpu/queue.h>
 
 using namespace libai::device;
 

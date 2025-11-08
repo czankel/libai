@@ -9,11 +9,11 @@
 #include <string>
 #include <iostream>
 
-#include <grid/util/demangle.h>
+#include <libai/util/demangle.h>
 
-#include <grid/tensor/tensor_cpu.h>
+#include <libai/tensor/tensor_cpu.h>
 #ifdef BUILD_CUDA
-#include <grid/tensor/tensor_cuda.h>
+#include <libai/tensor/tensor_cuda.h>
 #endif
 
 #include "llama.h"
