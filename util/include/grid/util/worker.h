@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_UTIL_WORKER_H
-#define GRID_UTIL_WORKER_H
+#ifndef LIBAI_UTIL_WORKER_H
+#define LIBAI_UTIL_WORKER_H
 
 #include <stdint.h>
 #include <time.h>
@@ -1031,4 +1031,4 @@ inline void CurrentJob::WakeBlocked()
 
 } // end of namespace libai
 
-#endif  // GRID_UTIL_WORKER_H
+#endif  // LIBAI_UTIL_WORKER_H

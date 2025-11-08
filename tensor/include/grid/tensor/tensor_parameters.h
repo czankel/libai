@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_TENSOR_PARAMETERS_H
-#define GRID_TENSOR_TENSOR_PARAMETERS_H
+#ifndef LIBAI_TENSOR_TENSOR_PARAMETERS_H
+#define LIBAI_TENSOR_TENSOR_PARAMETERS_H
 
 #include <algorithm>
 #include <utility>
@@ -396,4 +396,4 @@ void Fold(TOp&& op, T&& dims, const auto... strides)
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_TENSOR_PARAMETERS_H
+#endif  // LIBAI_TENSOR_TENSOR_PARAMETERS_H

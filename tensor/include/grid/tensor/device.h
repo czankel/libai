@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_DEVICE_H
-#define GRID_TENSOR_DEVICE_H
+#ifndef LIBAI_TENSOR_DEVICE_H
+#define LIBAI_TENSOR_DEVICE_H
 
 namespace libai {
 namespace device {
@@ -21,4 +21,4 @@ class Device
 } // end of namespace device
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_DEVICE_H
+#endif  // LIBAI_TENSOR_DEVICE_H

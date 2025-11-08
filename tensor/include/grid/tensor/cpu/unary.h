@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_CPU_UNARY_H
-#define GRID_TENSOR_CPU_UNARY_H
+#ifndef LIBAI_TENSOR_CPU_UNARY_H
+#define LIBAI_TENSOR_CPU_UNARY_H
 
 #include <span>
 #include <algorithm>
@@ -139,4 +139,4 @@ template <> struct SiluFunction<device::CPU>
 
 } // end of namespace libai
 
-#endif // GRID_TENSOR_CPU_UNARY_H
+#endif // LIBAI_TENSOR_CPU_UNARY_H

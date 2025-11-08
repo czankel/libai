@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_TENSOR_METAL_H
-#define GRID_TENSOR_TENSOR_METAL_H
+#ifndef LIBAI_TENSOR_TENSOR_METAL_H
+#define LIBAI_TENSOR_TENSOR_METAL_H
 
 #include "tensor.h"
 #include "tensor_parameters.h"
@@ -27,4 +27,4 @@
 #include "metal/unary.h"
 #endif
 
-#endif  // GRID_TENSOR_TENSOR_METAL_H
+#endif  // LIBAI_TENSOR_TENSOR_METAL_H

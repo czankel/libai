@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_METAL_ARRAY_H
-#define GRID_TENSOR_METAL_ARRAY_H
+#ifndef LIBAI_TENSOR_METAL_ARRAY_H
+#define LIBAI_TENSOR_METAL_ARRAY_H
 
 #include "device.h"
 
@@ -181,4 +181,4 @@ class Array<T, DeviceMemory<device::Metal>>
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_METAL_ARRAY_H
+#endif  // LIBAI_TENSOR_METAL_ARRAY_H

@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_MATMUL_H
-#define GRID_TENSOR_MATMUL_H
+#ifndef LIBAI_TENSOR_MATMUL_H
+#define LIBAI_TENSOR_MATMUL_H
 
 #include <span>
 #include <algorithm>
@@ -143,4 +143,4 @@ template <typename T1, typename T2> Matmul(T1&&, T2&&)
 
 } // end of namespace grd
 
-#endif  // GRID_TENSOR_MATMUL_H
+#endif  // LIBAI_TENSOR_MATMUL_H

@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_BINARY_H
-#define GRID_TENSOR_BINARY_H
+#ifndef LIBAI_TENSOR_BINARY_H
+#define LIBAI_TENSOR_BINARY_H
 
 #include <span>
 #include <algorithm>
@@ -170,4 +170,4 @@ auto Div(TTensor&& tensor, T scalar)
 
 } // end of namespace grd
 
-#endif  // GRID_TENSOR_BINARY_H
+#endif  // LIBAI_TENSOR_BINARY_H

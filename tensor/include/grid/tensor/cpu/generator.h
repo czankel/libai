@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_CPU_GENERATOR_H
-#define GRID_TENSOR_CPU_GENERATOR_H
+#ifndef LIBAI_TENSOR_CPU_GENERATOR_H
+#define LIBAI_TENSOR_CPU_GENERATOR_H
 
 #include <span>
 #include <algorithm>
@@ -81,4 +81,4 @@ template <> struct RandomFunction<device::CPU>
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_CPU_GENERATOR_H
+#endif  // LIBAI_TENSOR_CPU_GENERATOR_H

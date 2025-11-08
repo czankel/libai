@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_CPU_QUEUE_H
-#define GRID_TENSOR_CPU_QUEUE_H
+#ifndef LIBAI_TENSOR_CPU_QUEUE_H
+#define LIBAI_TENSOR_CPU_QUEUE_H
 
 #include <numeric>
 
@@ -101,4 +101,4 @@ void Queue::Enqueue(const std::array<size_t, N>& dims, const std::array<size_t, 
 
 } // end of namespace libai::cpu
 
-#endif  // GRID_TENSOR_CPU_QUEUE_H
+#endif  // LIBAI_TENSOR_CPU_QUEUE_H

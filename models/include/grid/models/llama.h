@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_MODELS_LLAMA_H
-#define GRID_MODELS_LLAMA_H
+#ifndef LIBAI_MODELS_LLAMA_H
+#define LIBAI_MODELS_LLAMA_H
 
 #include <iostream>
 
@@ -140,4 +140,4 @@ class LLaMAFile
 
 } // end namespace libai
 
-#endif // GRID_MODELS_LLAMA_H
+#endif // LIBAI_MODELS_LLAMA_H

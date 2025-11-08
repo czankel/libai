@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_UTIL_DEMANGLE_H
-#define GRID_UTIL_DEMANGLE_H
+#ifndef LIBAI_UTIL_DEMANGLE_H
+#define LIBAI_UTIL_DEMANGLE_H
 
 #include <cxxabi.h>
 #include <stdlib.h>
@@ -30,4 +30,4 @@ inline std::string Demangle(const std::string& mangled_name)
 
 } // end of namespace libai
 
-#endif  // GRID_UTIL_DEMANGLE_H
+#endif  // LIBAI_UTIL_DEMANGLE_H

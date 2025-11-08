@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_METAL_UTILS_H
-#define GRID_TENSOR_METAL_UTILS_H
+#ifndef LIBAI_TENSOR_METAL_UTILS_H
+#define LIBAI_TENSOR_METAL_UTILS_H
 
 #include <algorithm>
 
@@ -48,4 +48,4 @@ auto GetBlockSize(std::span<const size_t, RANK> dimensions)
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_METAL_UTILS_H
+#endif  // LIBAI_TENSOR_METAL_UTILS_H

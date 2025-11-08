@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_TENSOR_CPU_H
-#define GRID_TENSOR_TENSOR_CPU_H
+#ifndef LIBAI_TENSOR_TENSOR_CPU_H
+#define LIBAI_TENSOR_TENSOR_CPU_H
 
 #include "tensor.h"
 #include "tensor_parameters.h"
@@ -24,4 +24,4 @@
 #include "cpu/softmax.h"
 #include "cpu/unary.h"
 
-#endif  // GRID_TENSOR_TENSOR_CPU_H
+#endif  // LIBAI_TENSOR_TENSOR_CPU_H

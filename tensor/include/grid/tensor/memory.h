@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_MEMORY_H
-#define GRID_TENSOR_MEMORY_H
+#ifndef LIBAI_TENSOR_MEMORY_H
+#define LIBAI_TENSOR_MEMORY_H
 
 namespace libai {
 
@@ -25,4 +25,4 @@ struct Scalar {};
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_MEMORY_H
+#endif  // LIBAI_TENSOR_MEMORY_H
