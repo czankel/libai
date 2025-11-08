@@ -23,7 +23,7 @@ simple as adding a template parameter to the first line but leaving the rest of 
 code as is.
 
 ```
-using Tensor = grid::Tensor;
+using Tensor = libai::Tensor;
 
 Tensor t1{1.0, 2.0, 3.0};
 Tensor t2(3, 4, 3.3);

@@ -9,7 +9,7 @@
 #ifndef _LLAMA_VOCAB_H
 #define _LLAMA_VOCAB_H
 
-namespace grid {
+namespace libai {
 
 /// LLaMAVocab contains the 'vocabs' (vocabularies).
 struct LLaMAVocab
@@ -33,6 +33,6 @@ struct LLaMAVocab
   bool add_eos_token_;
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // define _LLAMA_VOCAB_H

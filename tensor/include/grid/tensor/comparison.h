@@ -13,7 +13,7 @@
 
 #include "precision.h"
 
-namespace grid {
+namespace libai {
 
 template <typename T, size_t>
 inline std::enable_if_t<!std::is_floating_point_v<T>, bool>
@@ -113,6 +113,6 @@ bool operator==(TTensor1&& tensor1, TTensor2&& tensor2)
                       std::span(tensor2.Strides()));
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_COMPARISON_H

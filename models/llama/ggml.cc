@@ -18,7 +18,7 @@
 
 #include "ggml.h"
 
-namespace grid {
+namespace libai {
 
 const char* TensorNames[] =
 {
@@ -257,7 +257,7 @@ const std::type_info& GgmlFile::DataType() const
   switch (ftype_)
   {
     case kGgmlDataTypeF32:  return typeid(float);
-    case kGgmlDataTypeF16:  return typeid(grid::float16_t);
+    case kGgmlDataTypeF16:  return typeid(libai::float16_t);
     default: throw std::runtime_error("DataType not supported");
   }
 }
@@ -307,4 +307,4 @@ std::tuple<size_t, size_t> GgmlFile::GetTensorOffset(TensorType type, size_t nar
   return std::make_tuple(tensor.offset + data_offset_, tensor.size);
 }
 
-} // end of namespace grid
+} // end of namespace libai

@@ -12,7 +12,7 @@
 // TODO: This is just a placeholder, and it might not work on more recent devices
 // TODO: See also: https://github.com/ashvardanian/ParallelReductionsBenchmark?tab=readme-ov-file
 
-namespace grid {
+namespace libai {
 namespace cuda {
 
 struct AddOperator
@@ -69,7 +69,7 @@ void CudaReduce(volatile T* sdata, unsigned int tid, unsigned int dim)
 }
 
 } // end of namespace cuda
-} // end of namespace grid
+} // end of namespace libai
 
 
 #endif  // TENSOR_SOURCE_CUDA_REDUCE_H 

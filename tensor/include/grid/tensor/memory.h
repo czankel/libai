@@ -9,7 +9,7 @@
 #ifndef GRID_TENSOR_MEMORY_H
 #define GRID_TENSOR_MEMORY_H
 
-namespace grid {
+namespace libai {
 
 /// DeviceMemroy defines a dynamically allocated buffer for the specific device.
 template <typename> struct DeviceMemory {};
@@ -23,6 +23,6 @@ struct MemoryMapped {};
 /// Saclar is a single (read-write) scalar value.
 struct Scalar {};
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_MEMORY_H

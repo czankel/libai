@@ -13,7 +13,7 @@
 
 #include "memory.h"
 
-namespace grid {
+namespace libai {
 
 namespace details {
 
@@ -172,6 +172,6 @@ class Array<T, StaticMemory<Ns...>>
 };
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_ARRAY_H

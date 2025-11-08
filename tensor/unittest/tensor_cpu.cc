@@ -15,7 +15,7 @@
 
 TEST(CPU, SimpleQueue1)
 {
-  grid::cpu::Queue queue;
+  libai::cpu::Queue queue;
   size_t idx;
 
   std::array<size_t, 1> sizes{8};
@@ -39,7 +39,7 @@ TEST(CPU, SimpleQueue1)
 
 TEST(CPU, SimpleQueue2)
 {
-  grid::cpu::Queue queue;
+  libai::cpu::Queue queue;
   size_t idx;
 
   std::array<size_t, 2> sizes{3, 8};
@@ -61,7 +61,7 @@ TEST(CPU, SimpleQueue2)
 
 TEST(CPU, SimpleQueue3)
 {
-  grid::cpu::Queue queue;
+  libai::cpu::Queue queue;
   size_t idx;
 
   std::array<size_t, 3> sizes{8, 5, 5};

@@ -18,7 +18,7 @@
 #include "binary.h"
 #include "../precision.h"
 
-namespace grid {
+namespace libai {
 
 // requires (std::is_floating_point_v<value_type> && rank > 0)
 template <> class RmsNormOperator<device::CPU>
@@ -77,6 +77,6 @@ template <> class RmsNormOperator<device::CPU>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CPU_RMS_NORM_H

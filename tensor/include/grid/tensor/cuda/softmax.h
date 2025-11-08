@@ -17,7 +17,7 @@
 
 #include "../precision.h"
 
-namespace grid {
+namespace libai {
 
 void CudaDeviceSynchronize(); // FIXME move to some header?
 
@@ -75,6 +75,6 @@ template <> class SoftMaxOperator<device::Cuda>
 #endif  // !__CUDACC__
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_CUDA_SOFTMAX_H

@@ -22,7 +22,7 @@
 #include <new>
 #include <thread>
 
-namespace grid {
+namespace libai {
 
 
 using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
@@ -1029,6 +1029,6 @@ inline void CurrentJob::WakeBlocked()
 }
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_UTIL_WORKER_H

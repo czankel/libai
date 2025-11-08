@@ -20,7 +20,7 @@
 #include "karpathy.h"
 #include "ggml.h"
 
-namespace grid {
+namespace libai {
 
 //
 // LLaMAFile
@@ -32,8 +32,8 @@ LLaMAFile* LLaMAFile::Open(Type file_type, std::string_view model_path)
 
   switch (file_type)
   {
-    case kKarpathy: file = new grid::KarpathyFile(model_path); break;
-    case kGgml:     file = new grid::GgmlFile(model_path); break;
+    case kKarpathy: file = new libai::KarpathyFile(model_path); break;
+    case kGgml:     file = new libai::GgmlFile(model_path); break;
     default: throw std::runtime_error("invalid model file type: " + std::to_string(file_type));
   }
 
@@ -48,7 +48,7 @@ LLaMAFile* LLaMAFile::Open(Type file_type, std::string_view model_path, std::str
 
   switch (file_type)
   {
-    case kKarpathy: file = new grid::KarpathyFile(model_path, tokenizer_path); break;
+    case kKarpathy: file = new libai::KarpathyFile(model_path, tokenizer_path); break;
     default: throw std::runtime_error("file already includes tokenizer or is invalid");
   }
 
@@ -61,7 +61,7 @@ std::ostream& LLaMAFile::PrintModelInfo(std::ostream& out) const
 {
   LLaMAModel::Parameters params;
   GetParameters(params);
-  out << "Data Type .................. " << grid::Demangle(DataType().name()) << '\n';
+  out << "Data Type .................. " << libai::Demangle(DataType().name()) << '\n';
   out << "Vocabulary Size ............ " << params.vocab_size_ << '\n';
   out << "Transformer Dimension ...... " << params.dim_ << '\n';
   out << "Hidden Dimensions .......... " << params.hidden_dim_ << '\n';
@@ -104,4 +104,4 @@ LLaMAModel* LLaMAModel::Load(LLaMAFile& file, bool mmap)
   return Load(file, std::string{}, mmap);
 }
 
-} // end of namespace grid
+} // end of namespace libai

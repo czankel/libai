@@ -14,7 +14,7 @@
 
 #include "queue.h"
 
-namespace grid::device {
+namespace libai::device {
 
 class CPU : public Device
 {
@@ -41,6 +41,6 @@ class CPU : public Device
   cpu::Queue queue_;
 };
 
-} // end of namespace grid::device
+} // end of namespace libai::device
 
 #endif  // GRID_TENSOR_CPU_DEVICE_H

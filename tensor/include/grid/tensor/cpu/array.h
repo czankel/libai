@@ -18,7 +18,7 @@
 #include "../array.h"
 #include "../tensor_parameters.h"
 
-namespace grid {
+namespace libai {
 
 /// brief: Array is a specialization for a dynamically allocated buffer.
 template <typename T>
@@ -156,6 +156,6 @@ class Array<T, DeviceMemory<device::CPU>>
 };
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CPU_ARRAY_H

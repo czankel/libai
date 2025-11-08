@@ -14,7 +14,7 @@
 #include <grid/tensor/tensor.h>
 #include <grid/tensor/mmap.h>
 
-namespace grid {
+namespace libai {
 
 class LLaMAFile;
 
@@ -138,6 +138,6 @@ class LLaMAFile
   virtual std::tuple<size_t, size_t> GetTensorOffset(TensorType, size_t nargs, ...) const = 0;
 };
 
-} // end namespace grid
+} // end namespace libai
 
 #endif // GRID_MODELS_LLAMA_H

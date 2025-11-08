@@ -15,7 +15,7 @@
 // "CPU" is the default device for Tensors
 #include "cpu/device.h"
 
-namespace grid {
+namespace libai {
 
 
 /// Placeholder for specifying that a buffer allocation does not need to be initialized.
@@ -134,6 +134,6 @@ struct tensor_device<TOperator> { using type = tensor_device<typename to_tensor<
 template <typename TTensor>
 using tensor_device_t = tensor_device<std::remove_cvref_t<TTensor>>::type;
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_CONCEPTS_H

@@ -22,7 +22,7 @@ int main(int argc, char** argv)
   int                   opt;
   std::string           model_path;
   std::string           device_name;
-  grid::LLaMAFile::Type model_type = grid::LLaMAFile::kGgml;
+  libai::LLaMAFile::Type model_type = libai::LLaMAFile::kGgml;
 
   int                   steps = 256;
   bool                  show_info = false;
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
       case 't': // file type/format
         std::string type(optarg);
         if (type == "karpathy")
-          model_type = grid::LLaMAFile::kKarpathy;
+          model_type = libai::LLaMAFile::kKarpathy;
         break;
     }
   }
@@ -72,10 +72,10 @@ int main(int argc, char** argv)
       exit(1);
   }
 
-  std::unique_ptr<grid::LLaMAFile> file;
+  std::unique_ptr<libai::LLaMAFile> file;
   try
   {
-    file.reset(grid::LLaMAFile::Open(model_type, model_path));
+    file.reset(libai::LLaMAFile::Open(model_type, model_path));
   }
   catch(std::string err)
   {
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   prompt.resize(prompt.size() - 1);
 
   std::cout << "Loading model ... " << std::flush;
-  std::unique_ptr<grid::LLaMAModel> model(grid::LLaMAModel::Load(*file, device_name));
+  std::unique_ptr<libai::LLaMAModel> model(libai::LLaMAModel::Load(*file, device_name));
   std::cout << "done\n";
 
   std::cout << "Prompt: " << prompt << std::endl;

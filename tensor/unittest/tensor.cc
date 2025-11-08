@@ -28,9 +28,9 @@
 
 using testing::ElementsAre;
 
-using grid::view::Slice;
-using grid::view::Null;
-using grid::view::NewAxis;
+using libai::view::Slice;
+using libai::view::Null;
+using libai::view::NewAxis;
 
 
 // Use Google's Type-Parameterized Tests so these tests can be re-used for other device implementations.
@@ -41,17 +41,17 @@ TYPED_TEST_SUITE_P(TensorTestSuite);
 
 TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank0Integer)
 {
-  typename TypeParam::Tensor tensor = grid::Tensor{ 4 };
+  typename TypeParam::Tensor tensor = libai::Tensor{ 4 };
   EXPECT_EQ(tensor.Rank(), 0);
 }
 
 TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank1Integer)
 {
-  grid::Tensor tensor1{ 11, 22, 33, 44, 55, 66 };
+  libai::Tensor tensor1{ 11, 22, 33, 44, 55, 66 };
   //typename TypeParam::Tensor tensor2 = { 11, 22, 33, 44, 55, 66 };
-  typename TypeParam::Tensor tensor3 = grid::Tensor{ 11, 22, 33, 44, 55, 66 };
+  typename TypeParam::Tensor tensor3 = libai::Tensor{ 11, 22, 33, 44, 55, 66 };
 
-  EXPECT_TRUE(grid::is_tensor_v<decltype(tensor1)>);
+  EXPECT_TRUE(libai::is_tensor_v<decltype(tensor1)>);
   EXPECT_EQ(tensor1.Rank(), 1);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(6));
   EXPECT_THAT(tensor1.Strides(), ElementsAre(1));
@@ -64,9 +64,9 @@ TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank1Integer)
 
 TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank2Integer)
 {
-  grid::Tensor tensor1{ { 11, 12 }, { 21, 22, 23 }, { 31, 32, 33, 34 } };
+  libai::Tensor tensor1{ { 11, 12 }, { 21, 22, 23 }, { 31, 32, 33, 34 } };
   //typename TypeParam::Tensor tensor2 = { { 11, 12 }, { 21, 22, 23 }, { 31, 32, 33, 34 } };
-  typename TypeParam::Tensor tensor3 = grid::Tensor{ { 11, 12 }, { 21, 22, 23 }, { 31, 32, 33, 34 } };
+  typename TypeParam::Tensor tensor3 = libai::Tensor{ { 11, 12 }, { 21, 22, 23 }, { 31, 32, 33, 34 } };
 
   EXPECT_EQ(tensor1.Rank(), 2);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(3, 4));
@@ -83,7 +83,7 @@ TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank2Integer)
 
 TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank3Integer)
 {
-  typename TypeParam::Tensor tensor1 = grid::Tensor{ { { 111, 112, 113, 114, 115 },
+  typename TypeParam::Tensor tensor1 = libai::Tensor{ { { 111, 112, 113, 114, 115 },
                                                        { 121, 122, 123, 124, 125 },
                                                        { 131, 132, 133, 134, 135 },
                                                        { 141, 142, 143, 144, 145 } },
@@ -123,7 +123,7 @@ TYPED_TEST_P(TensorTestSuite, TensorAllocInitializedRank1Double)
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedRank1Double)
 {
-  typename TypeParam::Tensor tensor1({5}, grid::Uninitialized<double>{});
+  typename TypeParam::Tensor tensor1({5}, libai::Uninitialized<double>{});
   EXPECT_EQ(tensor1.Rank(), 1);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(5));
   EXPECT_THAT(tensor1.Strides(), ElementsAre(1));
@@ -146,7 +146,7 @@ TYPED_TEST_P(TensorTestSuite, TensorAllocInitializedRank2Char)
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedRank2Double)
 {
-  typename TypeParam::Tensor tensor1({7, 3}, grid::Uninitialized<int>{});
+  typename TypeParam::Tensor tensor1({7, 3}, libai::Uninitialized<int>{});
 
   EXPECT_EQ(tensor1.Rank(), 2);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(7, 3));
@@ -164,13 +164,13 @@ TYPED_TEST_P(TensorTestSuite, TensorAllocInitializedRank3Double)
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedRank3Double)
 {
-  typename TypeParam::Tensor tensor({3, 2, 1}, grid::Uninitialized<double>{});
+  typename TypeParam::Tensor tensor({3, 2, 1}, libai::Uninitialized<double>{});
   EXPECT_THAT(tensor.Strides(), ElementsAre(2 * 1, 1, 0));
 }
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedPattedRank3Double)
 {
-  typename TypeParam::Tensor tensor1({3, 2, 1}, {2 * 2 * 4, 2 * 2, 2}, grid::Uninitialized<double>{});
+  typename TypeParam::Tensor tensor1({3, 2, 1}, {2 * 2 * 4, 2 * 2, 2}, libai::Uninitialized<double>{});
   EXPECT_EQ(tensor1.Rank(), 3);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(3, 2, 1));
   EXPECT_THAT(tensor1.Strides(), ElementsAre(2 * 2 * 4, 2 * 2, 2));
@@ -200,31 +200,31 @@ TYPED_TEST_P(TensorTestSuite, TensorMMap)
   std::rewind(tmpf);
 
   int fd = fileno(tmpf);
-  auto mmap = std::shared_ptr<grid::MMap>(grid::MMap::MMapFile(fd, file_size));
+  auto mmap = std::shared_ptr<libai::MMap>(libai::MMap::MMapFile(fd, file_size));
   close(fd);
 
-  grid::MMapView view(std::move(mmap));
+  libai::MMapView view(std::move(mmap));
   auto dimensions1 = view.Read<std::array<size_t, 2>>();
   auto strides1 = view.Read<std::array<ssize_t, 2>>();
-  auto size1 = grid::get_array_size<double>(dimensions1, strides1);
+  auto size1 = libai::get_array_size<double>(dimensions1, strides1);
   double* addr1 = reinterpret_cast<double*>(view.Address());
 
   // Note: MemoryMapped Tensor
-  grid::Tensor tensor1(dimensions1, std::make_tuple(addr1, size1));
+  libai::Tensor tensor1(dimensions1, std::make_tuple(addr1, size1));
 
-  typename TypeParam::Tensor result1 = grid::Tensor{ {1.2, 2.3, 3.4, 4.5}, {1.2, 2.3, 3.4, 4.5} };
+  typename TypeParam::Tensor result1 = libai::Tensor{ {1.2, 2.3, 3.4, 4.5}, {1.2, 2.3, 3.4, 4.5} };
   EXPECT_EQ(tensor1, result1);
 
   view.Seek(size1 * sizeof(size_t));
   auto dimensions2 = view.Read<std::array<size_t, 2>>();
   auto strides2 = view.Read<std::array<ssize_t, 2>>();
-  auto size2 = grid::get_array_size<double>(dimensions2, strides2);
+  auto size2 = libai::get_array_size<double>(dimensions2, strides2);
   double* addr2 = reinterpret_cast<double*>(view.Address());
 
   // Note: MemoryMapped Tensor
-  grid::Tensor tensor2(dimensions2, std::make_tuple(addr2, size2));
+  libai::Tensor tensor2(dimensions2, std::make_tuple(addr2, size2));
 
-  typename TypeParam::Tensor result2 = grid::Tensor{ {4.3, 3.2, 2.1}, {4.3, 3.2, 2.1} };
+  typename TypeParam::Tensor result2 = libai::Tensor{ {4.3, 3.2, 2.1}, {4.3, 3.2, 2.1} };
   EXPECT_EQ(tensor2, result2);
 
   std::fclose(tmpf);
@@ -232,7 +232,7 @@ TYPED_TEST_P(TensorTestSuite, TensorMMap)
 
 TYPED_TEST_P(TensorTestSuite, TensorViewBraceInitializationTensor)
 {
-  typename TypeParam::Tensor tensor1 = grid::Tensor{ { { 111, 112, 113, 114, 115 },
+  typename TypeParam::Tensor tensor1 = libai::Tensor{ { { 111, 112, 113, 114, 115 },
                                                        { 121, 122, 123, 124, 125 },
                                                        { 131, 132, 133, 134, 135 },
                                                        { 141, 142, 143, 144, 145 } },
@@ -249,7 +249,7 @@ TYPED_TEST_P(TensorTestSuite, TensorViewBraceInitializationTensor)
   EXPECT_EQ(view_row.Rank(), 1);
   EXPECT_THAT(view_row.Dimensions(), ElementsAre(5));
   EXPECT_THAT(view_row.Strides(), ElementsAre(1));
-  grid::Tensor expected{231, 232, 233, 234, 235};
+  libai::Tensor expected{231, 232, 233, 234, 235};
   EXPECT_EQ(view_row, expected);
   EXPECT_EQ(view_row.Size(), expected.Size());
 }
@@ -260,9 +260,9 @@ TYPED_TEST_P(TensorTestSuite, TensorViewAllocInitializationTensor)
   auto data = tensor.Data();
 
   // tensor[:,1]
-  typename TypeParam::Tensor col = grid::Tensor{2.1f, 3.2f, 4.3f, 5.4f};
+  typename TypeParam::Tensor col = libai::Tensor{2.1f, 3.2f, 4.3f, 5.4f};
   tensor.View(Slice(), 1) = col;
-  grid::Tensor expected = { { 1.1f, 2.1f, 1.1f, 1.1f, 1.1f},
+  libai::Tensor expected = { { 1.1f, 2.1f, 1.1f, 1.1f, 1.1f},
                             { 1.1f, 3.2f, 1.1f, 1.1f, 1.1f},
                             { 1.1f, 4.3f, 1.1f, 1.1f, 1.1f},
                             { 1.1f, 5.4f, 1.1f, 1.1f, 1.1f} };

@@ -11,7 +11,7 @@
 #ifndef GRID_TENSOR_PRECISION_H
 #define GRID_TENSOR_PRECISION_H
 
-namespace grid {
+namespace libai {
 
 template <typename> struct Eps {};
 template <> struct Eps<float>  { constexpr static float  default_value = 1e-5f; float  value; };
@@ -46,7 +46,7 @@ class Precision
   static __thread float g_margin_;
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 
 #endif  // GRID_TENSOR_PRECISION_H

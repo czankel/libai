@@ -15,7 +15,7 @@
 
 #include "concepts.h"
 
-namespace grid {
+namespace libai {
 
 
 /// @brief TransformFunction provides helper for applying an operator on a range(s)
@@ -120,6 +120,6 @@ class TransformFunction
 inline constexpr TransformFunction Transform;
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_TRANSFORM_H

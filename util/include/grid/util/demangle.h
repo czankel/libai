@@ -14,7 +14,7 @@
 
 #include <string>
 
-namespace grid {
+namespace libai {
 
 
 inline std::string Demangle(const std::string& mangled_name)
@@ -28,6 +28,6 @@ inline std::string Demangle(const std::string& mangled_name)
 }
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_UTIL_DEMANGLE_H

@@ -19,7 +19,7 @@
 #include "../concepts.h"
 #include "../unary.h"
 
-namespace grid {
+namespace libai {
 
 void CudaDeviceSynchronize(); // FIXME move to some header?
 
@@ -79,6 +79,6 @@ class UnaryOperation<TOperator, device::Cuda>
 };
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_CUDA_UNARY_H

@@ -17,7 +17,7 @@
 
 #include "../function.h"
 
-namespace grid {
+namespace libai {
 
 // requires (std::is_floating_point_v<value_type> && rank > 0)
 template <> class RopeOperator<device::CPU>
@@ -68,6 +68,6 @@ template <> class RopeOperator<device::CPU>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CPU_ROPE_H

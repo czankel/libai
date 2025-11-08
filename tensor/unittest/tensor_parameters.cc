@@ -17,9 +17,9 @@
 
 using testing::ElementsAre;
 
-using grid::view::Slice;
-using grid::view::Null;
-using grid::view::NewAxis;
+using libai::view::Slice;
+using libai::view::Null;
+using libai::view::NewAxis;
 
 
 // Use Google's Type-Parameterized Tests so these tests can be re-used for other device implementations.
@@ -34,7 +34,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank0)
     bool callback = false;
     constexpr std::array<size_t, 0>  dims{};
     constexpr std::array<ssize_t, 0> strides{};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre());
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -50,7 +50,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank1)
     bool callback = false;
     constexpr size_t dims[] =     { 1 };
     constexpr ssize_t strides[] = { 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre());
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -63,7 +63,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank1)
     bool callback = false;
     constexpr size_t dims[] =     { 3 };
     constexpr ssize_t strides[] = { 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3));
         EXPECT_THAT(f_strides, ElementsAre(2));
         callback = true;
@@ -79,7 +79,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank2)
     bool callback = false;
     constexpr size_t dims[] =     {  3, 5 };
     constexpr ssize_t strides[] = { 30, 6 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(15));
         EXPECT_THAT(f_strides, ElementsAre(6));
         callback = true;
@@ -92,7 +92,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank2)
     bool callback = false;
     constexpr size_t dims[] =     { 3, 1 };
     constexpr ssize_t strides[] = { 1, 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3));
         EXPECT_THAT(f_strides, ElementsAre(1));
         callback = true;
@@ -105,7 +105,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank2)
     bool callback = false;
     constexpr size_t dims[] =     { 1, 3, 1 };
     constexpr ssize_t strides[] = { 6, 1, 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3));
         EXPECT_THAT(f_strides, ElementsAre(1));
         callback = true;
@@ -118,7 +118,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank2)
     bool callback = false;
     constexpr size_t dims[] =     { 3, 1 };
     constexpr ssize_t strides[] = { 3, 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3));
         EXPECT_THAT(f_strides, ElementsAre(3));
         callback = true;
@@ -134,7 +134,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank3)
     bool callback = false;
     constexpr size_t dims[] =     { 3, 1, 5 };
     constexpr ssize_t strides[] = { 5, 2, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(15));
         EXPECT_THAT(f_strides, ElementsAre(1));
         callback = true;
@@ -147,7 +147,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank3)
     bool callback = false;
     constexpr size_t dims[] =     { 3, 1, 5 };
     constexpr ssize_t strides[] = { 6, 2, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3,5));
         EXPECT_THAT(f_strides, ElementsAre(6,1));
         callback = true;
@@ -160,7 +160,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank3)
     bool callback = false;
     constexpr size_t dims[] =     { 3, 1, 1, 1, 5 };
     constexpr ssize_t strides[] = { 6, 2, 5, 3, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3,5));
         EXPECT_THAT(f_strides, ElementsAre(6,1));
         callback = true;
@@ -173,7 +173,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank3)
     bool callback = false;
     constexpr size_t dims[] =     { 4, 5, 6 };
     constexpr ssize_t strides[] = { 0, 0 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(120));
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -186,7 +186,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldSingleRank3)
     bool callback = false;
     constexpr size_t dims[] =     { 4, 5, 6 };
     constexpr ssize_t strides[] = { 2, 0 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(4, 5, 6));
         EXPECT_THAT(f_strides, ElementsAre(0, 2, 0));
         callback = true;
@@ -203,7 +203,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =     { 3 };
     constexpr ssize_t strides1[] = { 2 };
     std::array<const ssize_t, 0> strides2{};
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(3));
         EXPECT_THAT(f_strides1, ElementsAre(2));
         EXPECT_THAT(f_strides2, ElementsAre());
@@ -218,7 +218,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =      {  3, 5 };
     constexpr ssize_t strides1[] = {     6 };
     constexpr ssize_t strides2[] = { 30, 6 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(3, 5));
         EXPECT_THAT(f_strides1, ElementsAre(0, 6));
         EXPECT_THAT(f_strides2, ElementsAre(30, 6));
@@ -233,7 +233,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =      {  3, 5 };
     constexpr ssize_t strides1[] = { 30, 6 };
     constexpr ssize_t strides2[] = {     6 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(3, 5));
         EXPECT_THAT(f_strides1, ElementsAre(30, 6));
         EXPECT_THAT(f_strides2, ElementsAre(0, 6));
@@ -248,7 +248,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =     {  4, 5, 6 };
     constexpr ssize_t strides1[] = {     0, 0 };
     constexpr ssize_t strides2[] = { 30, 6, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(120));
         EXPECT_THAT(f_strides1, ElementsAre());
         EXPECT_THAT(f_strides2, ElementsAre(1));
@@ -263,7 +263,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =      {  4, 5, 6 };
     constexpr ssize_t strides1[] = {     6, 1 };
     constexpr ssize_t strides2[] = { 30, 6, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(4,30));
         EXPECT_THAT(f_strides1, ElementsAre(0, 1));
         EXPECT_THAT(f_strides2, ElementsAre(30,1));
@@ -280,7 +280,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =     {  4, 5, 6 };
     constexpr ssize_t strides1[] = {  1, 0, 0 };
     constexpr ssize_t strides2[] = { 30, 6, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(4,30));
         EXPECT_THAT(f_strides1, ElementsAre(1,0));
         EXPECT_THAT(f_strides2, ElementsAre(30,1));
@@ -295,7 +295,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =     {  4, 5, 6 };
     constexpr ssize_t strides1[] = {  2, 0, 0 };
     constexpr ssize_t strides2[] = { 30, 6, 1 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(4,30));
         EXPECT_THAT(f_strides1, ElementsAre(2,0));
         EXPECT_THAT(f_strides2, ElementsAre(30,1));
@@ -311,7 +311,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =     {  4, 5, 6 };
     constexpr ssize_t strides1[] = {  2, 0, 0 };
     constexpr ssize_t strides2[] = { 30, 6, 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre(4, 5, 6));
         EXPECT_THAT(f_strides1, ElementsAre(2,0,0));
         EXPECT_THAT(f_strides2, ElementsAre(30,6,2));
@@ -326,7 +326,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     constexpr size_t dims[] =     {  1, 1, 1 };
     constexpr ssize_t strides1[] = {  2, 0, 0 };
     constexpr ssize_t strides2[] = { 30, 6, 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
+    libai::Fold([&callback](auto f_dims, auto f_strides1, auto f_strides2) {
         EXPECT_THAT(f_dims, ElementsAre());
         EXPECT_THAT(f_strides1, ElementsAre());
         EXPECT_THAT(f_strides2, ElementsAre());
@@ -344,7 +344,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldOperations)
     bool callback = false;
     constexpr size_t dims[] =     { 1, 1, 4, 3, 1 };
     constexpr ssize_t strides[] = { 12, 2, 2 };
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(4, 3));
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -360,7 +360,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
     bool callback = false;
     constexpr std::array<size_t, 2>  dims{4, 5};
     constexpr std::array<ssize_t, 0> strides{};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(20));
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -373,7 +373,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
     bool callback = false;
     constexpr std::array<size_t, 2>  dims{4, 5};
     constexpr std::array<ssize_t, 1> strides{0};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(20));
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -386,7 +386,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
     bool callback = false;
     constexpr std::array<size_t, 2>  dims{4, 5};
     constexpr std::array<ssize_t, 1> strides{2};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(4, 5));
         EXPECT_THAT(f_strides, ElementsAre(0, 2));
         callback = true;
@@ -399,7 +399,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
     bool callback = false;
     constexpr std::array<size_t, 3>  dims{3, 4, 5};
     constexpr std::array<ssize_t, 0> strides{};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(60));
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -412,7 +412,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
     bool callback = false;
     constexpr std::array<size_t, 3>  dims{3, 4, 5};
     constexpr std::array<ssize_t, 1> strides{0};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(60));
         EXPECT_THAT(f_strides, ElementsAre());
         callback = true;
@@ -425,7 +425,7 @@ TYPED_TEST_P(TensorParametersTestSuite, TensorFoldScalar)
     bool callback = false;
     constexpr std::array<size_t, 3>  dims{3, 4, 5};
     constexpr std::array<ssize_t, 1> strides{2};
-    grid::Fold([&callback](auto f_dims, auto f_strides) {
+    libai::Fold([&callback](auto f_dims, auto f_strides) {
         EXPECT_THAT(f_dims, ElementsAre(3, 4, 5));
         EXPECT_THAT(f_strides, ElementsAre(0, 0, 2));
         callback = true;

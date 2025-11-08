@@ -14,7 +14,7 @@
 #include <math.h>
 #include "../precision.h"
 
-namespace grid {
+namespace libai {
 
 void CudaDeviceSynchronize(); // FIXME move to some header?
 
@@ -72,6 +72,6 @@ template <> class RmsNormOperator<device::Cuda>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CUDA_RMS_NORM_H

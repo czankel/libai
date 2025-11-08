@@ -13,7 +13,7 @@
 
 #include "array.h"
 
-namespace grid {
+namespace libai {
 
 // TODO: use GPU copy from Metal to Metal
 template <AnyTensor T1, AnyTensor T2>
@@ -31,7 +31,7 @@ inline void Copy(T1& tensor1, const T2& tensor2)
                        std::span{tensor2.Strides()});
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 
 #endif  // GRID_TENSOR_METAL_TENSOR_H

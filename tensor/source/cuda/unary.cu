@@ -13,22 +13,22 @@
 #include "../instantiate.h"
 #include "utils.h"
 
-namespace grid {
+namespace libai {
 
 //
 // Elementary Unary Operators
 //
 
-template <> struct grid::CopyOperator<grid::device::Cuda>
+template <> struct libai::CopyOperator<libai::device::Cuda>
 { template<typename T> inline __device__ T operator()(const T x) const { return x; } };
-template <> struct grid::NegOperator<grid::device::Cuda>
+template <> struct libai::NegOperator<libai::device::Cuda>
 { template<typename T> inline __device__ T operator()(const T x) const { return -x; } };
 
 //
 // Unary Functions
 //
 
-template <> struct grid::SiluFunction<grid::device::Cuda>
+template <> struct libai::SiluFunction<libai::device::Cuda>
 {
   template<typename T> inline __device__ T operator()(const T x) const { return x / (T{1} + expf(-x)); }
 };
@@ -40,7 +40,7 @@ template <> struct grid::SiluFunction<grid::device::Cuda>
 template <template <typename> typename O, typename T>
 __global__ void CudaUnaryScalar(T* c, const T* a)
 {
-  c[0] = O<grid::device::Cuda>()(a[0]);
+  c[0] = O<libai::device::Cuda>()(a[0]);
 }
 
 template <template <typename> typename O, typename T>
@@ -48,7 +48,7 @@ __global__ void CudaUnaryVector(T* c, const T* a, size_t n)
 {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   if (index < n)
-    c[index] = O<grid::device::Cuda>()(a[index]);
+    c[index] = O<libai::device::Cuda>()(a[index]);
 }
 
 template <template <typename> typename O, typename T>
@@ -226,4 +226,4 @@ void UnaryOperation<O, device::Cuda>::EvalDiscontiguous(
 INSTANTIATE3(FUNCTION_CONTIGUOUS, (RANKS_CONTIGUOUS), (OPS), (TYPES))
 INSTANTIATE3(FUNCTION_DISCONTIGUOUS, (RANKS_DISCONTIGUOUS), (OPS), (TYPES))
 
-} // end of namespace grid
+} // end of namespace libai

@@ -17,7 +17,7 @@
 #include "binary.h"
 #include "../precision.h"
 
-namespace grid {
+namespace libai {
 
 template <> class RmsNormOperator<device::Metal>
 {
@@ -92,6 +92,6 @@ template <> class RmsNormOperator<device::Metal>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_METAL_RMS_NORM_H

@@ -18,7 +18,7 @@
 #include "device.h"
 #include "kernels.h"
 
-namespace grid {
+namespace libai {
 
 // Helper function that aligns the dimensions to a ... FIXME
 template <size_t RANK>
@@ -46,6 +46,6 @@ auto GetBlockSize(std::span<const size_t, RANK> dimensions)
       MTL::Size{1ul << dims[0], 1ul << dims[1], 1ul << dims[2]});
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_METAL_UTILS_H

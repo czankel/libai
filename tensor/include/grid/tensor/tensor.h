@@ -31,7 +31,7 @@
 // "CPU" is the default device for Tensors
 #include "cpu/device.h"
 
-namespace grid {
+namespace libai {
 
 /// Tensor implements an "AI Tensor" that follows more typical AI implementations rather than
 /// mathematical or physical definition.
@@ -61,7 +61,7 @@ class Tensor : public Array<T, TMemory>
 
   // helper to extract the template parameters for StaticMemory
   template <typename> struct mem_ext;
-  template <size_t... Ns> struct mem_ext<grid::StaticMemory<Ns...>>
+  template <size_t... Ns> struct mem_ext<libai::StaticMemory<Ns...>>
   {
     static constexpr std::array<size_t, sizeof...(Ns)> array{Ns...};
   };
@@ -679,18 +679,18 @@ Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type
 
 // Tensor rules for operator arguments
 
-template <grid::AnyOperator TOperator, typename Dev = device::CPU>
-Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, grid::DeviceMemory<Dev>>;
+template <libai::AnyOperator TOperator, typename Dev = device::CPU>
+Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, libai::DeviceMemory<Dev>>;
 
-template <grid::AnyOperator TOperator, typename Dev = device::CPU>
-Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::rank, grid::DeviceMemory<Dev>>;
+template <libai::AnyOperator TOperator, typename Dev = device::CPU>
+Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::rank, libai::DeviceMemory<Dev>>;
 
 // Tensor rules for memory-mapped arguments
 
 template <Arithmetic T, size_t N>
 explicit Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, MemoryMapped>;
 template <Arithmetic T, size_t N>
-explicit Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, grid::MemoryMapped>;
+explicit Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
 
 //
 // Arithmentic operator overloading
@@ -747,10 +747,10 @@ auto operator/(TTensor&& tensor, T scalar)
   return Div(std::forward<TTensor>(tensor), scalar);
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 /// operator<<(TENSOR) overloads the output operator for tensors.
-std::ostream& operator<<(std::ostream& os, const grid::AnyTensor auto& tensor)
+std::ostream& operator<<(std::ostream& os, const libai::AnyTensor auto& tensor)
 {
   using value_type = typename std::remove_reference_t<decltype(tensor)>::value_type;
   size_t rank = tensor.Rank();

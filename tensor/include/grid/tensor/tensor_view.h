@@ -16,7 +16,7 @@
 #include "array.h"
 #include "iterator.h"
 
-namespace grid {
+namespace libai {
 
 namespace {
 
@@ -300,6 +300,6 @@ inline auto Reshape(TTensor& tensor,
 }
 
 } // end of namespace view
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_TENSOR_VIEW_H

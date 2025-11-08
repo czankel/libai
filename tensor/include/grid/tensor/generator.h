@@ -12,7 +12,7 @@
 #include "tensor.h"
 #include "tensor_parameters.h"
 
-namespace grid {
+namespace libai {
 
 template <typename> class GeneratorOperation;
 
@@ -86,6 +86,6 @@ auto Random(const size_t(&&dims)[N])
   return Generator<tensor_type, RandomFunction<device_type>>(std::move(dims));
 }
 
-}   // end of namespace grid
+}   // end of namespace libai
 
 #endif  // GRID_TENSOR_GENERATOR_H

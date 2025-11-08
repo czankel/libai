@@ -10,7 +10,7 @@
 
 #include <grid/tensor/cuda/array.h>
 
-namespace grid {
+namespace libai {
 
 void CudaMalloc(void** ptr, size_t size)
 {
@@ -41,4 +41,4 @@ void CudaDeviceSynchronize()
     throw std::runtime_error(std::string("cudaMalloc failed") + cudaGetErrorString(err));
 }
 
-} // end of namespace grid
+} // end of namespace libai

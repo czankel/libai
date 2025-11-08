@@ -10,7 +10,7 @@
 
 #include <grid/util/worker.h>
 
-using namespace grid;
+using namespace libai;
 
 // Make sure we can create and destroy a worker; also check default thread count
 TEST(Worker, SimpleCreate)

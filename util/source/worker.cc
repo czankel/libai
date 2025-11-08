@@ -17,7 +17,7 @@
 
 #define TAG "Worker"
 
-namespace grid {
+namespace libai {
 
 //
 // CurrentJob::
@@ -987,4 +987,4 @@ void Worker::DumpQueue()
 }
 
 
-} // end of namespace grid
+} // end of namespace libai

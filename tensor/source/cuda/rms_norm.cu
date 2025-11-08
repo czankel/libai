@@ -20,7 +20,7 @@
 #include "utils.h"
 
 
-namespace grid {
+namespace libai {
 namespace cuda {
 
 // TODO support strides
@@ -89,4 +89,4 @@ RmsNormOperator<device::Cuda>::Eval(T* d, const T* x, const T eps, size_t dim_y,
 
 INSTANTIATE1(FUNCTION, (TYPES))
 
-} // end of namespace grid
+} // end of namespace libai

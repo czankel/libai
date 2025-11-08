@@ -51,7 +51,7 @@ void Rope(T* data, size_t pos, size_t rows, size_t cols)
 TYPED_TEST_P(RopeTestSuite, TensorRopeTestRank1)
 {
   typename TypeParam::Tensor tensor =
-    grid::Tensor{ 5.f, 3.f, 1.f, 9.f, 3.f, 2.f, 56.f, 7.f, 1.f, 34.f, 52.f, 65.f, 98.f, 13.f };
+    libai::Tensor{ 5.f, 3.f, 1.f, 9.f, 3.f, 2.f, 56.f, 7.f, 1.f, 34.f, 52.f, 65.f, 98.f, 13.f };
 
   typename TypeParam::Tensor result = Rope(tensor, 1);
   typename TypeParam::Tensor expected = tensor.View();
@@ -63,7 +63,7 @@ TYPED_TEST_P(RopeTestSuite, TensorRopeTestRank1)
 TYPED_TEST_P(RopeTestSuite, TensorRopeTestRank2)
 {
   typename TypeParam::Tensor tensor =
-    grid::Tensor{ { 5.f,  3.f, 1.f,  9.f,  3.f,  2.f},
+    libai::Tensor{ { 5.f,  3.f, 1.f,  9.f,  3.f,  2.f},
                   {56.f, 1.f, 34.f, 52.f, 65.f,  9.f } };
 
   typename TypeParam::Tensor expected = tensor.View();

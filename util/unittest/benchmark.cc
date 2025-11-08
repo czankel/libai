@@ -68,7 +68,7 @@ int test_worker(const std::vector<double>& X)
   std::condition_variable wait_cond;
 
   {
-    grid::Worker worker(100);
+    libai::Worker worker(100);
 
     const double* x = &*X.cbegin();
     double* d = &*Y.begin();
@@ -76,7 +76,7 @@ int test_worker(const std::vector<double>& X)
     size_t ncpus = worker.GetConcurrentThreadCount();
     start = std::chrono::high_resolution_clock::now();
 
-    grid::Job main = worker.PostBlocked([&]() -> bool {
+    libai::Job main = worker.PostBlocked([&]() -> bool {
         wait_cond.notify_all();
         return false;
     });

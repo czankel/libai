@@ -11,7 +11,7 @@
 #ifndef GRID_TENSOR_TENSOR_ITERATOR_H
 #define GRID_TENSOR_TENSOR_ITERATOR_H
 
-namespace grid {
+namespace libai {
 namespace details {
 
 class Tensor;
@@ -260,6 +260,6 @@ class ConstIterator
 
 
 } // end of namespace details
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_TENSOR_ITERATOR_H

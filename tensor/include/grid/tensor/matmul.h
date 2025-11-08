@@ -15,7 +15,7 @@
 
 #include "concepts.h"
 
-namespace grid {
+namespace libai {
 
 template <typename> class MatmulOperator;
 template <typename, size_t, typename> class Tensor;

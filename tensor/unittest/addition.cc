@@ -38,22 +38,22 @@ TYPED_TEST_SUITE_P(AdditionTestSuite);
 
 TYPED_TEST_P(AdditionTestSuite, TensorAddRank0)
 {
-  typename TypeParam::Tensor tensor1 = grid::Tensor{ 5 };
-  typename TypeParam::Tensor tensor2 = grid::Tensor{ 3 };
-  auto op = grid::Add(tensor1, tensor2);
+  typename TypeParam::Tensor tensor1 = libai::Tensor{ 5 };
+  typename TypeParam::Tensor tensor2 = libai::Tensor{ 3 };
+  auto op = libai::Add(tensor1, tensor2);
   auto result = op();
   EXPECT_EQ(result.Rank(), 0);
-  grid::Tensor expected{ 8 };
+  libai::Tensor expected{ 8 };
   EXPECT_EQ(result, expected);
 }
 
 TYPED_TEST_P(AdditionTestSuite, TensorAddRank1)
 {
-  typename TypeParam::Tensor tensor1 = grid::Tensor{ 11, 22, 33, 44, 55, 66 };
-  typename TypeParam::Tensor tensor2 = grid::Tensor{ 89, 78, 67, 56, 45, 34 };
+  typename TypeParam::Tensor tensor1 = libai::Tensor{ 11, 22, 33, 44, 55, 66 };
+  typename TypeParam::Tensor tensor2 = libai::Tensor{ 89, 78, 67, 56, 45, 34 };
   int v1[] = { 100, 100, 100, 100, 100, 100 };
 
-  auto op1a = grid::Add(tensor1, tensor2);
+  auto op1a = libai::Add(tensor1, tensor2);
   auto res1a = op1a();
   EXPECT_EQ(memcmp(res1a.Data(), v1, sizeof(v1)), 0);
 
@@ -64,11 +64,11 @@ TYPED_TEST_P(AdditionTestSuite, TensorAddRank1)
 
 TYPED_TEST_P(AdditionTestSuite, TensorAddRank1Dim1)
 {
-  typename TypeParam::Tensor tensor1 = grid::Tensor{ 11 };
-  typename TypeParam::Tensor tensor2 = grid::Tensor{ 89 };
+  typename TypeParam::Tensor tensor1 = libai::Tensor{ 11 };
+  typename TypeParam::Tensor tensor2 = libai::Tensor{ 89 };
   int v1[] = { 100 };
 
-  auto op1a = grid::Add(tensor1, tensor2);
+  auto op1a = libai::Add(tensor1, tensor2);
   auto res1a = op1a();
   EXPECT_EQ(memcmp(res1a.Data(), v1, sizeof(v1)), 0);
 
@@ -91,7 +91,7 @@ TYPED_TEST_P(AdditionTestSuite, TensorAddAdd)
   typename TypeParam::Tensor tensor1({4, 3}, 2.1f);
   typename TypeParam::Tensor tensor2({4, 3}, 1.3f);
   typename TypeParam::Tensor tensor3({4, 3}, 2.2f);
-  typename TypeParam::Tensor expected = grid::Tensor{ { 5.6f, 5.6f, 5.6f },
+  typename TypeParam::Tensor expected = libai::Tensor{ { 5.6f, 5.6f, 5.6f },
                                                       { 5.6f, 5.6f, 5.6f },
                                                       { 5.6f, 5.6f, 5.6f },
                                                       { 5.6f, 5.6f, 5.6f } };
@@ -104,7 +104,7 @@ TYPED_TEST_P(AdditionTestSuite, TensorAddMatVecBroadcast)
 {
   typename TypeParam::Tensor tensor1({4UL}, 1.1f);
   typename TypeParam::Tensor tensor2({4UL, 5UL}, 4.4f);
-  typename TypeParam::Tensor result = tensor2 + tensor1.View(grid::view::Slice{}, grid::view::NewAxis);
+  typename TypeParam::Tensor result = tensor2 + tensor1.View(libai::view::Slice{}, libai::view::NewAxis);
   typename TypeParam::Tensor expected({4UL, 5UL}, 5.5f);
   EXPECT_EQ(result, expected);
 }
@@ -120,14 +120,14 @@ TYPED_TEST_P(AdditionTestSuite, TensorAddBroadcast)
 
 TYPED_TEST_P(AdditionTestSuite, TensorAddRank2ContiguousLarge)
 {
-  grid::Tensor random1 = grid::Random<grid::Tensor, float>({10000,7000});
-  grid::Tensor random2 = grid::Random<grid::Tensor, float>({10000,7000});
+  libai::Tensor random1 = libai::Random<libai::Tensor, float>({10000,7000});
+  libai::Tensor random2 = libai::Random<libai::Tensor, float>({10000,7000});
 
   typename TypeParam::Tensor tensor1{random1};
   typename TypeParam::Tensor tensor2{random2};
   typename TypeParam::Tensor result = tensor1 + tensor2;
 
-  grid::Tensor expected = random1 + random2;
+  libai::Tensor expected = random1 + random2;
   EXPECT_EQ(result, expected);
 }
 
