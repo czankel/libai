@@ -18,7 +18,7 @@ cmake_policy(SET CMP0025 NEW)
 ## Project
 ##
 
-project(gridtensor CXX)
+project(libai CXX)
 
 ##
 ## Project Options and configurations
@@ -279,7 +279,7 @@ endif()
 add_subdirectory(tensor)
 add_subdirectory(util)
 
-set(gridtensor_HEADER_DIRS
+set(libai_HEADER_DIRS
   "tensor/include"
   "models/include"	# FIXME
   "util/include"	# FIXME
@@ -289,31 +289,31 @@ set(gridtensor_HEADER_DIRS
 ## Target libraries
 ##
 
-get_property(gridtensor_SOURCES GLOBAL PROPERTY gridtensor_SOURCES)
+get_property(libai_SOURCES GLOBAL PROPERTY libai_SOURCES)
 
 if (BUILD_SHARED_LIBS AND NOT ANDROID)
-  add_library(gridtensor SHARED ${gridtensor_SOURCES})
+  add_library(libai SHARED ${libai_SOURCES})
 endif()
 
 if (BUILD_STATIC_LIBS)
-  add_library(gridtensor_static STATIC ${gridtensor_SOURCES})
+  add_library(libai_static STATIC ${libai_SOURCES})
 endif()
 
 if (UNIX AND NOT APPLE)
   set (EXTRA_LIBS ${EXTRA_LIBS} rt)
 endif()
 
-target_include_directories(gridtensor PUBLIC ${gridtensor_HEADER_DIRS})
+target_include_directories(libai PUBLIC ${libai_HEADER_DIRS})
 
 ##
 ## Enable CUDA
 ##
 
 if (BUILD_CUDA)
-  set_target_properties(gridtensor PROPERTIES CUDA_ARCHITECTURES "75")
-  set_target_properties(gridtensor PROPERTIES CUDA_STANDARD 20)
+  set_target_properties(libai PROPERTIES CUDA_ARCHITECTURES "75")
+  set_target_properties(libai PROPERTIES CUDA_STANDARD 20)
   enable_language(CUDA)
-  target_compile_definitions(gridtensor PUBLIC BUILD_CUDA=1)
+  target_compile_definitions(libai PUBLIC BUILD_CUDA=1)
 endif()
 
 ##
@@ -323,21 +323,21 @@ endif()
 if (BUILD_METAL)
 
   target_include_directories(
-    gridtensor PUBLIC
+    libai PUBLIC
     $<BUILD_INTERFACE:${metal_cpp_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include/metal_cpp>
   )
 
-  target_link_libraries(gridtensor ${METAL_LIB} ${FOUNDATION_LIB} ${QUARTZ_LIB})
+  target_link_libraries(libai ${METAL_LIB} ${FOUNDATION_LIB} ${QUARTZ_LIB})
 
-  get_property(gridtensor_metal_PATH GLOBAL PROPERTY gridtensor_metal_PATH)
+  get_property(libai_metal_PATH GLOBAL PROPERTY libai_metal_PATH)
   target_compile_definitions(
-    gridtensor PUBLIC METAL_PATH="${gridtensor_metal_PATH}/gridtensor.metallib" BUILD_METAL=1
+    libai PUBLIC METAL_PATH="${libai_metal_PATH}/libai.metallib" BUILD_METAL=1
   )
 
   add_dependencies(
-    gridtensor
-    gridtensor_metallib
+    libai
+    libai_metallib
   )
 
 endif()
@@ -347,26 +347,26 @@ endif()
 ##
 
 add_executable(llama tools/llama.cc models/llama/llama.cc models/llama/karpathy.cc models/llama/ggml.cc)
-target_include_directories(llama PUBLIC ${gridtensor_HEADER_DIRS})
-target_link_libraries(llama gridtensor)
+target_include_directories(llama PUBLIC ${libai_HEADER_DIRS})
+target_link_libraries(llama libai)
 
 ##
 ## Install libraries and header files
 ##
 
 if (BUILD_SHARED_LIBS)
-  install(TARGETS gridtensor LIBRARY DESTINATION lib)
+  install(TARGETS libai LIBRARY DESTINATION lib)
 endif()
 
 if (BUILD_STATIC_LIBS)
-  install(TARGETS gridtensor_static ARCHIVE DESTINATION lib)
+  install(TARGETS libai_static ARCHIVE DESTINATION lib)
 endif()
 
-foreach(dir ${gridtensor_HEADER_DIRS})
+foreach(dir ${libai_HEADER_DIRS})
   install(DIRECTORY ${dir}/ DESTINATION include)
 endforeach()
 
-# FIXME: use forach(... ${gridtensor_TOOLS})
+# FIXME: use forach(... ${libai_TOOLS})
 install(TARGETS llama DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 #FIXME
@@ -383,12 +383,12 @@ install(TARGETS llama DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 #  <project>/grid_sdk/android/lib/<platform>/
 #
 # The following two variables need to be defined:
-#  ANDROID_SDK_DIR pointing to the gridtensor sdk destination directory
+#  ANDROID_SDK_DIR pointing to the libai sdk destination directory
 #  ANDROID_PLATFORM platform, such as armeabi-v7a, etc.
 
 
 if (ANDROID_SDK_DIR AND ANDROID_PLATFORM)
-  install(TARGETS gridtensor_static ARCHIVE DESTINATION ${ANDROID_SDK_DIR}/lib/${ANDROID_PLATFORM})
+  install(TARGETS libai_static ARCHIVE DESTINATION ${ANDROID_SDK_DIR}/lib/${ANDROID_PLATFORM})
   install(DIRECTORY libai/include/libai DESTINATION ${ANDROID_SDK_DIR}/include)
 endif()
 
@@ -397,11 +397,11 @@ endif()
 ##
 
 if (BUILD_TEST)
-  get_property(gridtensor_test_SOURCES GLOBAL PROPERTY gridtensor_test_SOURCES)
-  add_executable(gridtensor_test ${gridtensor_test_SOURCES})
-  target_link_libraries(gridtensor_test gridtensor gtest gtest_main)
-  target_include_directories(gridtensor_test PRIVATE ${googletest_SOURCE_DIR}/googletest/include)
-  target_include_directories(gridtensor_test PRIVATE ${googletest_SOURCE_DIR}/googlemock/include)
+  get_property(libai_test_SOURCES GLOBAL PROPERTY libai_test_SOURCES)
+  add_executable(libai_test ${libai_test_SOURCES})
+  target_link_libraries(libai_test libai gtest gtest_main)
+  target_include_directories(libai_test PRIVATE ${googletest_SOURCE_DIR}/googletest/include)
+  target_include_directories(libai_test PRIVATE ${googletest_SOURCE_DIR}/googlemock/include)
 endif()
 
 ##

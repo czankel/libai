@@ -4,7 +4,7 @@
 #
 # The contents of this file are confidential and proprietary to Chris Zankel.
 
-grid_add_sources(gridtensor
+grid_add_sources(libai
 	tensor.cc
 	mmap.cc
 	cpu/device.cc
@@ -14,7 +14,7 @@ grid_add_sources(gridtensor
 if (BUILD_METAL)
   add_subdirectory(metal/kernels)
 
-  grid_add_sources(gridtensor
+  grid_add_sources(libai
     metal/device.cc
   )
 endif()
