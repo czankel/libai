@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_MMAP_H
-#define GRID_TENSOR_MMAP_H
+#ifndef LIBAI_TENSOR_MMAP_H
+#define LIBAI_TENSOR_MMAP_H
 
 #include <fcntl.h>
 #include <stdlib.h>
@@ -215,4 +215,4 @@ class MMapView
 
 } // namespace libai
 
-#endif // GRID_TENSOR_MMAP_H
+#endif // LIBAI_TENSOR_MMAP_H

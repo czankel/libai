@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_GENERATOR_H
-#define GRID_TENSOR_GENERATOR_H
+#ifndef LIBAI_TENSOR_GENERATOR_H
+#define LIBAI_TENSOR_GENERATOR_H
 
 #include "tensor.h"
 #include "tensor_parameters.h"
@@ -88,4 +88,4 @@ auto Random(const size_t(&&dims)[N])
 
 }   // end of namespace libai
 
-#endif  // GRID_TENSOR_GENERATOR_H
+#endif  // LIBAI_TENSOR_GENERATOR_H

@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_PRECISION_H
-#define GRID_TENSOR_PRECISION_H
+#ifndef LIBAI_TENSOR_PRECISION_H
+#define LIBAI_TENSOR_PRECISION_H
 
 namespace libai {
 
@@ -49,4 +49,4 @@ class Precision
 } // end of namespace libai
 
 
-#endif  // GRID_TENSOR_PRECISION_H
+#endif  // LIBAI_TENSOR_PRECISION_H

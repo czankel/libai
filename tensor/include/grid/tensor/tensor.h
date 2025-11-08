@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_TENSOR_H
-#define GRID_TENSOR_TENSOR_H
+#ifndef LIBAI_TENSOR_TENSOR_H
+#define LIBAI_TENSOR_TENSOR_H
 
 #include <functional>
 #include <iterator>
@@ -797,4 +797,4 @@ std::ostream& operator<<(std::ostream& os, const libai::AnyTensor auto& tensor)
   return os;
 }
 
-#endif  // GRID_TENSOR_TENSOR_H
+#endif  // LIBAI_TENSOR_TENSOR_H

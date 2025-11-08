@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_ARRAY_H
-#define GRID_TENSOR_ARRAY_H
+#ifndef LIBAI_TENSOR_ARRAY_H
+#define LIBAI_TENSOR_ARRAY_H
 
 #include <span>
 
@@ -174,4 +174,4 @@ class Array<T, StaticMemory<Ns...>>
 
 } // end of namespace libai
 
-#endif // GRID_TENSOR_ARRAY_H
+#endif // LIBAI_TENSOR_ARRAY_H

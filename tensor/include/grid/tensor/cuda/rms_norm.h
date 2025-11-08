@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_CUDA_RMS_NORM_H
-#define GRID_TENSOR_CUDA_RMS_NORM_H
+#ifndef LIBAI_TENSOR_CUDA_RMS_NORM_H
+#define LIBAI_TENSOR_CUDA_RMS_NORM_H
 
 #include <math.h>
 #include "../precision.h"
@@ -74,4 +74,4 @@ template <> class RmsNormOperator<device::Cuda>
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_CUDA_RMS_NORM_H
+#endif  // LIBAI_TENSOR_CUDA_RMS_NORM_H

@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_CUDA_SOFTMAX_H
-#define GRID_TENSOR_CUDA_SOFTMAX_H
+#ifndef LIBAI_TENSOR_CUDA_SOFTMAX_H
+#define LIBAI_TENSOR_CUDA_SOFTMAX_H
 
 #include <span>
 #include <algorithm>
@@ -77,4 +77,4 @@ template <> class SoftMaxOperator<device::Cuda>
 
 } // end of namespace libai
 
-#endif // GRID_TENSOR_CUDA_SOFTMAX_H
+#endif // LIBAI_TENSOR_CUDA_SOFTMAX_H

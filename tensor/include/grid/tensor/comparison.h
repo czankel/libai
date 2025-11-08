@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_COMPARISON_H
-#define GRID_TENSOR_COMPARISON_H
+#ifndef LIBAI_TENSOR_COMPARISON_H
+#define LIBAI_TENSOR_COMPARISON_H
 
 #include "precision.h"
 
@@ -115,4 +115,4 @@ bool operator==(TTensor1&& tensor1, TTensor2&& tensor2)
 
 } // end of namespace libai
 
-#endif // GRID_TENSOR_COMPARISON_H
+#endif // LIBAI_TENSOR_COMPARISON_H

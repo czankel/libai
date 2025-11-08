@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_METAL_MATMUL_H
-#define GRID_TENSOR_METAL_MATMUL_H
+#ifndef LIBAI_TENSOR_METAL_MATMUL_H
+#define LIBAI_TENSOR_METAL_MATMUL_H
 
 #include "grid/util/demangle.h"
 
@@ -125,4 +125,4 @@ template <> class MatmulOperator<device::Metal>
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_METAL_MATMUL_H
+#endif  // LIBAI_TENSOR_METAL_MATMUL_H

@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_FUNCTION_H
-#define GRID_TENSOR_FUNCTION_H
+#ifndef LIBAI_TENSOR_FUNCTION_H
+#define LIBAI_TENSOR_FUNCTION_H
 
 #include <algorithm>
 #include <ranges>
@@ -123,4 +123,4 @@ auto SoftMax(TTensor&& tensor)
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_FUNCTION_H
+#endif  // LIBAI_TENSOR_FUNCTION_H

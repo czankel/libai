@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_CPU_RMS_NORM_H
-#define GRID_TENSOR_CPU_RMS_NORM_H
+#ifndef LIBAI_TENSOR_CPU_RMS_NORM_H
+#define LIBAI_TENSOR_CPU_RMS_NORM_H
 
 #include <math.h>
 #include <tuple>
@@ -79,4 +79,4 @@ template <> class RmsNormOperator<device::CPU>
 
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_CPU_RMS_NORM_H
+#endif  // LIBAI_TENSOR_CPU_RMS_NORM_H

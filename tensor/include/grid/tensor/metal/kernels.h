@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_METAL_KERNEL_H
-#define GRID_TENSOR_METAL_KERNEL_H
+#ifndef LIBAI_TENSOR_METAL_KERNEL_H
+#define LIBAI_TENSOR_METAL_KERNEL_H
 
 #include <stdio.h>
 #include <grid/util/demangle.h>
@@ -41,4 +41,4 @@ class Kernel
 } // end of namespace metal
 } // end of namespace libai
 
-#endif  // GRID_TENSOR_METAL_KERNEL_H
+#endif  // LIBAI_TENSOR_METAL_KERNEL_H

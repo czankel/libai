@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_CONCEPTS_H
-#define GRID_TENSOR_CONCEPTS_H
+#ifndef LIBAI_TENSOR_CONCEPTS_H
+#define LIBAI_TENSOR_CONCEPTS_H
 
 #include "device.h"
 #include "memory.h"
@@ -136,4 +136,4 @@ using tensor_device_t = tensor_device<std::remove_cvref_t<TTensor>>::type;
 
 } // end of namespace libai
 
-#endif // GRID_TENSOR_CONCEPTS_H
+#endif // LIBAI_TENSOR_CONCEPTS_H

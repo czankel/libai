@@ -6,8 +6,8 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef GRID_TENSOR_TENSOR_OPERATION_H
-#define GRID_TENSOR_TENSOR_OPERATION_H
+#ifndef LIBAI_TENSOR_TENSOR_OPERATION_H
+#define LIBAI_TENSOR_TENSOR_OPERATION_H
 
 namespace libai {
 
@@ -51,4 +51,4 @@ class TensorOperation
 
 } // end of namespace libai
 
-#endif	// GRID_TENSOR_TENSOR_OPERATION_H
+#endif	// LIBAI_TENSOR_TENSOR_OPERATION_H

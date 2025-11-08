@@ -8,8 +8,8 @@
 
 // DO NOT INCLUDE THIS FILE DIRECTLY
 
-#ifndef GRID_TENSOR_METAL_TENSOR_H
-#define GRID_TENSOR_METAL_TENSOR_H
+#ifndef LIBAI_TENSOR_METAL_TENSOR_H
+#define LIBAI_TENSOR_METAL_TENSOR_H
 
 #include "array.h"
 
@@ -34,4 +34,4 @@ inline void Copy(T1& tensor1, const T2& tensor2)
 } // end of namespace libai
 
 
-#endif  // GRID_TENSOR_METAL_TENSOR_H
+#endif  // LIBAI_TENSOR_METAL_TENSOR_H
