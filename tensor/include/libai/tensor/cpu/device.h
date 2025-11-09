@@ -9,8 +9,8 @@
 #ifndef LIBAI_TENSOR_CPU_DEVICE_H
 #define LIBAI_TENSOR_CPU_DEVICE_H
 
-#include <grid/util/worker.h>
-#include <grid/tensor/device.h>
+#include <libai/util/worker.h>
+#include <libai/tensor/device.h>
 
 #include "queue.h"
 

@@ -13,8 +13,8 @@
 #include <algorithm>
 #include <typeinfo>
 
-#include <grid/models/llama.h>
-#include <grid/util/demangle.h>
+#include <libai/models/llama.h>
+#include <libai/util/demangle.h>
 
 #include "ggml.h"
 

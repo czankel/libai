@@ -9,7 +9,7 @@
 #ifndef LIBAI_TENSOR_CUDA_DEVICE_H
 #define LIBAI_TENSOR_CUDA_DEVICE_H
 
-#include <grid/tensor/device.h>
+#include <libai/tensor/device.h>
 
 namespace libai::device {
 

@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-#include <grid/util/demangle.h>
+#include <libai/util/demangle.h>
 
 #include "device.h"
 #include "kernels.h"

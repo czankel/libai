@@ -12,7 +12,7 @@
 #define LIBAI_TENSOR_CUDA_MATMUL_H
 
 
-#include "grid/util/demangle.h"
+#include "libai/util/demangle.h"
 
 #include "device.h"
 

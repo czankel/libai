@@ -9,9 +9,9 @@
 #ifndef _KARPATHY_H
 #define _KARPATHY_H
 
-#include <grid/models/llama.h>
-#include <grid/tensor/mmap.h>
-#include <grid/tensor/tensor.h>
+#include <libai/models/llama.h>
+#include <libai/tensor/mmap.h>
+#include <libai/tensor/tensor.h>
 
 #include "llama_vocab.h"
 

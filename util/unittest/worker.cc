@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 
-#include <grid/util/worker.h>
+#include <libai/util/worker.h>
 
 using namespace libai;
 

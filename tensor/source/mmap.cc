@@ -6,7 +6,7 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/mmap.h>
+#include <libai/tensor/mmap.h>
 
 namespace libai {
 

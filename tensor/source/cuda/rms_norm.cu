@@ -8,12 +8,12 @@
 
 #include <utility>
 
-#include <grid/tensor/tensor.h>
+#include <libai/tensor/tensor.h>
 
-#include <grid/tensor/cuda/binary.h>
-#include <grid/tensor/cuda/device.h>
+#include <libai/tensor/cuda/binary.h>
+#include <libai/tensor/cuda/device.h>
 
-#include <grid/tensor/cuda/rms_norm.h>
+#include <libai/tensor/cuda/rms_norm.h>
 
 #include "../instantiate.h"
 #include "reduce.h"

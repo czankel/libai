@@ -6,11 +6,11 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#include <grid/tensor/tensor.h>
-#include <grid/tensor/precision.h>
+#include <libai/tensor/tensor.h>
+#include <libai/tensor/precision.h>
 
-#include <grid/tensor/cuda/device.h>
-#include <grid/tensor/cuda/softmax.h>
+#include <libai/tensor/cuda/device.h>
+#include <libai/tensor/cuda/softmax.h>
 
 #include "../instantiate.h"
 #include "reduce.h"

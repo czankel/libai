@@ -10,7 +10,7 @@
 #define LIBAI_TENSOR_METAL_DEVICE_H
 
 #include <Metal/Metal.hpp>
-#include <grid/tensor/device.h>
+#include <libai/tensor/device.h>
 
 #include <string>
 

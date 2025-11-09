@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-#include <grid/tensor/metal/device.h>
+#include <libai/tensor/metal/device.h>
 
 using namespace libai::device;
 

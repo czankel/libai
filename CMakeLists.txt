@@ -389,7 +389,7 @@ install(TARGETS llama DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 if (ANDROID_SDK_DIR AND ANDROID_PLATFORM)
   install(TARGETS gridtensor_static ARCHIVE DESTINATION ${ANDROID_SDK_DIR}/lib/${ANDROID_PLATFORM})
-  install(DIRECTORY grid/include/grid DESTINATION ${ANDROID_SDK_DIR}/include)
+  install(DIRECTORY libai/include/grid DESTINATION ${ANDROID_SDK_DIR}/include)
 endif()
 
 ##

@@ -11,8 +11,8 @@
 
 #include <numeric>
 
-#include <grid/util/worker.h>
-#include <grid/tensor/device.h>
+#include <libai/util/worker.h>
+#include <libai/tensor/device.h>
 
 namespace libai::cpu {
 

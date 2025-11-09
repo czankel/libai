@@ -11,8 +11,8 @@
 
 #include <iostream>
 
-#include <grid/tensor/tensor.h>
-#include <grid/tensor/mmap.h>
+#include <libai/tensor/tensor.h>
+#include <libai/tensor/mmap.h>
 
 namespace libai {
 

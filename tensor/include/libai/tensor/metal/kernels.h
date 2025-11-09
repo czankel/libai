@@ -12,7 +12,7 @@
 #define LIBAI_TENSOR_METAL_KERNEL_H
 
 #include <stdio.h>
-#include <grid/util/demangle.h>
+#include <libai/util/demangle.h>
 
 #include "device.h"
 

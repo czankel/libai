@@ -9,8 +9,8 @@
 #include "gtest/gtest.h"
 
 
-#include <grid/tensor/tensor.h>
-#include <grid/tensor/cpu/queue.h>
+#include <libai/tensor/tensor.h>
+#include <libai/tensor/cpu/queue.h>
 #include "tensor_cpu.h"
 
 TEST(CPU, SimpleQueue1)

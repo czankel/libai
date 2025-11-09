@@ -11,7 +11,7 @@
 #ifndef LIBAI_TENSOR_METAL_BINARY_H
 #define LIBAI_TENSOR_METAL_BINARY_H
 
-#include <grid/util/demangle.h>
+#include <libai/util/demangle.h>
 
 #include "device.h"
 #include "kernels.h"

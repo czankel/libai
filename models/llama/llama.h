@@ -15,10 +15,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <grid/models/llama.h>
+#include <libai/models/llama.h>
 
-#include <grid/tensor/mmap.h>
-#include <grid/tensor/tensor.h>
+#include <libai/tensor/mmap.h>
+#include <libai/tensor/tensor.h>
 
 #include "llama_vocab.h"
 

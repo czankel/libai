@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-#include <grid/tensor/cuda/array.h>
+#include <libai/tensor/cuda/array.h>
 
 namespace libai {
 
