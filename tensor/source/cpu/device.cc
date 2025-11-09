@@ -8,7 +8,7 @@
 
 #include <grid/tensor/cpu/device.h>
 
-using namespace grid::device;
+using namespace libai::device;
 
-grid::device::CPU grid::device::CPU::g_device_;
-size_t grid::device::CPU::concurrent_thread_count_ = 0;
+libai::device::CPU libai::device::CPU::g_device_;
+size_t libai::device::CPU::concurrent_thread_count_ = 0;

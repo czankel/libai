@@ -22,10 +22,10 @@
 
 #include "llama_vocab.h"
 
-using grid::view::Slice;
-using grid::view::Extent;
+using libai::view::Slice;
+using libai::view::Extent;
 
-namespace grid {
+namespace libai {
 
 /// LLaMAModelT is the templated version of the LLaMAModel class for data type and backend.
 template <typename T, typename Dev>
@@ -270,7 +270,7 @@ std::string LLaMAModelT<T, Dev>::Decode(LLaMAVocab::token prev, LLaMAVocab::toke
 template <typename T, typename Dev>
 void LLaMAModelT<T, Dev>::Forward(LLaMAVocab::token token, size_t pos)
 {
-  using namespace grid;
+  using namespace libai;
 
   size_t dim = parameters_.dim_;
   size_t n_heads = parameters_.num_heads_;
@@ -406,6 +406,6 @@ void LLaMAModelT<T, Dev>::Predict(std::string_view prompt, size_t steps)
   std::cout << std::endl;
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // _LLAMA_H

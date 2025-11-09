@@ -16,7 +16,7 @@
 
 #include "device.h"
 
-namespace grid {
+namespace libai {
 
 void CudaDeviceSynchronize(); // FIXME move to some header?
 
@@ -92,6 +92,6 @@ public:
 #endif  // !__CUDACC__
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CUDA_MATMUL_H

@@ -16,7 +16,7 @@
 #include "../instantiate.h"
 #include "utils.h"
 
-namespace grid {
+namespace libai {
 
 // Note that dimensions are jki  (col, index, row)
 template <typename T>
@@ -67,4 +67,4 @@ void MatmulOperator<device::Cuda>::EvalGeneric(
 
 INSTANTIATE1(FUNCTION, (TYPES))
 
-} // end of namespace grid
+} // end of namespace libai

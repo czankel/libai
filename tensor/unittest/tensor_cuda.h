@@ -12,5 +12,5 @@
 struct TensorCudaType
 {
   template <typename T, size_t R>
-  using Tensor = grid::Tensor<T, R, grid::DeviceMemory<grid::device::Cuda>>;
+  using Tensor = libai::Tensor<T, R, libai::DeviceMemory<libai::device::Cuda>>;
 };

@@ -15,7 +15,7 @@
 
 #include "llama_vocab.h"
 
-namespace grid {
+namespace libai {
 
 class LLaMAFile;
 
@@ -73,6 +73,6 @@ class KarpathyFile : public LLaMAFile
   size_t w3_;
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // _KARPATHY_H

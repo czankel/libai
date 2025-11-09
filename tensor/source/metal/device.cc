@@ -18,7 +18,7 @@
 
 #include <grid/tensor/metal/device.h>
 
-using namespace grid::device;
+using namespace libai::device;
 
 //
 // CommandEncoder
@@ -111,4 +111,4 @@ CommandEncoder& Metal::Encoder()
   return *command_encoder_;
 }
 
-grid::device::Metal* grid::device::Metal::g_device_;
+libai::device::Metal* libai::device::Metal::g_device_;

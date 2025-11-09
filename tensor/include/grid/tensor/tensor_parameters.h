@@ -14,7 +14,7 @@
 
 #include "concepts.h"
 
-namespace grid {
+namespace libai {
 
 // helper class to determine rank from a reference; constexpr cannot bind to a reference
 namespace
@@ -394,6 +394,6 @@ void Fold(TOp&& op, T&& dims, const auto... strides)
 
 #endif // !defined(__CUDACC__)
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_TENSOR_PARAMETERS_H

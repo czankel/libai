@@ -19,7 +19,7 @@
 #include "../tensor_parameters.h"
 
 
-namespace grid {
+namespace libai {
 
 void CudaMallocManaged(void** ptr, size_t size);
 void CudaFree(void* ptr);
@@ -161,6 +161,6 @@ class Array<T, DeviceMemory<device::Cuda>>
 };
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CUDA_ARRAY_H

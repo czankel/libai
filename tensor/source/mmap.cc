@@ -8,7 +8,7 @@
 
 #include <grid/tensor/mmap.h>
 
-namespace grid {
+namespace libai {
 
 MMap* MMap::MMapFile(const std::string& name)
 {
@@ -32,4 +32,4 @@ MMap* MMap::MMapFile(int fd, size_t file_size)
 }
 
 
-} // end of namespace grid
+} // end of namespace libai

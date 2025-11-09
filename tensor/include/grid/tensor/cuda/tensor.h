@@ -13,7 +13,7 @@
 
 #include "array.h"
 
-namespace grid {
+namespace libai {
 
 template <AnyTensor T1, AnyTensor T2>
 requires has_memory_type_v<T1, DeviceMemory<device::Cuda>>
@@ -30,6 +30,6 @@ inline void Copy(T1& tensor1, const T2& tensor2)
                        std::span{tensor2.Strides()});
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CUDA_TENSOR_H

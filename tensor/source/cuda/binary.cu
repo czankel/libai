@@ -16,7 +16,7 @@
 #include "../instantiate.h"
 #include "utils.h"
 
-namespace grid {
+namespace libai {
 
 // FIXME: note : Similar to thread blocks, clusters are also organized into a one-dimension, two-dimension, or three-dimension as illustrated by Figure 5. The number of thread blocks in a cluster can be user-defined, and a maximum of 8 thread blocks in a cluster is supported as a portable cluster size in CUDA. Note that on GPU hardware or MIG configurations which are too small to support 8 multiprocessors the maximum cluster size will be reduced accordingly. Identification of these smaller configurations, as well as of larger configurations supporting a thread block cluster size beyond 8, is architecture-specific and can be queried using the cudaOccupancyMaxPotentialClusterSize API.
 
@@ -295,4 +295,4 @@ INSTANTIATE3(FUNCTIONS_VECSCALAR, (QUANTITIES), (OPS), (TYPES))
 INSTANTIATE3(FUNCTION_CONTIGUOUS, (RANKS_CONTIGUOUS), (OPS), (TYPES))
 INSTANTIATE3(FUNCTION_DISCONTIGUOUS, (RANKS_DISCONTIGUOUS), (OPS), (TYPES))
 
-} // end of namespace grid
+} // end of namespace libai

@@ -19,7 +19,7 @@
 #include "../concepts.h"
 #include "../tensor_operation.h"
 
-namespace grid {
+namespace libai {
 
 /// BinaryOperation<Operator> implements element-wise binary operations of two tensors.
 /// The dimensions of the tensors must match following broadcasting rules.
@@ -102,7 +102,7 @@ class BinaryOperation<TOperator, device::CPU>
 
           const auto [b_strides_x, b_strides_y] = BroadcastStrides<rank>(strides_x, strides_y);
 
-          auto& CPU = grid::device::CPU::GetDevice();
+          auto& CPU = libai::device::CPU::GetDevice();
           auto& queue = CPU.GetQueue();
 
           // use "tiling" by using the max size / max threads, aligned to cache line
@@ -155,6 +155,6 @@ template<> struct DivOperator<device::CPU>
 };
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_CPU_BINARY_H

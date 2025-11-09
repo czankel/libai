@@ -17,7 +17,7 @@
 #include "kernels.h"
 #include "utils.h"
 
-namespace grid {
+namespace libai {
 
 template <template <typename> typename TOperator>
 class BinaryOperation<TOperator, device::Metal>
@@ -131,6 +131,6 @@ template <> struct SubOperator<device::Metal> { static constexpr std::string_vie
 template <> struct MulOperator<device::Metal> { static constexpr std::string_view kernel_name = "Mul";  };
 template <> struct DivOperator<device::Metal> { static constexpr std::string_view kernel_name = "Div";  };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_METAL_BINARY_H

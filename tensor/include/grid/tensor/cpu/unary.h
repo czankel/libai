@@ -19,7 +19,7 @@
 #include "../unary.h"
 #include "../tensor_operation.h"
 
-namespace grid {
+namespace libai {
 
 /// UnaryOperation<Operator> implements element-wise unary operation on a tensors.
 ///
@@ -91,7 +91,7 @@ class UnaryOperation<TOperator, device::CPU>
 
           const auto b_strides_x = BroadcastStrides<rank>(strides_x);
 
-          auto& CPU = grid::device::CPU::GetDevice();
+          auto& CPU = libai::device::CPU::GetDevice();
           auto& queue = CPU.GetQueue();
 
           // use "tiling" by using the max size / max threads, aligned to cache line
@@ -137,6 +137,6 @@ template <> struct SiluFunction<device::CPU>
 };
 
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_CPU_UNARY_H

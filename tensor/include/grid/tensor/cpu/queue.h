@@ -14,7 +14,7 @@
 #include <grid/util/worker.h>
 #include <grid/tensor/device.h>
 
-namespace grid::cpu {
+namespace libai::cpu {
 
 
 class Queue
@@ -99,6 +99,6 @@ void Queue::Enqueue(const std::array<size_t, N>& dims, const std::array<size_t, 
   worker_.ReleaseBlock(current_job_);
 }
 
-} // end of namespace grid::cpu
+} // end of namespace libai::cpu
 
 #endif  // GRID_TENSOR_CPU_QUEUE_H

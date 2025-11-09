@@ -18,7 +18,7 @@
 #include "binary.h"
 #include "../precision.h"
 
-namespace grid {
+namespace libai {
 
 // FIXME: re-use unary and just have a different softmax kernel?
 
@@ -91,6 +91,6 @@ template <> class SoftMaxOperator<device::Metal>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_METAL_SOFTMAX_H

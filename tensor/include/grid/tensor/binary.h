@@ -16,7 +16,7 @@
 #include "concepts.h"
 #include "tensor_operation.h"
 
-namespace grid {
+namespace libai {
 
 /// BinaryOperation is a empty definition for device-specific operators.
 template <template <typename> typename, typename> class BinaryOperation;

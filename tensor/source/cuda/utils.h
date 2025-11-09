@@ -11,7 +11,7 @@
 
 #include <initializer_list>
 
-namespace grid {
+namespace libai {
 namespace cuda {
 
 namespace
@@ -79,6 +79,6 @@ inline auto GetSizes(const T(&&dims)[R], S... sizes)
 
 
 } // end of namespace cuda
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // TENSOR_SOURCE_CUDA_KERNELS_UTILS_H

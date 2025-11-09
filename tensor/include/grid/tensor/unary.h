@@ -16,7 +16,7 @@
 #include "concepts.h"
 #include "tensor_operation.h"
 
-namespace grid {
+namespace libai {
 
 template <template <typename> typename, typename> class UnaryOperation;
 

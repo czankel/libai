@@ -9,7 +9,7 @@
 #ifndef GRID_TENSOR_DEVICE_H
 #define GRID_TENSOR_DEVICE_H
 
-namespace grid {
+namespace libai {
 namespace device {
 
 // Device is a base class for all device-specific implementations.
@@ -19,6 +19,6 @@ class Device
 };
 
 } // end of namespace device
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_DEVICE_H

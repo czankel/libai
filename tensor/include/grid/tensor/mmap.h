@@ -22,7 +22,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace grid {
+namespace libai {
 
 /// MMap represents a memory-maped file.
 class MMap
@@ -213,6 +213,6 @@ class MMapView
   char* end_;
 };
 
-} // namespace grid
+} // namespace libai
 
 #endif // GRID_TENSOR_MMAP_H

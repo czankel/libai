@@ -19,7 +19,7 @@
 
 #include "llama_vocab.h"
 
-namespace grid {
+namespace libai {
 
 struct ifstream_helper;
 
@@ -256,6 +256,6 @@ class GgmlFile : public LLaMAFile
   std::unordered_map<std::string, GgmlTensor> tensor_map_;
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // _GGML_H

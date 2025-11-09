@@ -9,7 +9,7 @@
 #ifndef GRID_TENSOR_TENSOR_OPERATION_H
 #define GRID_TENSOR_TENSOR_OPERATION_H
 
-namespace grid {
+namespace libai {
 
 
 /// TensorOperation is a base class and wrapper for tensor operations.
@@ -49,6 +49,6 @@ class TensorOperation
   TOperation& op_;
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif	// GRID_TENSOR_TENSOR_OPERATION_H

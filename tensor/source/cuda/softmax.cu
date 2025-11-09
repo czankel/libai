@@ -16,7 +16,7 @@
 #include "reduce.h"
 #include "utils.h"
 
-namespace grid {
+namespace libai {
 namespace cuda {
 
 template <typename T, unsigned int BlockSize>
@@ -143,4 +143,4 @@ void SoftMaxOperator<device::Cuda>::EvalDiscontiguous(
 INSTANTIATE2(FUNCTION_CONTIGUOUS, (RANKS_CONTIGUOUS), (TYPES))
 INSTANTIATE2(FUNCTION_DISCONTIGUOUS, (RANKS_DISCONTIGUOUS), (TYPES))
 
-} // end of namespace grid
+} // end of namespace libai

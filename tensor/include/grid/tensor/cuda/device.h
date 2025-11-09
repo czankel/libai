@@ -11,7 +11,7 @@
 
 #include <grid/tensor/device.h>
 
-namespace grid::device {
+namespace libai::device {
 
 class Cuda : public Device
 {
@@ -32,6 +32,6 @@ class Cuda : public Device
   static Cuda*      g_device_;
 };
 
-} // end of namespace grid::device
+} // end of namespace libai::device
 
 #endif  // GRID_TENSOR_CUDA_DEVICE_H

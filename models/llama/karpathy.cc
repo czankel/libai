@@ -15,7 +15,7 @@
 
 #include "karpathy.h"
 
-namespace grid {
+namespace libai {
 
 void KarpathyFile::Load()
 {
@@ -166,4 +166,4 @@ std::tuple<size_t, size_t> KarpathyFile::GetTensorOffset(TensorType type, size_t
   return std::make_tuple(offset, size * sizeof(float));
 }
 
-} // end of namespace grid
+} // end of namespace libai

@@ -9,13 +9,13 @@
 #include <grid/tensor/cpu/device.h>
 #include <grid/tensor/cpu/queue.h>
 
-using namespace grid::device;
+using namespace libai::device;
 
-grid::cpu::Queue::Queue() : thread_count_(grid::device::CPU::GetConcurrentThreadCount())
+libai::cpu::Queue::Queue() : thread_count_(libai::device::CPU::GetConcurrentThreadCount())
 {
 }
 
-void grid::cpu::Queue::Sync()
+void libai::cpu::Queue::Sync()
 {
   Job job;
 

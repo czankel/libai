@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <ranges>
 
-namespace grid {
+namespace libai {
 
 template <> class GeneratorOperation<device::CPU>
 {
@@ -79,6 +79,6 @@ template <> struct RandomFunction<device::CPU>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CPU_GENERATOR_H

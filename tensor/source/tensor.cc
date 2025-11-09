@@ -8,4 +8,4 @@
 
 #include <grid/tensor/precision.h>
 
-__thread float grid::Precision::g_margin_ = 1.f;
+__thread float libai::Precision::g_margin_ = 1.f;

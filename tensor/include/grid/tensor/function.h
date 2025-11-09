@@ -17,7 +17,7 @@
 #include "concepts.h"
 #include "tensor_operation.h"
 
-namespace grid {
+namespace libai {
 
 /// @brief Function is a wrapper for a device-specific function operator implementation.
 ///
@@ -121,6 +121,6 @@ auto SoftMax(TTensor&& tensor)
   return Function(SoftMaxOperator<tensor_device_t<TTensor>>(), std::forward<TTensor>(tensor));
 }
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_FUNCTION_H

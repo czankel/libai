@@ -14,7 +14,7 @@
 
 #include <string>
 
-namespace grid::device {
+namespace libai::device {
 
 class CommandEncoder
 {
@@ -116,6 +116,6 @@ class Metal : public Device
 };
 
 
-} // end of namespace grid::device
+} // end of namespace libai::device
 
 #endif  // GRID_TENSOR_METAL_DEVICE_H

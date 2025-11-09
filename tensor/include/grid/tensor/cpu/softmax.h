@@ -17,7 +17,7 @@
 
 #include "binary.h"
 
-namespace grid {
+namespace libai {
 
 /// SoftMaxOperator implements the softmax operator.
 template <> class SoftMaxOperator<device::CPU>
@@ -110,6 +110,6 @@ template <> class SoftMaxOperator<device::CPU>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif // GRID_TENSOR_CPU_SOFTMAX_H

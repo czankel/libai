@@ -16,7 +16,7 @@
 
 #include "device.h"
 
-namespace grid {
+namespace libai {
 namespace metal {
 
 template <typename T>
@@ -26,7 +26,7 @@ class Kernel
   Kernel(std::string name)
   {
     auto& dev = device::Metal::GetDevice();
-    auto tp = grid::Demangle(typeid(T).name());
+    auto tp = libai::Demangle(typeid(T).name());
     if (tp == "int")
       tp = "int32_t";
     pipeline_ = dev.GetKernel(name + tp);
@@ -39,6 +39,6 @@ class Kernel
 };
 
 } // end of namespace metal
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_METAL_KERNEL_H

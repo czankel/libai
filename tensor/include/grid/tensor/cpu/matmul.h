@@ -13,7 +13,7 @@
 
 #include "../device.h"
 
-namespace grid {
+namespace libai {
 
 /// MatmulOperator implements a multiplication operation for tensors
 /// different ranks, such as matrix multiplication (Matmul) and vector dot-product (VecDot).
@@ -295,7 +295,7 @@ template <> class MatmulOperator<device::CPU>
     auto strides_x = first_x.Strides();
     auto strides_y = first_y.Strides();
 
-    auto& CPU = grid::device::CPU::GetDevice();
+    auto& CPU = libai::device::CPU::GetDevice();
     auto& queue = CPU.GetQueue();
 
     if constexpr (rank_d > 0)
@@ -330,6 +330,6 @@ template <> class MatmulOperator<device::CPU>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_CPU_MATMUL_H

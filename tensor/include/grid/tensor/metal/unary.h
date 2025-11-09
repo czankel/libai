@@ -17,7 +17,7 @@
 #include "kernels.h"
 #include "utils.h"
 
-namespace grid {
+namespace libai {
 
 // UnaryOperation<Operator> implements element-wise unary operation on a tensors for metal devices.
 template <template <typename> typename TOperator>
@@ -114,6 +114,6 @@ template <> struct CopyOperator<device::Metal> { static constexpr std::string_vi
 template <> struct NegOperator<device::Metal> { static constexpr std::string_view kernel_name = "Neg";  };
 template <> struct SiluFunction<device::Metal> { static constexpr std::string_view kernel_name = "Silu";  };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_METAL_UNARY_H

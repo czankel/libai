@@ -16,7 +16,7 @@
 #include "device.h"
 #include "kernels.h"
 
-namespace grid {
+namespace libai {
 
 /// MatmulOperator implements a multiplication operation for tensors
 /// different ranks, such as matrix multiplication (Matmul) and vector dot-product (VecDot).
@@ -123,6 +123,6 @@ template <> class MatmulOperator<device::Metal>
   }
 };
 
-} // end of namespace grid
+} // end of namespace libai
 
 #endif  // GRID_TENSOR_METAL_MATMUL_H
