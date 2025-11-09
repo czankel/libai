@@ -141,7 +141,7 @@ TEST(Worker, JobGroup)
       woken = true;
       return false;
   });
-  
+
   srand(time(NULL));
 
   std::list<Job> jobs;
