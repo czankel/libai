@@ -89,8 +89,6 @@ class BinaryOperation<TOperator, device::CPU>
         using value_type = std::iter_value_t<std::ranges::iterator_t<O>>;
         constexpr size_t rank = dimensions.size();
 
-// FIXME: optmize for scalar operations?
-
         // special case: scaler x scalar
         if constexpr (rank == 0)
           *first_d = TOperator<device::CPU>()(*first_x, *first_y);
@@ -101,7 +99,6 @@ class BinaryOperation<TOperator, device::CPU>
           bool is_cont = IsContiguous(strides_d, strides_x, strides_y);
 
           const auto [b_strides_x, b_strides_y] = BroadcastStrides<rank>(strides_x, strides_y);
-
           auto& CPU = libai::device::CPU::GetDevice();
           auto& queue = CPU.GetQueue();
 
