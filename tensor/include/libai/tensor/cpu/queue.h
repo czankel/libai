@@ -16,6 +16,89 @@
 
 namespace libai::cpu {
 
+template <typename T>
+struct array_size { };
+
+// helper struct to return the size of an array: c-array, std::array, std::span
+// TODO: can possibly be improved, but c-array doesn't have a size, span has extent, array::size
+// TODO: is not static. So, use a more "brute force" method here.
+template <typename T> struct array_size;
+
+// c-array
+template <typename T, size_t S>
+struct array_size<T(&)[S]>
+{
+  constexpr static size_t value = S;
+};
+
+template <typename T, size_t S>
+struct array_size<const T(&)[S]>
+{
+  constexpr static size_t value = S;
+};
+
+
+// std::array
+template <typename T, size_t S>
+struct array_size<std::array<T, S>>
+{
+  constexpr static size_t value = S;
+};
+
+template <typename T, size_t S>
+struct array_size<const std::array<T, S>>
+{
+  constexpr static size_t value = S;
+};
+
+template <typename T, size_t S>
+struct array_size<std::array<T, S>&>
+{
+  constexpr static size_t value = S;
+};
+
+
+template <typename T, size_t S>
+struct array_size<const std::array<T, S>&>
+{
+  constexpr static size_t value = S;
+};
+
+// std::span
+template <typename T, size_t S>
+struct array_size<std::span<T, S>>
+{
+  constexpr static size_t value = S;
+};
+
+template <typename T, size_t S>
+struct array_size<const std::span<T, S>>
+{
+  constexpr static size_t value = S;
+};
+
+template <typename T, size_t S>
+struct array_size<std::span<T, S>&>
+{
+  constexpr static size_t value = S;
+};
+
+
+template <typename T, size_t S>
+struct array_size<const std::span<T, S>&>
+{
+  constexpr static size_t value = S;
+};
+
+
+// Concept to ensure the provided argument is some form or an array with a maximum size
+template <typename T, size_t MAX>
+concept is_array_bound = requires(T t) {
+  t[0];
+  requires std::integral<std::decay_t<decltype(t[0])>>;
+} && array_size<T>::value < MAX;
+
+
 
 class Queue
 {
@@ -27,10 +110,11 @@ class Queue
   /// The sizes defines the dimensions of each block. The caller should align these
   /// to the cache line size; Enque uses them as is.
   ///
-  /// @param dims  Dimensions of the entire array
-  /// @param sizes Dimensions of a block
-  template <size_t N, typename F, typename... Args>
-  void Enqueue(const std::array<size_t, N>& dims, const std::array<size_t, N>& sizes, F&& f, Args&&... args);
+  /// @param dims     Dimensions of the entire array
+  /// @param sizes    Dimensions of a block
+  /// @param function Function to run in a job
+  template <is_array_bound<4> Dims, is_array_bound<4> Sizes, typename F, typename... Args>
+  void Enqueue(Dims&& dims, Sizes&& sizes, F&& function, Args&&...);
 
   /// Sync synchronizes all outstanding jobs waiting for the jobs to complete.
   void Sync();
@@ -44,10 +128,10 @@ class Queue
   bool        sync_;
 };
 
-
-template <size_t N, typename F, typename... Args>
-void Queue::Enqueue(const std::array<size_t, N>& dims, const std::array<size_t, N>& sizes, F&& function, Args&&... args)
+template <is_array_bound<4> Dims, is_array_bound<4> Sizes, typename F, typename... Args>
+void Queue::Enqueue(Dims&& dims, Sizes&& sizes, F&& function, Args&&... args)
 {
+  constexpr size_t N = array_size<Dims>::value;
   {
     std::unique_lock lock(sync_mutex_);
     if (!current_job_.IsValid() || sync_)
@@ -69,8 +153,8 @@ void Queue::Enqueue(const std::array<size_t, N>& dims, const std::array<size_t, 
 
   for (size_t thread_id = 0; thread_id < n_threads; thread_id++)
   {
-    worker_.PostRunBefore(current_job_, [n_threads, dims, sizes, args...](auto f, size_t thread_id) -> bool
-      {
+    worker_.PostRunBefore(current_job_, [n_threads, &dims, &sizes, args...](auto f, size_t thread_id) -> bool {
+
         if constexpr (N == 1)
         {
           size_t n_blocks = (dims[0] + sizes[0] - 1) / sizes[0];
@@ -86,12 +170,12 @@ void Queue::Enqueue(const std::array<size_t, N>& dims, const std::array<size_t, 
         }
         else if constexpr (N == 3)
         {
-        // FIXME: channel or batch instead of depth?
           size_t n_depths = (dims[0] + sizes[0] - 1) / sizes[0];
           size_t n_rows = (dims[1] + sizes[1] - 1) / sizes[1];
           size_t n_cols = (dims[2] + sizes[2] - 1) / sizes[2];
           for (size_t pos = thread_id; pos < n_depths * n_rows * n_cols; pos += n_threads)
-            f(std::to_array<size_t>({pos / n_cols / n_rows, (pos / n_cols) % n_rows, pos % n_cols}), dims, sizes, args...);
+            f(std::to_array<size_t>({pos / n_cols / n_rows, (pos / n_cols) % n_rows, pos % n_cols}),
+              dims, sizes, args...);
         }
         return false;
     }, std::forward<F>(function), thread_id);

@@ -46,7 +46,7 @@ TEST(CPU, SimpleQueue2)
   std::array<size_t, 2> dims{32, 20};
   size_t completed[32 * 20] = {0};
 
-  queue.Enqueue(dims, sizes, [&completed](auto pos, auto dims, auto sizes) -> bool {
+  queue.Enqueue(dims, sizes, [&completed](auto&& pos, auto dims, auto sizes) -> bool {
       for (size_t r = pos[0] * sizes[0]; r < (pos[0] + 1) * sizes[0] && r < dims[0]; r++)
         for (size_t c = pos[1] * sizes[1]; c < (pos[1] + 1) * sizes[1] && c < dims[1]; c++)
           completed[r * dims[1] + c] = r * dims[1] + c;
@@ -64,17 +64,17 @@ TEST(CPU, SimpleQueue3)
   libai::cpu::Queue queue;
   size_t idx;
 
-  std::array<size_t, 3> sizes{8, 5, 5};
-  std::array<size_t, 3> dims{7, 18, 16};
+  size_t sizes[3]{8, 5, 5};
+  size_t dims[3]{7, 18, 16};
   size_t completed[7 * 18 * 16] = {0};
 
-  queue.Enqueue(dims, sizes, [&completed](auto pos, auto dims, auto sizes) -> bool {
+  queue.Enqueue(dims, sizes, [&completed](auto&& pos, auto dims, auto sizes) -> bool {
       for (size_t d = pos[0] * sizes[0]; d < (pos[0] + 1) * sizes[0] && d < dims[0]; d++)
         for (size_t r = pos[1] * sizes[1]; r < (pos[1] + 1) * sizes[1] && r < dims[1]; r++)
           for (size_t c = pos[2] * sizes[2]; c < (pos[2] + 1) * sizes[2] && c < dims[2]; c++)
             completed[(d * dims[1] + r) * dims[2] + c] = (d * dims[1] + r) * dims[2] + c;
       return false;
-      });
+  });
   queue.Sync();
 
   for (idx = 0; idx < dims[0] * dims[1] * dims[2] && completed[idx] == idx; idx++)
