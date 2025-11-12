@@ -20,6 +20,8 @@ cmake_policy(SET CMP0025 NEW)
 
 project(libai CXX)
 
+# FIXME VERSION = $(shell git describe --always --dirty)
+
 ##
 ## Project Options and configurations
 ## (Ensure to also update cmake/Summary.cmake)

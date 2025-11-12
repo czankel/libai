@@ -10,6 +10,7 @@
 #define LIBAI_TENSOR_CPU_QUEUE_H
 
 #include <numeric>
+#include <span>
 
 #include <libai/util/worker.h>
 #include <libai/tensor/device.h>
