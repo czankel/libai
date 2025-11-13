@@ -38,6 +38,9 @@ using libai::view::NewAxis;
 template <typename T> class TensorTestSuite : public testing::Test {};
 TYPED_TEST_SUITE_P(TensorTestSuite);
 
+template <typename T> class TensorTestSuite_Ext : public testing::Test {};
+TYPED_TEST_SUITE_P(TensorTestSuite_Ext);
+
 
 TYPED_TEST_P(TensorTestSuite, TensorBraceInitializationRank0Integer)
 {
@@ -317,6 +320,23 @@ TYPED_TEST_P(TensorTestSuite, TensorBroadcast)
   EXPECT_THAT(view_change_to_broadcast.Strides(), ElementsAre(5, 0));
 }
 
+TYPED_TEST_P(TensorTestSuite_Ext, TensorCastInlineIntToFloat)
+{
+  typename TypeParam::Tensor tensor({4, 5}, 100U);
+
+  printf("data %p\n", tensor.Data());
+  auto result_copy = TensorCast<int>(tensor);
+  printf("copy %p\n", result_copy.Data());  // is copied, as expected..
+  auto result_move = TensorCast<int>(std::move(tensor));
+  printf("move %p\n", result_move.Data()); // fIXME is copied??
+
+#if 0
+  std::cout << tensor << std::endl;
+  std::cout << result << std::endl;
+#endif
+}
+
+
 
 REGISTER_TYPED_TEST_SUITE_P(TensorTestSuite,
     TensorBraceInitializationRank0Integer,
@@ -335,8 +355,12 @@ REGISTER_TYPED_TEST_SUITE_P(TensorTestSuite,
     TensorViewAllocInitializationTensor,
     TensorBroadcast);
 
+REGISTER_TYPED_TEST_SUITE_P(TensorTestSuite_Ext,
+    TensorCastInlineIntToFloat);
+
 
 INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestCPU, TensorTestSuite, TensorCPUType);
+INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestCPU, TensorTestSuite_Ext, TensorCPUType);
 #ifdef BUILD_METAL
 INSTANTIATE_TYPED_TEST_SUITE_P(TensorTestMetal, TensorTestSuite, TensorMetalType);
 #endif

@@ -72,6 +72,8 @@ class Array<T, DeviceMemory<device::CPU>>
     memcpy(data_, other.data_, other.size_ * sizeof(T));
   }
 
+  // FIXME: conversion, i.e. int -> float
+
   // @brief Copy constructor from same array type with dimensions and strides
   template <size_t N>
   Array(const Array& other,
@@ -87,15 +89,30 @@ class Array<T, DeviceMemory<device::CPU>>
                          std::span<const ssize_t, N>(strides2.begin(), N));
   }
 
-  // @brief Copy constructor from different array type with dimensions and strides
-  template <size_t N>
-  Array(const_pointer data,
+  template <typename S, size_t N>
+  Array(const Array<S, DeviceMemory<device::CPU>>& other,
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
     : size_(get_array_size<value_type>(dimensions, strides1)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
+    details::copy_unsafe(data_, other.Data(),
+                         std::span<const size_t, N>(dimensions.begin(), N),
+                         std::span<const ssize_t, N>(strides1.begin(), N),
+                         std::span<const ssize_t, N>(strides2.begin(), N));
+  }
+
+  // @brief Copy constructor from different array type with dimensions and strides
+  template <typename S, size_t N>
+  Array(const S* data,
+        const std::array<size_t, N>& dimensions,
+        const std::array<ssize_t, N>& strides1,
+        const std::array<ssize_t, N>& strides2)
+    : size_(get_array_size<value_type>(dimensions, strides1)),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
+  {
+    printf("ARRAY from POINTER\n");
     details::copy_unsafe(data_, data,
                          std::span<const size_t, N>(dimensions.begin(), N),
                          std::span<const ssize_t, N>(strides1.begin(), N),

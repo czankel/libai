@@ -17,9 +17,11 @@ namespace libai {
 
 namespace details {
 
+// TODO: provide optimization with memcpy with contiguous arrays
+
 // copy copies the data between buffers accordig to dimensions and strides.
-template <typename T>
-inline void copy_unsafe(T* dst, const T* src,
+template <typename T, typename S>
+inline void copy_unsafe(T* dst, const S* src,
                         std::span<const size_t,  0>,
                         std::span<const ssize_t, 0>,
                         std::span<const ssize_t, 0>)
@@ -27,8 +29,8 @@ inline void copy_unsafe(T* dst, const T* src,
   *dst = *src;
 }
 
-template <typename T>
-inline void copy_unsafe(T* dst, const T* src,
+template <typename T, typename S>
+inline void copy_unsafe(T* dst, const S* src,
                         std::span<const size_t,  1> dimensions,
                         std::span<const ssize_t, 1> strides1,
                         std::span<const ssize_t, 1> strides2)
@@ -41,9 +43,9 @@ inline void copy_unsafe(T* dst, const T* src,
   }
 }
 
-template <typename T, size_t N>
+template <typename T, typename S, size_t N>
 inline std::enable_if_t<(N > 1), void>
-copy_unsafe(T* dst, const T* src,
+copy_unsafe(T* dst, const S* src,
             std::span<const size_t,  N> dimensions,
             std::span<const ssize_t, N> strides1,
             std::span<const ssize_t, N> strides2)
@@ -59,6 +61,7 @@ copy_unsafe(T* dst, const T* src,
     src += strides2[0];
   }
 }
+
 
 template <typename T>
 inline void
