@@ -264,6 +264,23 @@ class Tensor : public Array<T, TMemory>
       strides_{strides}
   {}
 
+  // TODO: will be called when assigning StaticMemory to DeviceMemory
+  // TODO: Allow implicit conversions, e.g. from TensorView -- provide specific constructors?
+  template <AnyTensor TTensor>
+  Tensor(const TTensor& other)
+    : Array<value_type, memory_type>(other.Data(), other.Dimensions(), other.Strides(), other.Strides()),
+      dimensions_{other.Dimensions()},
+      strides_{other.Strides()}
+  {}
+
+  // Constructors for converting from a tensor operator.
+  // Allow implicit conversions
+  template <AnyOperator TOperator>
+  Tensor(TOperator&& functor) : Tensor{std::move(functor())} {};
+
+  template <AnyOperator TOperator>
+  Tensor(const TOperator& functor) : Tensor{functor()} {};
+
   //
   // Copy/Move constructors
   //
@@ -276,15 +293,6 @@ class Tensor : public Array<T, TMemory>
       strides_{other.Strides()}
   {}
 
-  // TODO: will be called when assigning StaticMemory to DeviceMemory
-  // TODO: Allow implicit conversions, e.g. from TensorView -- provide specific constructors?
-  template <AnyTensor TTensor>
-  Tensor(const TTensor& other)
-    : Array<value_type, memory_type>(other.Data(), other.Dimensions(), other.Strides(), other.Strides()),
-      dimensions_{other.Dimensions()},
-      strides_{other.Strides()}
-  {}
-
   /// Move constructor
   Tensor(Tensor&& other)
     : Array<value_type, memory_type>(std::move(other)),
@@ -292,16 +300,10 @@ class Tensor : public Array<T, TMemory>
       strides_{std::move(other.strides_)}
   {}
 
-  // Constructors for converting from a tensor operator.
-  // Allow implicit conversions
-  template <AnyOperator TOperator>
-  Tensor(TOperator&& functor) : Tensor{std::move(functor())} {};
+  //
+  // Assign operators
+  //
 
-  template <AnyOperator TOperator>
-  Tensor(const TOperator& functor) : Tensor{functor()} {};
-
-
-  /// Assign operator
   template <PrimitiveTensor TTensor>
   Tensor& operator=(const TTensor& other)
   {
@@ -313,7 +315,6 @@ class Tensor : public Array<T, TMemory>
     return *this;
   }
 
-  /// Move-assign is only supported from the same type
   Tensor& operator=(Tensor&& other)
   {
     dimensions_ = other.Dimensions();
