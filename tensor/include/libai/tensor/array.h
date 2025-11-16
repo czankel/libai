@@ -11,15 +11,18 @@
 
 #include <span>
 
+#include "concepts.h"
 #include "memory.h"
 
 namespace libai {
 
 namespace details {
 
+// TODO: provide optimization with memcpy with contiguous arrays
+
 // copy copies the data between buffers accordig to dimensions and strides.
-template <typename T>
-inline void copy_unsafe(T* dst, const T* src,
+template <Arithmetic T, Arithmetic S>
+inline void copy_unsafe(T* dst, const S* src,
                         std::span<const size_t,  0>,
                         std::span<const ssize_t, 0>,
                         std::span<const ssize_t, 0>)
@@ -27,8 +30,8 @@ inline void copy_unsafe(T* dst, const T* src,
   *dst = *src;
 }
 
-template <typename T>
-inline void copy_unsafe(T* dst, const T* src,
+template <Arithmetic T, Arithmetic S>
+inline void copy_unsafe(T* dst, const S* src,
                         std::span<const size_t,  1> dimensions,
                         std::span<const ssize_t, 1> strides1,
                         std::span<const ssize_t, 1> strides2)
@@ -41,9 +44,9 @@ inline void copy_unsafe(T* dst, const T* src,
   }
 }
 
-template <typename T, size_t N>
+template <Arithmetic T, Arithmetic S, size_t N>
 inline std::enable_if_t<(N > 1), void>
-copy_unsafe(T* dst, const T* src,
+copy_unsafe(T* dst, const S* src,
             std::span<const size_t,  N> dimensions,
             std::span<const ssize_t, N> strides1,
             std::span<const ssize_t, N> strides2)
@@ -60,26 +63,27 @@ copy_unsafe(T* dst, const T* src,
   }
 }
 
-template <typename T>
+
+template <Arithmetic T>
 inline void
-initialize_unsafe(T* dst, std::span<size_t, 1> dimensions, std::span<ssize_t, 1> strides, T init)
+initialize_unsafe(T* dst, std::span<const size_t, 1> dimensions, std::span<const ssize_t, 1> strides, T init)
 {
   for (size_t i = 0; i < dimensions[0]; i++, reinterpret_cast<char*&>(dst) += strides[0])
     *dst = init;
 }
 
-template <typename T, size_t N>
+template <Arithmetic T, size_t N>
 inline void
-initialize_unsafe(T* dst, std::span<size_t, N> dimensions, std::span<ssize_t, N> strides, T init)
+initialize_unsafe(T* dst, std::span<const size_t, N> dimensions, std::span<const ssize_t, N> strides, T init)
 {
   for (size_t i = 0; i < dimensions[0]; i++, reinterpret_cast<char*&>(dst) += strides[0])
     initialize_unsafe(dst,
-                      std::span<size_t, N - 1>(dimensions.begin() + 1, dimensions.end()),
-                      std::span<ssize_t, N - 1>(strides.begin() + 1, strides.end()),
+                      std::span<const size_t, N - 1>(dimensions.begin() + 1, dimensions.end()),
+                      std::span<const ssize_t, N - 1>(strides.begin() + 1, strides.end()),
                       init);
 }
 
-template <typename T>
+template <Arithmetic T>
 inline void initialize_unsafe(T* dst, size_t size, T init)
 {
   for (size_t i = 0; i < size; i++)
@@ -96,7 +100,7 @@ template <typename, typename> class Array;
 
 
 /// Array specialization for storing a single scalar
-template <typename T>
+template <Arithmetic T>
 class Array<T, Scalar>
 {
  public:
@@ -135,7 +139,7 @@ class Array<T, Scalar>
 
 
 /// Array specialization for static data.
-template <typename T, size_t... Ns>
+template <Arithmetic T, size_t... Ns>
 class Array<T, StaticMemory<Ns...>>
 {
  public:
