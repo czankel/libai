@@ -86,19 +86,20 @@ class Tensor : public Array<T, TMemory>
   //
 
   /// Constructor for a rank-0 tensor (scalar)
-  Tensor(const value_type& init) : Array<value_type, memory_type>(1, init) {}
-  Tensor(value_type&& init) : Array<value_type, memory_type>(1, init) {}
-  Tensor(Uninitialized<value_type>) : Array<value_type, memory_type>(1) {}
+  explicit Tensor(const value_type& init) : Array<value_type, memory_type>(1, init) {}
+  explicit Tensor(value_type&& init) : Array<value_type, memory_type>(1, init) {}
+  explicit Tensor(Uninitialized<value_type>) : Array<value_type, memory_type>(1) {}
 
   /// Constructor for a rank-1 tensor (vector) with static brace initialization.
   template <Arithmetic... Ts>
-  Tensor(Ts&&... ts)
+  explicit Tensor(Ts&&... ts)
     : Array<std::common_type_t<Ts...>, StaticMemory<sizeof...(Ts)>>(std::to_array({std::forward<Ts>(ts)...})),
       dimensions_(std::to_array({sizeof...(Ts)})),
       strides_{1}
   {}
 
   /// Constructor for a rank-2 tensor (matrix) with static brace initialization.
+  /// allow implicit conversion, e.g. from brace
   template <Arithmetic S, size_t... N>
   Tensor(S(&&... init)[N])
     : Array<value_type, memory_type>(get_array(std::move(init)...)),
@@ -119,42 +120,42 @@ class Tensor : public Array<T, TMemory>
   //
 
   /// Constructor for a rank-1 tensor (vector) with a dynamically allocated buffer without padding.
-  explicit Tensor(size_t dimension, value_type init)
+  Tensor(size_t dimension, value_type init)
     : Array<value_type, memory_type>(dimension, init),
       dimensions_{dimension},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-1 tensor (vector) with a dynamically allocated uninitialized buffer.
-  explicit Tensor(size_t dimension, Uninitialized<value_type>)
+  Tensor(size_t dimension, Uninitialized<value_type>)
     : Array<value_type, memory_type>(dimension),
       dimensions_{dimension},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-2 tensor (matrix) with a dynamically allocated buffer and no padding.
-  explicit Tensor(size_t dim_m, size_t dim_n, value_type init)
+  Tensor(size_t dim_m, size_t dim_n, value_type init)
     : Array<value_type, memory_type>(dim_m * dim_n, init),
       dimensions_{dim_m, dim_n},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-2 tensor (matrix) with a dynamically allocated uninitialized buffer.
-  explicit Tensor(size_t dim_m, size_t dim_n, Uninitialized<value_type>)
+  Tensor(size_t dim_m, size_t dim_n, Uninitialized<value_type>)
     : Array<value_type, memory_type>(dim_m * dim_n),
       dimensions_{dim_m, dim_n},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-3 tensor (matrix) with a dynamically allocated buffer and no padding.
-  explicit Tensor(size_t dim_m, size_t dim_n, size_t dim_u, value_type init)
+  Tensor(size_t dim_m, size_t dim_n, size_t dim_u, value_type init)
     : Array<value_type, memory_type>(dim_m * dim_n * dim_u, init),
       dimensions_{dim_m, dim_n, dim_u},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-3 tensor (matrix) with a dynamically allocated uninitialized buffer.
-  explicit Tensor(size_t dim_m, size_t dim_n, size_t dim_u, Uninitialized<value_type>)
+  Tensor(size_t dim_m, size_t dim_n, size_t dim_u, Uninitialized<value_type>)
     : Array<value_type, memory_type>(dim_m * dim_n * dim_u),
       dimensions_{dim_m, dim_n, dim_u},
       strides_{make_strides(dimensions_)}
@@ -162,7 +163,7 @@ class Tensor : public Array<T, TMemory>
 
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
-  explicit Tensor(std::initializer_list<size_t>&& dimensions, value_type init)
+  Tensor(std::initializer_list<size_t>&& dimensions, value_type init)
     : Array<value_type, memory_type>(std::accumulate(
           std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), init),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
@@ -171,7 +172,7 @@ class Tensor : public Array<T, TMemory>
 
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
-  explicit Tensor(std::initializer_list<size_t>&& dimensions, Uninitialized<value_type>)
+  Tensor(std::initializer_list<size_t>&& dimensions, Uninitialized<value_type>)
     : Array<value_type, memory_type>(std::accumulate(
           std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
@@ -179,32 +180,32 @@ class Tensor : public Array<T, TMemory>
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer with strides.
-  explicit Tensor(std::initializer_list<size_t>&& dimensions,
-                  std::initializer_list<ssize_t>&& strides,
-                  value_type init)
+  Tensor(std::initializer_list<size_t>&& dimensions,
+         std::initializer_list<ssize_t>&& strides,
+         value_type init)
     : Array<value_type, memory_type>(get_array_size<value_type>(dimensions, strides), dimensions, strides, init),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_(get_array<ssize_t, TRank>(std::move(strides)))
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer with strides.
-  explicit Tensor(std::initializer_list<size_t>&& dimensions,
-                  std::initializer_list<ssize_t>&& strides,
-                  Uninitialized<value_type>)
+  Tensor(std::initializer_list<size_t>&& dimensions,
+         std::initializer_list<ssize_t>&& strides,
+         Uninitialized<value_type>)
     : Array<value_type, memory_type>(get_array_size<value_type>(dimensions, strides)),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_(get_array<ssize_t, TRank>(std::move(strides)))
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
-  explicit Tensor(const size_t(&dimensions)[TRank], const ssize_t(&strides)[TRank], value_type init)
+  Tensor(const size_t(&dimensions)[TRank], const ssize_t(&strides)[TRank], value_type init)
     : Array<value_type, memory_type>(dimensions, strides, init),
       dimensions_(get_array<size_t, TRank>(dimensions)),
       strides_(get_array<ssize_t, TRank>(strides))
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer
-  explicit Tensor(const size_t(&dimensions)[TRank], const ssize_t(&strides)[TRank], Uninitialized<value_type>)
+  Tensor(const size_t(&dimensions)[TRank], const ssize_t(&strides)[TRank], Uninitialized<value_type>)
     : Array<value_type, memory_type>(dimensions, strides),
       dimensions_(get_array<size_t, TRank>(dimensions)),
       strides_(get_array<ssize_t, TRank>(strides))
@@ -212,7 +213,7 @@ class Tensor : public Array<T, TMemory>
 
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
-  explicit Tensor(const size_t(&dimensions)[TRank], value_type init)
+  Tensor(const size_t(&dimensions)[TRank], value_type init)
     : Array<value_type, memory_type>(
         std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), init),
       dimensions_(get_array<size_t, TRank>(dimensions)),
@@ -220,7 +221,7 @@ class Tensor : public Array<T, TMemory>
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer
-  explicit Tensor(const size_t(&dimensions)[TRank], Uninitialized<value_type>)
+  Tensor(const size_t(&dimensions)[TRank], Uninitialized<value_type>)
     : Array<value_type, memory_type>(
         std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
       dimensions_(get_array<size_t, TRank>(dimensions)),
@@ -229,7 +230,7 @@ class Tensor : public Array<T, TMemory>
 
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer.
-  explicit Tensor(std::array<size_t, TRank> dimensions, value_type init)
+  Tensor(std::array<size_t, TRank> dimensions, value_type init)
     : Array<value_type, memory_type>(
         std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), init),
       dimensions_(dimensions),
@@ -237,9 +238,9 @@ class Tensor : public Array<T, TMemory>
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer with padding.
-  explicit Tensor(std::array<size_t, TRank> dimensions,
-                  std::array<ssize_t, TRank> strides,
-                  value_type init)
+  Tensor(std::array<size_t, TRank> dimensions,
+         std::array<ssize_t, TRank> strides,
+         value_type init)
     : Array<value_type, memory_type>(dimensions, strides, init),
       dimensions_{dimensions},
       strides_{strides}
@@ -247,7 +248,7 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer.
   /// Note: assumes strides are type-aligned.
-  explicit Tensor(std::array<size_t, TRank> dimensions, Uninitialized<value_type>)
+  Tensor(std::array<size_t, TRank> dimensions, Uninitialized<value_type>)
     : Array<value_type, memory_type>(std::accumulate(
           std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
       dimensions_{dimensions},
@@ -255,9 +256,9 @@ class Tensor : public Array<T, TMemory>
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer with padding.
-  explicit Tensor(std::array<size_t, TRank> dimensions,
-                  std::array<ssize_t, TRank> strides,
-                  Uninitialized<value_type>)
+  Tensor(std::array<size_t, TRank> dimensions,
+         std::array<ssize_t, TRank> strides,
+         Uninitialized<value_type>)
     : Array<value_type, memory_type>(get_array_size(dimensions, strides)),
       dimensions_{dimensions},
       strides_{strides}
@@ -276,6 +277,7 @@ class Tensor : public Array<T, TMemory>
   {}
 
   // TODO: will be called when assigning StaticMemory to DeviceMemory
+  // TODO: Allow implicit conversions, e.g. from TensorView -- provide specific constructors?
   template <AnyTensor TTensor>
   Tensor(const TTensor& other)
     : Array<value_type, memory_type>(other.Data(), other.Dimensions(), other.Strides(), other.Strides()),
@@ -291,6 +293,7 @@ class Tensor : public Array<T, TMemory>
   {}
 
   // Constructors for converting from a tensor operator.
+  // Allow implicit conversions
   template <AnyOperator TOperator>
   Tensor(TOperator&& functor) : Tensor{std::move(functor())} {};
 
@@ -421,10 +424,10 @@ class Tensor<T, TRank, MemoryMapped>
   using array_type = Array<value_type, memory_type>;
   constexpr static size_t rank = TRank;
 
-  explicit Tensor() {}
+  Tensor() {}
 
   // FIXME: description for buffer with byte size!! or should this be n-elems??
-  explicit Tensor(const size_t(&& dimensions)[TRank], const std::tuple<pointer, size_t>& array)
+  Tensor(const size_t(&& dimensions)[TRank], const std::tuple<pointer, size_t>& array)
     : dimensions_(std::to_array(dimensions)),
       strides_{make_strides(dimensions_)},
       size_(dimensions_[0] * strides_[0]),
@@ -437,7 +440,7 @@ class Tensor<T, TRank, MemoryMapped>
       throw std::runtime_error("attempting to create a zero-size memory mapped tensor");
   }
 
-  explicit Tensor(const std::array<size_t, TRank>& dimensions, const std::tuple<pointer, size_t>& array)
+  Tensor(const std::array<size_t, TRank>& dimensions, const std::tuple<pointer, size_t>& array)
     : dimensions_(dimensions),
       strides_{make_strides(dimensions_)},
       size_(dimensions_[0] * strides_[0]),
@@ -469,7 +472,7 @@ class Tensor<T, TRank, MemoryMapped>
     return *this;
   }
 
-  Tensor(Tensor& other)
+  Tensor(const Tensor& other)
     : dimensions_(other.dimensions_),
       strides_(other.strides_),
       size_(other.size_),
@@ -592,27 +595,27 @@ Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, StaticMemory<sizeof...(M), std::max({M.
 
 // Tensor(uint,T) -> Rank-1 tensor with a dynamically allocated buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-explicit Tensor(size_t, T) -> Tensor<T, 1, DeviceMemory<Dev>>;
+Tensor(size_t, T) -> Tensor<T, 1, DeviceMemory<Dev>>;
 
 // Tensor(uint, Uninitialized<T>) -> Rank-1 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-explicit Tensor(size_t, Uninitialized<T>) -> Tensor<T, 1, DeviceMemory<Dev>>;
+Tensor(size_t, Uninitialized<T>) -> Tensor<T, 1, DeviceMemory<Dev>>;
 
 // Tensor(uint, uint, T) -> Rank-2 tensor with a dynamically allocated buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-explicit Tensor(size_t, size_t, T) -> Tensor<T, 2, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, T) -> Tensor<T, 2, DeviceMemory<Dev>>;
 
 // Tensor(uint, Uninitialized<T>) -> Rank-2 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-explicit Tensor(size_t, size_t, Uninitialized<T>) -> Tensor<T, 2, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, Uninitialized<T>) -> Tensor<T, 2, DeviceMemory<Dev>>;
 
 // Tensor(size_t, size_t, size_t, Uninitialized<T>) -> Rank-3 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-explicit Tensor(size_t, size_t, size_t, T) -> Tensor<T, 3, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, size_t, T) -> Tensor<T, 3, DeviceMemory<Dev>>;
 
 // Tensor(size_t, size_t, size_t, Uninitialized<T>) -> Rank-3 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-explicit Tensor(size_t, size_t, size_t, Uninitialized<T>) -> Tensor<T, 3, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, size_t, Uninitialized<T>) -> Tensor<T, 3, DeviceMemory<Dev>>;
 
 #endif
 
@@ -620,35 +623,35 @@ explicit Tensor(size_t, size_t, size_t, Uninitialized<T>) -> Tensor<T, 3, Device
 
 // Tensor(&[], &[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&[], &[], Uninitialized<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(const size_t(&)[N], const ssize_t(&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], const ssize_t(&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&&[], &&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&&[], &&[]) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(size_t(&&)[N], ssize_t(&&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(size_t(&&)[N], ssize_t(&&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(const size_t(&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&[], Uninitialized<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(const size_t(&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(const size_t(&&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(&&[], Uninitialized<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(const size_t(&&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&&)[N], Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(array, T)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
@@ -656,15 +659,15 @@ Tensor(std::array<size_t, N>, T) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(array, array, T)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(array, Uninitialized<T>)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(std::array<size_t, N>, Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor(array, array, Uninitialized<T>)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-explicit Tensor(std::array<size_t, N>, std::array<ssize_t, N>, Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, std::array<ssize_t, N>, Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
 // Tensor copy constructor
 template <AnyTensor TTensor, typename Dev = device::CPU>
@@ -673,9 +676,9 @@ Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::ra
 // Tensor rules for tensor view argument
 
 template <typename TTensor, size_t TRank, typename Dev = device::CPU>
-Tensor(TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
+explicit Tensor(TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
 template <typename TTensor, size_t TRank, typename Dev = device::CPU>
-Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
+explicit Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
 
 // Tensor rules for operator arguments
 
@@ -688,9 +691,9 @@ Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::ra
 // Tensor rules for memory-mapped arguments
 
 template <Arithmetic T, size_t N>
-explicit Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, MemoryMapped>;
+Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, MemoryMapped>;
 template <Arithmetic T, size_t N>
-explicit Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
+Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
 
 //
 // Arithmentic operator overloading
