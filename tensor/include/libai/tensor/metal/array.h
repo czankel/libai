@@ -11,6 +11,9 @@
 #ifndef LIBAI_TENSOR_METAL_ARRAY_H
 #define LIBAI_TENSOR_METAL_ARRAY_H
 
+#include <span>
+#include <stdexcept>
+
 #include "device.h"
 
 #include "../array.h"
@@ -58,6 +61,11 @@ class Array<T, DeviceMemory<device::Metal>>
   // @brief Constructor for a contiguous array with the provided size.
   Array(size_t size) : size_(size), buffer_(Allocate(size * sizeof(value_type))) {}
 
+  // @brief Constructor for a contiguous array with the provided size.
+  Array(size_t size, Uninitlized<value_type>)
+    : size_(size), buffer_(Allocate(size * sizeof(value_type)))
+  {}
+
   // @brief Constructor for a contiguous array with the provided size with initialization.
   Array(size_t size, value_type init) : size_(size), buffer_(Allocate(size * sizeof(value_type)))
   {
@@ -71,13 +79,23 @@ class Array<T, DeviceMemory<device::Metal>>
       buffer_(Allocate(size_ * sizeof(value_type)))
   {}
 
+  // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions,
+        const std::array<ssize_t, N>& strides,
+        Uninitialized<value_type>)
+    : size_(get_buffer_size<value_type>(dimensions, strides)),
+      buffer_(Allocate(size_ * sizeof(value_type)))
+  {}
+
+
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
     : size_(get_buffer_size<value_type>(dimensions, strides)),
       buffer_(Allocate(size_ * sizeof(value_type)))
   {
-    details::initialize_unsafe(Data(), dimensions, strides, init);
+    details::initialize_unsafe(Data(), std::span(dimensions), std::span(strides), init);
   }
 
 

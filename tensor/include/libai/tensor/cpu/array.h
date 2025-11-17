@@ -11,6 +11,7 @@
 #ifndef LIBAI_TENSOR_CPU_ARRAY_H
 #define LIBAI_TENSOR_CPU_ARRAY_H
 
+#include <span>
 #include <stdexcept>
 
 #include "device.h"
@@ -37,6 +38,12 @@ class Array<T, DeviceMemory<device::CPU>>
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
 
+  // @brief Constructor for a contiguous array with the provided size (number of elements)
+  Array(size_t size, Uninitialized<value_type>)
+    : size_(size),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
+  {}
+
   // @brief Constructor for a contiguous array with the provided size (number of elements) with initialization.
   Array(size_t size, value_type init)
     : size_(size),
@@ -52,13 +59,22 @@ class Array<T, DeviceMemory<device::CPU>>
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
 
+  // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions,
+        const std::array<ssize_t, N>& strides,
+        Uninitialized<value_type>)
+    : size_(get_array_size<value_type>(dimensions, strides)),
+      data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
+  {}
+
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
     : size_(get_array_size<value_type>(dimensions, strides)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
-    details::initialize_unsafe(data_, dimensions, strides, init);
+    details::initialize_unsafe(data_, std::span(dimensions), std::span(strides), init);
   }
 
   // @brief Move constructor.
