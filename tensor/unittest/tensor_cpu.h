@@ -9,13 +9,22 @@
 // Important: Class template argument deduction for alias templates P1814R0 not supported on all
 // compilers. This requires to duplicate *all* deduction rules in slowcpu/tensor.h
 
+namespace libai {
+
+template <typename T, size_t TRank, typename TMemory> class Tensor;
+
+} // end of namespace libai
 
 #if __cpp_deduction_guides >= 201907L
 
 struct TensorCPUType
 {
+  // FIXME: why do we not have to define CPU? is it because it's default?
   template <typename T, size_t N, typename M>
   using Tensor = libai::Tensor<T, N, M>;
+
+  template <typename T, typename M>
+  using Array = libai::Array<T, M>;
 };
 
 #else

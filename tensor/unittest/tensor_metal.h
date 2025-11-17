@@ -14,8 +14,11 @@
 
 struct TensorMetalType
 {
-  template <typename T, size_t N, typename M>
-  using Tensor = libai::Tensor<T, N, M>;
+  template <typename T, size_t R>
+  using Tensor = libai::Tensor<T, R, libai::DeviceMemory<libai::device::Metal>>;
+
+  template <typename T>
+  using Array = libai::Array<T, libai::DeviceMemory<libai::device::Metal>>;
 };
 
 #else
@@ -77,6 +80,22 @@ struct TensorMetalType
   template <libai::AnyOperator TOperator>
   Tensor(const TOperator&) ->
     Tensor<typename TOperator::value_type, TOperator::rank, libai::DeviceMemory<libai::device::Metal>>;
+
+  // Array
+  template <typename T>
+  Array(size_t, T) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
+
+  template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
+  Array(size_t, Uninitialized<T>) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
+
+  template <typename T, size_t N>
+  Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T)
+    -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
+
+  template <typename T, size_t N>
+  Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, Uninitialized<T>)
+    -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
+
 };
 
 #endif
