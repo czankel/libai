@@ -13,4 +13,7 @@ struct TensorCudaType
 {
   template <typename T, size_t R>
   using Tensor = libai::Tensor<T, R, libai::DeviceMemory<libai::device::Cuda>>;
+
+  template <typename T>
+  using Array = libai::Array<T, libai::DeviceMemory<libai::device::Cuda>>;
 };

@@ -1,4 +1,5 @@
 grid_add_sources(libai_test
+  array.cc
   tensor.cc
   tensor_parameters.cc
   unary.cc
