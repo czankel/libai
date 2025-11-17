@@ -176,6 +176,20 @@ class Array<T, StaticMemory<Ns...>>
 };
 
 
+template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
+Array(size_t, T) -> Array<T, Mem>;
+
+template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
+Array(size_t, Uninitialized<T>) -> Array<T, Mem>;
+
+template <typename T, size_t N, typename Mem = libai::DeviceMemory<device::CPU>>
+Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T) -> Array<T, Mem>;
+
+template <typename T, size_t N, typename Mem = libai::DeviceMemory<device::CPU>>
+Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, Uninitialized<T>)
+  -> Array<T, Mem>;
+
+
 } // end of namespace libai
 
 #endif // LIBAI_TENSOR_ARRAY_H
