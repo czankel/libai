@@ -19,12 +19,11 @@ template <typename T, size_t TRank, typename TMemory> class Tensor;
 
 struct TensorCPUType
 {
-  // FIXME: why do we not have to define CPU? is it because it's default?
-  template <typename T, size_t N, typename M>
-  using Tensor = libai::Tensor<T, N, M>;
+  template <typename T, size_t N>
+  using Tensor = libai::Tensor<T, N, libai::DeviceMemory<libai::device::CPU>>;
 
-  template <typename T, typename M>
-  using Array = libai::Array<T, M>;
+  template <typename T>
+  using Array = libai::Array<T, libai::DeviceMemory<libai::device::CPU>>;
 };
 
 #else

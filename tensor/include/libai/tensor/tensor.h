@@ -273,6 +273,24 @@ class Tensor : public Array<T, TMemory>
       strides_{other.Strides()}
   {}
 
+  template <AnyTensor TTensor>
+  Tensor(const TensorView<TTensor, rank>& view)
+    : Array<value_type, memory_type>(view.Size()),
+      dimensions_{view.Dimensions()},
+      strides_{view.Strides()}
+  {
+    Copy(*this, view);
+  }
+
+  template <AnyTensor TTensor>
+  Tensor(TensorView<TTensor, rank>&& view)
+    : Array<value_type, memory_type>(view.Size()),
+      dimensions_{view.Dimensions()},
+      strides_{view.Strides()}
+  {
+    Copy(*this, view);
+  }
+
   // Constructors for converting from a tensor operator.
   // Allow implicit conversions
   template <AnyOperator TOperator>
@@ -670,16 +688,16 @@ Tensor(std::array<size_t, N>, Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
 Tensor(std::array<size_t, N>, std::array<ssize_t, N>, Uninitialized<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
 
-// Tensor copy constructor
-template <AnyTensor TTensor, typename Dev = device::CPU>
-Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, DeviceMemory<Dev>>;
+// Tensor(any_tensor)
+template <AnyTensor TTensor, typename Mem = DeviceMemory<device::CPU>>
+requires (!std::is_same_v<typename TTensor::memory_type, Mem>)
+Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Mem>;
 
 // Tensor rules for tensor view argument
-
 template <typename TTensor, size_t TRank, typename Dev = device::CPU>
-explicit Tensor(TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
+Tensor(TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
 template <typename TTensor, size_t TRank, typename Dev = device::CPU>
-explicit Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
+Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
 
 // Tensor rules for operator arguments
 
@@ -695,6 +713,11 @@ template <Arithmetic T, size_t N>
 Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, MemoryMapped>;
 template <Arithmetic T, size_t N>
 Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
+
+// Copy/Move constructors
+template <typename T, size_t R, typename M> Tensor(const Tensor<T, R, M>&) -> Tensor<T, R, M>;
+template <typename T, size_t R, typename M> Tensor(Tensor<T, R, M>&&) -> Tensor<T, R, M>;
+
 
 //
 // Arithmentic operator overloading
