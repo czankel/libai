@@ -17,6 +17,9 @@ template <typename> struct DeviceMemory {};
 /// StaticMemory defines constant static memory in the RO section.
 template <size_t...> struct StaticMemory {};
 
+/// View defines a view of a tensor
+template <typename> struct View {};
+
 /// MemoryMapped defines a memory mapped file.
 struct MemoryMapped {};
 

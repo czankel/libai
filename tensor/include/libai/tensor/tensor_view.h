@@ -40,7 +40,7 @@ std::remove_pointer_t<T>* pointer_cast(S pointer)
 ///
 /// Note that a view cannot be created from a temporary rval; it will return a tensor.
 template <PrimitiveTensor TTensor, size_t TViewRank>
-class TensorView
+class TensorView : Array<typename TTensor::value_type, View<typename TTensor::memory_type>>
 {
  public:
   using value_type = typename TTensor::value_type;
@@ -49,7 +49,7 @@ class TensorView
   using reference = decltype(*std::declval<TTensor>().Data());
   using const_pointer = typename TTensor::const_pointer;
   using const_reference = typename TTensor::const_reference;
-  using array_type = typename TTensor::array_type;
+  using array_type = Array<typename TTensor::value_type, View<typename TTensor::memory_type>>;
   constexpr static size_t rank = TViewRank;
 
   /// Default constructor
@@ -61,7 +61,7 @@ class TensorView
              const std::array<ssize_t, TViewRank>& strides,
              size_t size,
              size_t offset = 0UL)
-    : tensor_(tensor),
+    : array_type(tensor, size, offset),
       dimensions_(dimensions),
       strides_(strides),
       size_(size),
@@ -115,25 +115,24 @@ class TensorView
   /// Data returns a pointer to the data buffer of the view.
   pointer Data()
   {
-    return reinterpret_cast<pointer>(pointer_cast<char*>(tensor_.Data())) + offset_;
+    return reinterpret_cast<pointer>(pointer_cast<char*>(array_type::Data())) + offset_;
   }
 
   const_pointer Data() const
   {
-    return reinterpret_cast<pointer>(pointer_cast<char*>(tensor_.Data())) + offset_;
+    return reinterpret_cast<const_pointer>(pointer_cast<const char*>(array_type::Data())) + offset_;
   }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
-  auto Buffer()                                           { return tensor_.Buffer(); }
+  auto Buffer()                                           { return array_type::array_.Buffer(); }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
-  auto Buffer() const                                     { return tensor_.Buffer(); }
+  auto Buffer() const                                     { return array_type::array_.Buffer(); }
 
   /// Offset returns the offset in the buffer.
   size_t Offset() const                                   { return offset_; }
 
  private:
-  TTensor&                        tensor_;
   std::array<size_t, TViewRank>   dimensions_;
   std::array<ssize_t, TViewRank>  strides_;
   size_t                          size_;

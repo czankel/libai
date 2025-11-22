@@ -176,6 +176,47 @@ class Array<T, StaticMemory<Ns...>>
 };
 
 
+// Array specialization for a view
+template <typename T, typename M>
+class Array<T, View<M>>
+{
+  using array_type = Array<T, M>;
+  using value_type = T;
+  using pointer = value_type*;
+  using const_pointer = const value_type*;
+
+ public:
+
+  Array() = delete;
+  ~Array() = default;
+
+  // @brief Constructor for a view from an array.
+  Array(Array<value_type, M>& array, size_t size, size_t offset)
+    : array_(array), size_(size), offset_(offset)
+  {}
+
+  // @brief Copy constructor.
+  Array(const Array& other)
+    : array_(other.array_), size_(other.size_), offset_(other.offset_)
+  {}
+
+  //   /// Size returns the size of the view.
+  size_t Size() const                                     { return size_; }
+
+  /// Data returns a pointer to the data buffer.
+  auto Data()                                             { return array_.Data(); }
+
+  /// Data returns a pointer to the data buffer.
+  const_pointer Data() const                              { return array_.Data(); }
+
+  array_type& array_;
+
+ private:
+  size_t      size_;
+  size_t      offset_;
+};
+
+
 template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
 Array(size_t, T) -> Array<T, Mem>;
 
