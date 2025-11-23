@@ -176,6 +176,42 @@ class Array<T, StaticMemory<Ns...>>
 };
 
 
+// Arrray specialization for MemoryMapped memory
+template <typename T>
+class Array<T, MemoryMapped>
+{
+  using value_type = T;
+  using pointer = const value_type*;
+  using const_pointer = const value_type*;
+
+ public:
+  // @brief Constructor for a memory mapped area
+  Array(value_type* data, size_t size) : data_(data), size_(size) {}
+
+  // Explicity disallow default, copy, and move constructors for StaticMemory arrays.
+  Array() = delete;
+  Array(const Array& other) = delete;
+  Array(Array&& other) = delete;
+
+  // Explicitly disallow copy and move assign operators for StaticMemory arays.
+  Array& operator=(Array&& other) = delete;
+  Array& operator=(const Array& other) = delete;
+
+  /// Size returns the size of the entire buffer.
+  size_t Size() const                                     { return size_; }
+
+  /// Data returns a pointer to the data buffer.
+  pointer Data()                                          { return data_; }
+
+  /// Data returns a pointer to the data buffer.
+  const_pointer Data() const                              { return data_; }
+
+ protected:
+  value_type* data_;
+  const size_t size_;
+};
+
+
 // Array specialization for a view
 template <typename T, typename M>
 class Array<T, View<M>>

@@ -264,6 +264,19 @@ class Tensor : public Array<T, TMemory>
       strides_{strides}
   {}
 
+  /// Constructor for memory mapped arrays
+  Tensor(const std::array<size_t, TRank>& dimensions, const std::tuple<pointer, size_t>& mmap)
+    : Array<value_type, memory_type>(std::get<0>(mmap), std::get<1>(mmap)),
+      dimensions_{dimensions},
+      strides_{make_strides(dimensions_)}
+  {}
+
+  Tensor(const size_t(& dimensions)[TRank], const std::tuple<T*, size_t>& mmap)
+    : Array<value_type, memory_type>(std::get<0>(mmap), std::get<1>(mmap)),
+      dimensions_(std::to_array(dimensions)),
+      strides_{make_strides(dimensions_)}
+  {}
+
   // TODO: will be called when assigning StaticMemory to DeviceMemory
   // TODO: Allow implicit conversions, e.g. from TensorView -- provide specific constructors?
   template <AnyTensor TTensor>
@@ -429,152 +442,6 @@ class Tensor : public Array<T, TMemory>
 };
 
 
-/// Tensor<T, Rank, MemoryMapped> is a tensor for an externally managed buffer
-template <typename T, size_t TRank>
-class Tensor<T, TRank, MemoryMapped>
-{
- public:
-  using value_type = T;
-  using memory_type = MemoryMapped;
-  using pointer = const value_type*;
-  using reference = const value_type&;
-  using const_pointer = const value_type*;
-  using const_reference = const value_type&;
-  using array_type = Array<value_type, memory_type>;
-  constexpr static size_t rank = TRank;
-
-  Tensor() {}
-
-  // FIXME: description for buffer with byte size!! or should this be n-elems??
-  Tensor(const size_t(&& dimensions)[TRank], const std::tuple<pointer, size_t>& array)
-    : dimensions_(std::to_array(dimensions)),
-      strides_{make_strides(dimensions_)},
-      size_(dimensions_[0] * strides_[0]),
-      data_(std::get<0>(array))
-  {
-    if (size_ > std::get<1>(array))
-      throw std::runtime_error("dimensions exceed allotted size: " + std::to_string(size_) + " > " +
-          std::to_string(std::get<1>(array)));
-    if (size_ == 0UL)
-      throw std::runtime_error("attempting to create a zero-size memory mapped tensor");
-  }
-
-  Tensor(const std::array<size_t, TRank>& dimensions, const std::tuple<pointer, size_t>& array)
-    : dimensions_(dimensions),
-      strides_{make_strides(dimensions_)},
-      size_(dimensions_[0] * strides_[0]),
-      data_(std::get<0>(array))
-  {
-    if (size_ > std::get<1>(array))
-      throw std::runtime_error("dimensions exceed allotted size: " + std::to_string(size_) + " > " +
-          std::to_string(std::get<1>(array)));
-    if (size_ == 0UL)
-      throw std::runtime_error("attempting to create a zero-size memory mapped tensor");
-  }
-
-
-  Tensor& operator=(Tensor&& other)
-  {
-    dimensions_ = other.dimensions_;
-    strides_ = other.strides_;
-    size_ = other.size_;
-    data_ = other.data_;
-    return *this;
-  }
-
-  Tensor& operator=(Tensor& other)
-  {
-    dimensions_ = other.dimensions_;
-    strides_ = other.strides_;
-    size_ = other.size_;
-    data_ = other.data_;
-    return *this;
-  }
-
-  Tensor(const Tensor& other)
-    : dimensions_(other.dimensions_),
-      strides_(other.strides_),
-      size_(other.size_),
-      data_(other.data_)
-  {
-  }
-
-  Tensor(Tensor&& other)
-    : dimensions_(other.dimensions_),
-      strides_(other.strides_),
-      size_(other.size_),
-      data_(other.data_)
-  {
-    other.data_ = nullptr;
-  }
-
-
-  /// View returns a view of the proivded tensor.
-  template <typename... Ts>
-  auto View(Ts&&... slices)
-  {
-    return view::View(*this, std::forward<Ts>(slices)...);
-  }
-
-  template <typename... Ts>
-  auto View(Ts&&... slices) const
-  {
-    return view::View(*this, std::forward<Ts>(slices)...);
-  }
-
-  /// Reshape returns a view of the tensor with a different shape (axes, dimensions, strides)
-  /// of the underlying array.
-  template <size_t TViewRank>
-  auto Reshape(const std::array<size_t, TViewRank>& dimensions,
-               const std::array<ssize_t, TViewRank>& strides)
-  {
-    return view::Reshape(*this, std::to_array(dimensions), std::to_array(strides));
-  }
-
-  template <size_t TViewRank>
-  auto Reshape(const std::array<size_t, TViewRank>& dimensions,
-               const std::array<ssize_t, TViewRank>& strides) const
-  {
-    return view::Reshape(*this, std::to_array(dimensions), std::to_array(strides));
-  }
-
-
-  /// begin returns an iterator for the begin of the Tensor array
-  auto begin() const                  { return details::ConstIterator(*this); }
-
-  /// end returns the sentinel for the end of the Tensor array
-  auto end() const                    { return details::ConstIterator(*this, Dimensions()); }
-
-
-  /// Rank returns the rank of the tensor.
-  constexpr static size_t Rank()                          { return TRank; }
-
-  /// Dimensions returns the dimensions of the tensor.
-  const std::array<size_t, TRank>& Dimensions() const     { return dimensions_; }
-
-  /// Strides returns the strides of the tensor.
-  const std::array<ssize_t, TRank>& Strides() const       { return strides_; }
-
-  /// Size returns the data buffer size.
-  size_t Size() const                                     { return size_; }
-
-  /// Data returns a pointer to the data buffer.
-  pointer Data()                                          { return data_; }
-
-  /// Data returns a pointer to the data buffer.
-  const_pointer Data() const                              { return data_; }
-
-  /// Offset returns the offset in the buffer.
-  size_t Offset() const                                   { return 0UL; }
-
- private:
-  std::array<size_t, TRank>   dimensions_;
-  std::array<ssize_t, TRank>  strides_;
-  size_t                      size_;
-  pointer                     data_;
-};
-
-
 //
 // CTAD rules
 //
@@ -710,7 +577,7 @@ Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::ra
 // Tensor rules for memory-mapped arguments
 
 template <Arithmetic T, size_t N>
-Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, MemoryMapped>;
+Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
 template <Arithmetic T, size_t N>
 Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
 
