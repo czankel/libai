@@ -86,9 +86,9 @@ class Tensor : public Array<T, TMemory>
   //
 
   /// Constructor for a rank-0 tensor (scalar)
-  explicit Tensor(const value_type& init) : Array<value_type, memory_type>(1, init) {}
-  explicit Tensor(value_type&& init) : Array<value_type, memory_type>(1, init) {}
-  explicit Tensor(Uninitialized<value_type>) : Array<value_type, memory_type>(1) {}
+  explicit Tensor(const value_type& init) : array_type(1, init) {}
+  explicit Tensor(value_type&& init) : array_type(1, init) {}
+  explicit Tensor(Uninitialized<value_type>) : array_type(1) {}
 
   /// Constructor for a rank-1 tensor (vector) with static brace initialization.
   template <Arithmetic... Ts>
@@ -102,7 +102,7 @@ class Tensor : public Array<T, TMemory>
   /// allow implicit conversion, e.g. from brace
   template <Arithmetic S, size_t... N>
   Tensor(S(&&... init)[N])
-    : Array<value_type, memory_type>(get_array(std::move(init)...)),
+    : array_type(get_array(std::move(init)...)),
       dimensions_(mem_ext<memory_type>::array),
       strides_{make_strides(dimensions_)}
   {}
@@ -110,7 +110,7 @@ class Tensor : public Array<T, TMemory>
   /// Constructor for a rank-3 tensor with static brace initialization.
   template <Arithmetic S, size_t... M, size_t... N>
   Tensor(S((&&... init)[M])[N])
-    : Array<value_type, memory_type>(get_array(std::move(init)...)),
+    : array_type(get_array(std::move(init)...)),
       dimensions_(mem_ext<memory_type>::array),
       strides_{make_strides(dimensions_)}
   {}
@@ -121,42 +121,42 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for a rank-1 tensor (vector) with a dynamically allocated buffer without padding.
   Tensor(size_t dimension, value_type init)
-    : Array<value_type, memory_type>(dimension, init),
+    : array_type(dimension, init),
       dimensions_{dimension},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-1 tensor (vector) with a dynamically allocated uninitialized buffer.
   Tensor(size_t dimension, Uninitialized<value_type>)
-    : Array<value_type, memory_type>(dimension),
+    : array_type(dimension),
       dimensions_{dimension},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-2 tensor (matrix) with a dynamically allocated buffer and no padding.
   Tensor(size_t dim_m, size_t dim_n, value_type init)
-    : Array<value_type, memory_type>(dim_m * dim_n, init),
+    : array_type(dim_m * dim_n, init),
       dimensions_{dim_m, dim_n},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-2 tensor (matrix) with a dynamically allocated uninitialized buffer.
   Tensor(size_t dim_m, size_t dim_n, Uninitialized<value_type>)
-    : Array<value_type, memory_type>(dim_m * dim_n),
+    : array_type(dim_m * dim_n),
       dimensions_{dim_m, dim_n},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-3 tensor (matrix) with a dynamically allocated buffer and no padding.
   Tensor(size_t dim_m, size_t dim_n, size_t dim_u, value_type init)
-    : Array<value_type, memory_type>(dim_m * dim_n * dim_u, init),
+    : array_type(dim_m * dim_n * dim_u, init),
       dimensions_{dim_m, dim_n, dim_u},
       strides_{make_strides(dimensions_)}
   {}
 
   /// Constructor for a rank-3 tensor (matrix) with a dynamically allocated uninitialized buffer.
   Tensor(size_t dim_m, size_t dim_n, size_t dim_u, Uninitialized<value_type>)
-    : Array<value_type, memory_type>(dim_m * dim_n * dim_u),
+    : array_type(dim_m * dim_n * dim_u),
       dimensions_{dim_m, dim_n, dim_u},
       strides_{make_strides(dimensions_)}
   {}
@@ -164,7 +164,7 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
   Tensor(std::initializer_list<size_t>&& dimensions, value_type init)
-    : Array<value_type, memory_type>(std::accumulate(
+    : array_type(std::accumulate(
           std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), init),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_{make_strides(dimensions_)}
@@ -173,7 +173,7 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
   Tensor(std::initializer_list<size_t>&& dimensions, Uninitialized<value_type>)
-    : Array<value_type, memory_type>(std::accumulate(
+    : array_type(std::accumulate(
           std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_{make_strides(dimensions_)}
@@ -183,7 +183,7 @@ class Tensor : public Array<T, TMemory>
   Tensor(std::initializer_list<size_t>&& dimensions,
          std::initializer_list<ssize_t>&& strides,
          value_type init)
-    : Array<value_type, memory_type>(get_array_size<value_type>(dimensions, strides), dimensions, strides, init),
+    : array_type(get_array_size<value_type>(dimensions, strides), dimensions, strides, init),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_(get_array<ssize_t, TRank>(std::move(strides)))
   {}
@@ -192,21 +192,21 @@ class Tensor : public Array<T, TMemory>
   Tensor(std::initializer_list<size_t>&& dimensions,
          std::initializer_list<ssize_t>&& strides,
          Uninitialized<value_type>)
-    : Array<value_type, memory_type>(get_array_size<value_type>(dimensions, strides)),
+    : array_type(get_array_size<value_type>(dimensions, strides)),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_(get_array<ssize_t, TRank>(std::move(strides)))
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
   Tensor(const size_t(&dimensions)[TRank], const ssize_t(&strides)[TRank], value_type init)
-    : Array<value_type, memory_type>(dimensions, strides, init),
+    : array_type(dimensions, strides, init),
       dimensions_(get_array<size_t, TRank>(dimensions)),
       strides_(get_array<ssize_t, TRank>(strides))
   {}
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer
   Tensor(const size_t(&dimensions)[TRank], const ssize_t(&strides)[TRank], Uninitialized<value_type>)
-    : Array<value_type, memory_type>(dimensions, strides),
+    : array_type(dimensions, strides),
       dimensions_(get_array<size_t, TRank>(dimensions)),
       strides_(get_array<ssize_t, TRank>(strides))
   {}
@@ -214,7 +214,7 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
   Tensor(const size_t(&dimensions)[TRank], value_type init)
-    : Array<value_type, memory_type>(
+    : array_type(
         std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), init),
       dimensions_(get_array<size_t, TRank>(dimensions)),
       strides_(make_strides(dimensions))
@@ -222,7 +222,7 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer
   Tensor(const size_t(&dimensions)[TRank], Uninitialized<value_type>)
-    : Array<value_type, memory_type>(
+    : array_type(
         std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
       dimensions_(get_array<size_t, TRank>(dimensions)),
       strides_(make_strides(dimensions))
@@ -231,7 +231,7 @@ class Tensor : public Array<T, TMemory>
 
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer.
   Tensor(std::array<size_t, TRank> dimensions, value_type init)
-    : Array<value_type, memory_type>(
+    : array_type(
         std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), init),
       dimensions_(dimensions),
       strides_(make_strides(dimensions))
@@ -241,7 +241,7 @@ class Tensor : public Array<T, TMemory>
   Tensor(std::array<size_t, TRank> dimensions,
          std::array<ssize_t, TRank> strides,
          value_type init)
-    : Array<value_type, memory_type>(dimensions, strides, init),
+    : array_type(dimensions, strides, init),
       dimensions_{dimensions},
       strides_{strides}
   {}
@@ -249,7 +249,7 @@ class Tensor : public Array<T, TMemory>
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer.
   /// Note: assumes strides are type-aligned.
   Tensor(std::array<size_t, TRank> dimensions, Uninitialized<value_type>)
-    : Array<value_type, memory_type>(std::accumulate(
+    : array_type(std::accumulate(
           std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
       dimensions_{dimensions},
       strides_{make_strides(dimensions)}
@@ -259,36 +259,35 @@ class Tensor : public Array<T, TMemory>
   Tensor(std::array<size_t, TRank> dimensions,
          std::array<ssize_t, TRank> strides,
          Uninitialized<value_type>)
-    : Array<value_type, memory_type>(get_array_size(dimensions, strides)),
+    : array_type(get_array_size(dimensions, strides)),
       dimensions_{dimensions},
       strides_{strides}
   {}
 
   /// Constructor for memory mapped arrays
   Tensor(const std::array<size_t, TRank>& dimensions, const std::tuple<pointer, size_t>& mmap)
-    : Array<value_type, memory_type>(std::get<0>(mmap), std::get<1>(mmap)),
+    : array_type(std::get<0>(mmap), std::get<1>(mmap)),
       dimensions_{dimensions},
       strides_{make_strides(dimensions_)}
   {}
 
   Tensor(const size_t(& dimensions)[TRank], const std::tuple<T*, size_t>& mmap)
-    : Array<value_type, memory_type>(std::get<0>(mmap), std::get<1>(mmap)),
+    : array_type(std::get<0>(mmap), std::get<1>(mmap)),
       dimensions_(std::to_array(dimensions)),
       strides_{make_strides(dimensions_)}
   {}
 
-  // TODO: will be called when assigning StaticMemory to DeviceMemory
-  // TODO: Allow implicit conversions, e.g. from TensorView -- provide specific constructors?
+  /// Constructor from a Tensor of a different value and array type.
   template <AnyTensor TTensor>
   Tensor(const TTensor& other)
-    : Array<value_type, memory_type>(other.Data(), other.Dimensions(), other.Strides(), other.Strides()),
+    : array_type(other.Data(), other.Dimensions(), other.Strides(), other.Strides()),
       dimensions_{other.Dimensions()},
       strides_{other.Strides()}
   {}
 
   template <AnyTensor TTensor>
   Tensor(const TensorView<TTensor, rank>& view)
-    : Array<value_type, memory_type>(view.Size()),
+    : array_type(view.Size()),
       dimensions_{view.Dimensions()},
       strides_{view.Strides()}
   {
@@ -297,7 +296,7 @@ class Tensor : public Array<T, TMemory>
 
   template <AnyTensor TTensor>
   Tensor(TensorView<TTensor, rank>&& view)
-    : Array<value_type, memory_type>(view.Size()),
+    : array_type(view.Size()),
       dimensions_{view.Dimensions()},
       strides_{view.Strides()}
   {
@@ -319,14 +318,14 @@ class Tensor : public Array<T, TMemory>
   /// Copy constructor
   // TODO: "flatten" new array? check if already contiguous?
   Tensor(const Tensor& other)
-    : Array<value_type, memory_type>(other, other.Dimensions(), other.Strides(), other.Strides()),
+    : array_type(other, other.Dimensions(), other.Strides(), other.Strides()),
       dimensions_{other.Dimensions()},
       strides_{other.Strides()}
   {}
 
   /// Move constructor
   Tensor(Tensor&& other)
-    : Array<value_type, memory_type>(std::move(other)),
+    : array_type(std::move(other)),
       dimensions_{std::move(other.dimensions_)},
       strides_{std::move(other.strides_)}
   {}
