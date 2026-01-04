@@ -206,7 +206,7 @@ TYPED_TEST_P(TensorTestSuite, TensorMMap)
   libai::MMapView view(std::move(mmap));
   auto dimensions1 = view.Read<std::array<size_t, 2>>();
   auto strides1 = view.Read<std::array<ssize_t, 2>>();
-  auto size1 = libai::get_array_size<double>(dimensions1, strides1);
+  auto size1 = libai::get_array_size(dimensions1, strides1);
   double* addr1 = reinterpret_cast<double*>(view.Address());
 
   // Note: MemoryMapped Tensor
@@ -218,7 +218,7 @@ TYPED_TEST_P(TensorTestSuite, TensorMMap)
   view.Seek(size1 * sizeof(size_t));
   auto dimensions2 = view.Read<std::array<size_t, 2>>();
   auto strides2 = view.Read<std::array<ssize_t, 2>>();
-  auto size2 = libai::get_array_size<double>(dimensions2, strides2);
+  auto size2 = libai::get_array_size(dimensions2, strides2);
   double* addr2 = reinterpret_cast<double*>(view.Address());
 
   // Note: MemoryMapped Tensor

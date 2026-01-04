@@ -158,7 +158,7 @@ std::array<ssize_t, TRank> make_strides(const std::array<size_t, TRank>& dimensi
 
 
 // get_array_size returns the required size for the given dimensions and strides in numner of elements.
-template <typename T, typename U, typename V>
+template <typename U, typename V>
 size_t get_array_size(U&& dimensions, V&& strides)
 {
   size_t size = 1;  // default is rank-0, which has size 1

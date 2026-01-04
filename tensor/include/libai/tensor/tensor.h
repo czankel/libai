@@ -183,7 +183,7 @@ class Tensor : public Array<T, TMemory>
   Tensor(std::initializer_list<size_t>&& dimensions,
          std::initializer_list<ssize_t>&& strides,
          value_type init)
-    : array_type(get_array_size<value_type>(dimensions, strides), dimensions, strides, init),
+    : array_type(get_array_size(dimensions, strides), dimensions, strides, init),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_(get_array<ssize_t, TRank>(std::move(strides)))
   {}
@@ -192,7 +192,7 @@ class Tensor : public Array<T, TMemory>
   Tensor(std::initializer_list<size_t>&& dimensions,
          std::initializer_list<ssize_t>&& strides,
          std::type_identity<value_type>)
-    : array_type(get_array_size<value_type>(dimensions, strides)),
+    : array_type(get_array_size(dimensions, strides)),
       dimensions_(get_array<size_t, TRank>(std::move(dimensions))),
       strides_(get_array<ssize_t, TRank>(std::move(strides)))
   {}

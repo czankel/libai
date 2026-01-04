@@ -58,7 +58,7 @@ class Array<T, DeviceMemory<device::Cuda>>
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
-    : size_(get_array_size<value_type>(dimensions, strides))
+    : size_(get_array_size(dimensions, strides))
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
   }
@@ -67,7 +67,7 @@ class Array<T, DeviceMemory<device::Cuda>>
   Array(const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides,
         std::type_identity<value_type>)
-    : size_(get_array_size<value_type>(dimensions, strides))
+    : size_(get_array_size(dimensions, strides))
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
   }
@@ -76,7 +76,7 @@ class Array<T, DeviceMemory<device::Cuda>>
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
-    : size_(get_array_size<value_type>(dimensions, strides))
+    : size_(get_array_size(dimensions, strides))
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
     details::initialize_unsafe(Data(), std::span(dimensions), std::span(strides), init);
@@ -95,7 +95,7 @@ class Array<T, DeviceMemory<device::Cuda>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_array_size<value_type>(dimensions, strides1))
+    : size_(get_array_size(dimensions, strides1))
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
     details::copy_unsafe(data_, data,
@@ -117,7 +117,7 @@ class Array<T, DeviceMemory<device::Cuda>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_array_size<value_type>(dimensions, strides1))
+    : size_(get_array_size(dimensions, strides1))
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
     details::copy_unsafe(data_, other.Data(),

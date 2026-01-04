@@ -55,7 +55,7 @@ class Array<T, DeviceMemory<device::CPU>>
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
-    : size_(get_array_size<value_type>(dimensions, strides)),
+    : size_(get_array_size(dimensions, strides)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
 
@@ -64,14 +64,14 @@ class Array<T, DeviceMemory<device::CPU>>
   Array(const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides,
         std::type_identity<value_type>)
-    : size_(get_array_size<value_type>(dimensions, strides)),
+    : size_(get_array_size(dimensions, strides)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
-    : size_(get_array_size<value_type>(dimensions, strides)),
+    : size_(get_array_size(dimensions, strides)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
     details::initialize_unsafe(data_, std::span(dimensions), std::span(strides), init);
@@ -94,7 +94,7 @@ class Array<T, DeviceMemory<device::CPU>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_array_size<value_type>(dimensions, strides1)),
+    : size_(get_array_size(dimensions, strides1)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
     details::copy_unsafe(data_, other.Data(),
@@ -109,7 +109,7 @@ class Array<T, DeviceMemory<device::CPU>>
         const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
-    : size_(get_array_size<value_type>(dimensions, strides1)),
+    : size_(get_array_size(dimensions, strides1)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {
     details::copy_unsafe(data_, data,
