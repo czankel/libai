@@ -143,17 +143,17 @@ LLaMAModelT<T, Dev>* LLaMAModelT<T, Dev>::Load(LLaMAFile& file)
   model->output_     =  Tensor({params.vocab_size_, dim}, file.GetTensor<T>(base, LLaMAFile::kOutput));
 
   // Initialize runtime tensors
-  model->x_ =           Tensor({dim}, Uninitialized<T>{});
-  model->xb_ =          Tensor({dim}, Uninitialized<T>{});
-  model->logits_ =      Tensor({params.vocab_size_}, Uninitialized<T>{});
-  model->scores_ =      Tensor({dim}, Uninitialized<T>{});
+  model->x_ =           Tensor({dim}, std::type_identity<T>{});
+  model->xb_ =          Tensor({dim}, std::type_identity<T>{});
+  model->logits_ =      Tensor({params.vocab_size_}, std::type_identity<T>{});
+  model->scores_ =      Tensor({dim}, std::type_identity<T>{});
 
   for (size_t i = 0; i < n_layers; i++)
   {
     auto& layer =        model->layers_[i];
     layer.key_cache_ =   Tensor({params.max_seq_len_, kv_dim}, T{});
     layer.value_cache_ = Tensor({params.max_seq_len_, kv_dim}, T{});
-    layer.q_ =           Tensor({dim}, Uninitialized<T>{});
+    layer.q_ =           Tensor({dim}, std::type_identity<T>{});
   }
 
   return model;

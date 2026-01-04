@@ -46,7 +46,7 @@ class Generator : public TensorOperation<typename std::remove_cvref_t<TTensor>::
   /// operator()() evaluates the unary operator and returns a tensor.
   auto operator()() const
   {
-    auto result = TTensor(dimensions_, Uninitialized<value_type>());
+    auto result = TTensor(dimensions_, std::type_identity<value_type>());
     GeneratorOperation<device_type>{}(result, operator_);
     return result;
   }
@@ -69,7 +69,7 @@ template <typename> struct FillFunction;
 template <template <typename, size_t, typename...> typename TTensor, typename T, size_t N>
 auto Fill(const size_t(&&dims)[N], T val)
 {
-  using tensor_type = decltype(TTensor(std::move(dims), Uninitialized<T>()));
+  using tensor_type = decltype(TTensor(std::move(dims), std::type_identity<T>()));
   using device_type = tensor_device_t<tensor_type>;
   return Generator<tensor_type, FillFunction<device_type>>(std::move(dims));
   return Generator(FillOperator<tensor_device_t<TTensor>>(), std::forward<TTensor>(tensor), val);
@@ -81,7 +81,7 @@ template <typename> struct RandomFunction;
 template <template <typename, size_t, typename...> typename TTensor, typename T, size_t N>
 auto Random(const size_t(&&dims)[N])
 {
-  using tensor_type = decltype(TTensor(std::move(dims), Uninitialized<T>()));
+  using tensor_type = decltype(TTensor(std::move(dims), std::type_identity<T>()));
   using device_type = tensor_device_t<tensor_type>;
   return Generator<tensor_type, RandomFunction<device_type>>(std::move(dims));
 }

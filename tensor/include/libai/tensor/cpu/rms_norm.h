@@ -65,7 +65,7 @@ template <> class RmsNormOperator<device::CPU>
 
       // TODO could there be an alias issue?
       auto x = &*first_x;
-      Tensor scale({n_rows, 1}, Uninitialized<value_type>{});
+      Tensor scale({n_rows, 1}, std::type_identity<value_type>{});
       for (size_t row = 0; row < n_rows; row++)
       {
         auto sum = SumSquare(x, row_size, stride_x);

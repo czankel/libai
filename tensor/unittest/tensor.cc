@@ -123,7 +123,7 @@ TYPED_TEST_P(TensorTestSuite, TensorAllocInitializedRank1Double)
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedRank1Double)
 {
-  typename TypeParam::Tensor tensor1({5}, libai::Uninitialized<double>{});
+  typename TypeParam::Tensor tensor1({5}, std::type_identity<double>{});
   EXPECT_EQ(tensor1.Rank(), 1);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(5));
   EXPECT_THAT(tensor1.Strides(), ElementsAre(1));
@@ -146,7 +146,7 @@ TYPED_TEST_P(TensorTestSuite, TensorAllocInitializedRank2Char)
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedRank2Double)
 {
-  typename TypeParam::Tensor tensor1({7, 3}, libai::Uninitialized<int>{});
+  typename TypeParam::Tensor tensor1({7, 3}, std::type_identity<int>{});
 
   EXPECT_EQ(tensor1.Rank(), 2);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(7, 3));
@@ -164,13 +164,13 @@ TYPED_TEST_P(TensorTestSuite, TensorAllocInitializedRank3Double)
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedRank3Double)
 {
-  typename TypeParam::Tensor tensor({3, 2, 1}, libai::Uninitialized<double>{});
+  typename TypeParam::Tensor tensor({3, 2, 1}, std::type_identity<double>{});
   EXPECT_THAT(tensor.Strides(), ElementsAre(2 * 1, 1, 0));
 }
 
 TYPED_TEST_P(TensorTestSuite, TensorAllocUninitializedPattedRank3Double)
 {
-  typename TypeParam::Tensor tensor1({3, 2, 1}, {2 * 2 * 4, 2 * 2, 2}, libai::Uninitialized<double>{});
+  typename TypeParam::Tensor tensor1({3, 2, 1}, {2 * 2 * 4, 2 * 2, 2}, std::type_identity<double>{});
   EXPECT_EQ(tensor1.Rank(), 3);
   EXPECT_THAT(tensor1.Dimensions(), ElementsAre(3, 2, 1));
   EXPECT_THAT(tensor1.Strides(), ElementsAre(2 * 2 * 4, 2 * 2, 2));

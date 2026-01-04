@@ -257,13 +257,13 @@ template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
 Array(size_t, T) -> Array<T, Mem>;
 
 template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
-Array(size_t, Uninitialized<T>) -> Array<T, Mem>;
+Array(size_t, std::type_identity<T>) -> Array<T, Mem>;
 
 template <typename T, size_t N, typename Mem = libai::DeviceMemory<device::CPU>>
 Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T) -> Array<T, Mem>;
 
 template <typename T, size_t N, typename Mem = libai::DeviceMemory<device::CPU>>
-Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, Uninitialized<T>)
+Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, std::type_identity<T>)
   -> Array<T, Mem>;
 
 

@@ -64,7 +64,7 @@ class Function : public TensorOperation<typename std::remove_cvref_t<TTensor>::v
   auto operator()() const
   {
     using ResultTensor = Tensor<value_type, rank, DeviceMemory<tensor_device_t<TTensor>>>;
-    auto result = ResultTensor(tensor_.Dimensions(), Uninitialized<value_type>{});
+    auto result = ResultTensor(tensor_.Dimensions(), std::type_identity<value_type>{});
     std::apply(operator_, std::tuple_cat(std::forward_as_tuple(tensor_, result), args_));
     return result;
   }

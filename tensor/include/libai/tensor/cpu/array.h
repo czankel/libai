@@ -39,7 +39,7 @@ class Array<T, DeviceMemory<device::CPU>>
   {}
 
   // @brief Constructor for a contiguous array with the provided size (number of elements)
-  Array(size_t size, Uninitialized<value_type>)
+  Array(size_t size, std::type_identity<value_type>)
     : size_(size),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}
@@ -63,7 +63,7 @@ class Array<T, DeviceMemory<device::CPU>>
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides,
-        Uninitialized<value_type>)
+        std::type_identity<value_type>)
     : size_(get_array_size<value_type>(dimensions, strides)),
       data_(static_cast<pointer>(operator new[](size_ * sizeof(T), std::align_val_t(16))))
   {}

@@ -63,7 +63,7 @@ class Unary : public TensorOperation<typename std::remove_cvref_t<TTensor>::valu
   auto operator()() const
   {
     using ResultTensor = Tensor<value_type, rank, DeviceMemory<tensor_device_t<TTensor>>>;
-    auto result = ResultTensor(tensor_.Dimensions(), Uninitialized<value_type>{});
+    auto result = ResultTensor(tensor_.Dimensions(), std::type_identity<value_type>{});
     operator_(tensor_, result);
     return result;
   }

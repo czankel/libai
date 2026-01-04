@@ -62,7 +62,7 @@ class Array<T, DeviceMemory<device::Metal>>
   Array(size_t size) : size_(size), buffer_(Allocate(size * sizeof(value_type))) {}
 
   // @brief Constructor for a contiguous array with the provided size.
-  Array(size_t size, Uninitialized<value_type>)
+  Array(size_t size, std::type_identity<value_type>)
     : size_(size), buffer_(Allocate(size * sizeof(value_type)))
   {}
 
@@ -83,7 +83,7 @@ class Array<T, DeviceMemory<device::Metal>>
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides,
-        Uninitialized<value_type>)
+        std::type_identity<value_type>)
     : size_(get_array_size<value_type>(dimensions, strides)),
       buffer_(Allocate(size_ * sizeof(value_type)))
   {}

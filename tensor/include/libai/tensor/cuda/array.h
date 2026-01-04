@@ -43,7 +43,7 @@ class Array<T, DeviceMemory<device::Cuda>>
   }
 
   // @brief Allocates a buffer of the provided size.
-  Array(size_t size, Uninitialized<value_type>) : size_(size)
+  Array(size_t size, std::type_identity<value_type>) : size_(size)
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));
   }
@@ -66,7 +66,7 @@ class Array<T, DeviceMemory<device::Cuda>>
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides,
-        Uninitialized<value_type>)
+        std::type_identity<value_type>)
     : size_(get_array_size<value_type>(dimensions, strides))
   {
     CudaMallocManaged((void**)&data_, size_ * sizeof(value_type));

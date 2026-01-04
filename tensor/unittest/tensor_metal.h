@@ -46,7 +46,7 @@ struct TensorMetalType
   };
   // Tensor CTAD
   template <libai::Arithmetic T> explicit Tensor(T) -> Tensor<T, 0, libai::Scalar>;
-  template <libai::Arithmetic T> explicit Tensor(libai::Uninitialized<T>) -> Tensor<T, 0, libai::Scalar>;
+  template <libai::Arithmetic T> explicit Tensor(std::type_identity<T>) -> Tensor<T, 0, libai::Scalar>;
 
   template <libai::Arithmetic... Ts>
   Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, libai::StaticMemory<sizeof...(Ts)>>;
@@ -61,25 +61,25 @@ struct TensorMetalType
   Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
-  Tensor(const size_t(&)[N], const ssize_t(&)[N], libai::Uninitialized<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
+  Tensor(const size_t(&)[N], const ssize_t(&)[N], std::type_identity<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
   Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
-  Tensor(size_t(&&)[N], ssize_t(&&)[N], libai::Uninitialized<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
+  Tensor(size_t(&&)[N], ssize_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
   Tensor(const size_t(&)[N], T) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
-  Tensor(const size_t(&)[N], libai::Uninitialized<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
+  Tensor(const size_t(&)[N], std::type_identity<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
   Tensor(const size_t(&&)[N], T) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
-  Tensor(const size_t(&&)[N], libai::Uninitialized<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
+  Tensor(const size_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
   Tensor(std::array<size_t, N>, T) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
@@ -88,10 +88,10 @@ struct TensorMetalType
   Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
-  Tensor(std::array<size_t, N>, libai::Uninitialized<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
+  Tensor(std::array<size_t, N>, std::type_identity<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
-  Tensor(std::array<size_t, N>, std::array<ssize_t, N>, libai::Uninitialized<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
+  Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, libai::DeviceMemory<Dev>>;
 
   template <libai::AnyTensor TTensor, typename Mem = libai::DeviceMemory<libai::device::Metal>>
   requires (!std::is_same_v<typename TTensor::memory_type, Mem>)
@@ -123,14 +123,14 @@ struct TensorMetalType
   Array(size_t, T) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
 
   template <typename T, typename Mem = libai::DeviceMemory<libai::device::Metal>>
-  Array(size_t, libai::Uninitialized<T>) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
+  Array(size_t, std::type_identity<T>) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
 
   template <typename T, size_t N>
   Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T)
     -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
 
   template <typename T, size_t N>
-  Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, libai::Uninitialized<T>)
+  Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, std::type_identity<T>)
     -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
 };
 

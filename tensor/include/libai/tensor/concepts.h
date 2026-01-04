@@ -17,11 +17,6 @@
 
 namespace libai {
 
-
-/// Placeholder for specifying that a buffer allocation does not need to be initialized.
-template <typename T> struct Uninitialized { using value_type = T; };
-
-
 //
 // Tensor Traits
 //

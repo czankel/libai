@@ -32,7 +32,7 @@ TYPED_TEST_SUITE_P(ArrayTestSuite);
 
 TYPED_TEST_P(ArrayTestSuite, ArrayConstructorUninitialized)
 {
-  typename TypeParam::Array array(10UL, libai::Uninitialized<double>{});
+  typename TypeParam::Array array(10UL, std::type_identity<double>{});
   EXPECT_EQ(10, array.Size());
   EXPECT_TRUE((std::is_same<double&, decltype(*array.Data())>::value));
 }
@@ -57,14 +57,14 @@ TYPED_TEST_P(ArrayTestSuite, ArrayConstructorDimStridesWithType)
 
 TYPED_TEST_P(ArrayTestSuite, ArrayCopyConstructor)
 {
-  typename TypeParam::Array array(100UL, libai::Uninitialized<float>{});
+  typename TypeParam::Array array(100UL, std::type_identity<float>{});
   typename TypeParam::Array copy(array);
   EXPECT_TRUE((std::is_same<decltype(*array.Data()), decltype(*copy.Data())>::value));
 }
 
 TYPED_TEST_P(ArrayTestSuite, ArrayMoveConstructor)
 {
-  typename TypeParam::Array array(100UL, libai::Uninitialized<float>{});
+  typename TypeParam::Array array(100UL, std::type_identity<float>{});
   auto data = array.Data();
   typename TypeParam::Array move(std::move(array));
   EXPECT_TRUE((std::is_same<decltype(*array.Data()), decltype(*move.Data())>::value));
