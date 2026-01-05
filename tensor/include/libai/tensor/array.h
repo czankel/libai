@@ -66,6 +66,13 @@ copy_unsafe(T* dst, const S* src,
 
 template <Arithmetic T>
 inline void
+initialize_unsafe(T* dst, std::span<const size_t, 0>, std::span<const ssize_t, 0>, T init)
+{
+  *dst = init;
+}
+
+template <Arithmetic T>
+inline void
 initialize_unsafe(T* dst, std::span<const size_t, 1> dimensions, std::span<const ssize_t, 1> strides, T init)
 {
   for (size_t i = 0; i < dimensions[0]; i++, reinterpret_cast<char*&>(dst) += strides[0])
