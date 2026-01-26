@@ -20,21 +20,108 @@
 #include "../tensor_parameters.h"
 
 namespace libai {
+template<typename> class MetalPointer;
+}
 
-/// brief: Array is a specialization for a dynamically allocated buffer.
 template <typename T>
-class Array<T, DeviceMemory<device::Metal>>
+struct std::iterator_traits<libai::MetalPointer<T>>
 {
   using value_type = T;
-  using pointer = value_type*;
-  using const_pointer = const value_type*;
+  using difference_type = std::ptrdiff_t;
+  using reference = T&;
+  using pointer = T*;
+  using iterator_category = std::random_access_iterator_tag;
+};
 
 
-  // TODO cache buffers, check 'memory pressure' and cause "wait", etc.
-  inline MTL::Buffer* Allocate(size_t size)
+namespace libai {
+
+template <typename T>
+class MetalPointer
+{
+  template <class U> friend class MetalPointer;
+  struct void_type {};
+
+ public:
+  using value_type = T;
+
+  MetalPointer() {}
+  MetalPointer(std::nullptr_t) {}
+
+  MetalPointer(MTL::Buffer* buffer)
+    : buffer_(buffer),
+      pointer_(reinterpret_cast<value_type*>(buffer->contents()))
+  {}
+
+  template <typename U>
+  requires std::is_same_v<T, const U>
+  MetalPointer(MetalPointer<U>& rhs) : buffer_(rhs.buffer_), pointer_(rhs.pointer_) {}
+
+  MetalPointer(const MetalPointer& rhs) : buffer_(rhs.buffer_), pointer_(rhs.pointer_) {}
+  MetalPointer(MetalPointer&& rhs) : buffer_(rhs.buffer_), pointer_(rhs.pointer_)
   {
-    // Align up memory
-    // TODO only for larger sizes not < page_size?
+    rhs.buffer_ = nullptr;
+    rhs.pointer_ = nullptr;
+  }
+
+  MetalPointer& operator=(const MetalPointer& rhs)
+  {
+    buffer_ = rhs.buffer_;
+    pointer_ = rhs.pointer_;
+    return *this;
+  }
+
+  MetalPointer operator=(MetalPointer&& rhs)
+  {
+    buffer_ = rhs.buffer_;
+    pointer_ = rhs.pointer_;
+    rhs.buffer_ = nullptr;
+    rhs.pointer_ = nullptr;
+    return *this;
+  }
+
+  std::conditional<std::is_void<value_type>::value, void_type, value_type>::type&
+  operator*() const     { return *pointer_; }
+  T* operator->() const { return pointer_; }
+
+  auto& operator++()    { ++pointer_; return *this; }
+  auto operator++(int)  { auto tmp = this; pointer_++; return tmp; }
+  auto& operator--()    { --pointer_; return *this; }
+  auto operator--(int)  { auto tmp = this; pointer_--; return tmp; }
+
+  auto operator+(size_t elems) const { return MetalPointer(pointer_ + elems); }
+  auto operator+(MetalPointer r) const { std::ptrdiff_t diff = pointer_ + r.pointer_; return diff; }
+  auto operator-(size_t elems) const { return MetalPointer(pointer_ - elems); }
+  auto operator-(MetalPointer r) const { std::ptrdiff_t diff = pointer_ - r.pointer_; return diff; }
+
+  explicit operator bool() const { return pointer_ != nullptr; }
+
+  friend bool operator==(MetalPointer l, std::nullptr_t)    { return l.pointer_ == nullptr; }
+  friend bool operator==(MetalPointer l, MetalPointer r)    { return l.pointer_ == r.pointer_; }
+  friend bool operator<(MetalPointer l, MetalPointer r)     { return l.pointer_ > r.pointer_; }
+  friend bool operator>(MetalPointer l, MetalPointer r)     { return l.pointer_ < r.pointer_; }
+
+  MTL::Buffer* Buffer()                                     { return buffer_; }
+  const MTL::Buffer* Buffer() const                         { return buffer_; }
+
+ private:
+  MTL::Buffer*  buffer_ = nullptr;
+  value_type*   pointer_ = nullptr;
+};
+
+
+template <typename T>
+class MetalAllocator
+{
+ public:
+  using value_type = T;
+  using pointer = MetalPointer<T>;
+
+  pointer allocate(size_t size)
+  {
+    size *= sizeof(value_type);
+
+    // Align up memory -- TODO only for larger sizes not < page_size?
     if (size > vm_page_size)
       size = vm_page_size * ((size + vm_page_size - 1) / vm_page_size);
 
@@ -44,14 +131,25 @@ class Array<T, DeviceMemory<device::Metal>>
     auto* buffer = device.NewBuffer(size, mode);
     if (buffer == nullptr)
       throw std::runtime_error("failed to allocate buffer");
-    return buffer;
+    return pointer(buffer);
   }
 
-  inline void Free(MTL::Buffer* buffer)
+  void deallocate(pointer p, size_t n)
   {
-    buffer->release();
+    p.Buffer()->release();
   }
+};
 
+
+
+/// brief: Array is a specialization for a dynamically allocated buffer.
+template <typename T>
+class Array<T, DeviceMemory<device::Metal>>
+{
+  using value_type = T;
+  using pointer = value_type*;
+  using const_pointer = const value_type*;
+  using allocator = MetalAllocator<T>;
 
  public:
   Array() = default;
@@ -59,15 +157,15 @@ class Array<T, DeviceMemory<device::Metal>>
   // TODO: size is in bytes not element numbers, revisit...
 
   // @brief Constructor for a contiguous array with the provided size.
-  Array(size_t size) : size_(size), buffer_(Allocate(size * sizeof(value_type))) {}
+  Array(size_t size) : size_(size), pointer_(allocator_.allocate(size)) {}
 
   // @brief Constructor for a contiguous array with the provided size.
   Array(size_t size, std::type_identity<value_type>)
-    : size_(size), buffer_(Allocate(size * sizeof(value_type)))
+    : size_(size), pointer_(allocator_.allocate(size))
   {}
 
   // @brief Constructor for a contiguous array with the provided size with initialization.
-  Array(size_t size, value_type init) : size_(size), buffer_(Allocate(size * sizeof(value_type)))
+  Array(size_t size, value_type init) : size_(size), pointer_(allocator_.allocate(size))
   {
     details::initialize_unsafe(Data(), size_, init);
   }
@@ -76,7 +174,7 @@ class Array<T, DeviceMemory<device::Metal>>
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
     : size_(get_array_size(dimensions, strides)),
-      buffer_(Allocate(size_ * sizeof(value_type)))
+      pointer_(allocator_.allocate(size_))
   {}
 
   // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
@@ -85,7 +183,7 @@ class Array<T, DeviceMemory<device::Metal>>
         const std::array<ssize_t, N>& strides,
         std::type_identity<value_type>)
     : size_(get_array_size(dimensions, strides)),
-      buffer_(Allocate(size_ * sizeof(value_type)))
+      pointer_(allocator_.allocate(size_))
   {}
 
 
@@ -93,7 +191,7 @@ class Array<T, DeviceMemory<device::Metal>>
   template <size_t N>
   Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
     : size_(get_array_size(dimensions, strides)),
-      buffer_(Allocate(size_ * sizeof(value_type)))
+      pointer_(allocator_.allocate(size_))
   {
     details::initialize_unsafe(Data(), std::span(dimensions), std::span(strides), init);
   }
@@ -103,7 +201,7 @@ class Array<T, DeviceMemory<device::Metal>>
   // TODO use GPU for copy
   Array(const Array& other)
     : size_(other.size_),
-      buffer_(Allocate(size_ * sizeof(value_type)))
+      pointer_(allocator_.allocate(size_))
   {
     memcpy(Data(), other.Data(), other.size_ * sizeof(value_type));
   }
@@ -115,7 +213,7 @@ class Array<T, DeviceMemory<device::Metal>>
         const std::array<ssize_t, N>& strides1,
         const std::array<ssize_t, N>& strides2)
     : size_(get_array_size(dimensions, strides1)),
-      buffer_(Allocate(size_ * sizeof(value_type)))
+      pointer_(allocator_.allocate(size_))
   {
     details::copy_unsafe(Data(), data,
                          std::span<const size_t, N>(dimensions.begin(), N),
@@ -124,77 +222,65 @@ class Array<T, DeviceMemory<device::Metal>>
   }
 
   // @brief Move constructor.
-  Array(Array&& other) : size_(other.size_), buffer_(std::move(other.buffer_)) { other.buffer_ = nullptr; }
+  Array(Array&& other) : size_(other.size_), pointer_(std::move(other.pointer_))
+  {
+    other.pointer_ = nullptr;
+  }
 
 
   ~Array()
   {
-    if (buffer_ != nullptr)
-      Free(buffer_);
+    if (pointer_ != nullptr)
+      allocator_.deallocate(pointer_, size_);
   }
 
   Array& operator=(Array&& other)
   {
-    if (buffer_ != nullptr)
-      Free(buffer_);
+    if (pointer_ != nullptr)
+      allocator_.deallocate(pointer_, size_);
 
     size_ = other.size_;
-    buffer_ = std::move(other.buffer_);
-    other.buffer_ = nullptr;
+    pointer_ = std::move(other.pointer_);
+    other.pointer_ = nullptr;
 
     return *this;
   }
 
   Array& operator=(const Array& other) = delete;
 
-
   /// Resize resizes the buffer of the Array. This will destroy
   Array& Realloc(size_t size)
   {
     if (size != size_)
     {
-      if (buffer_ != nullptr)
-        Free(buffer_);
-      buffer_ = Allocate(device::Metal::GetDevice(), size * sizeof(value_type));
+      if (pointer_ != nullptr)
+        allocator_->deallocate(pointer_, size_);
+      pointer_ = allocator_->allocate(size);
       size_ = size;
     }
 
     return *this;
   }
 
-  // TODO use GPU for copy
-  template <size_t N>
-  void Copy(const_pointer data_src,
-            const std::array<size_t, N>& dimensions,
-            const std::array<ssize_t, N>& strides1,
-            const std::array<ssize_t, N>& strides2,
-            size_t offset = 0)
-  {
-    details::copy_unsafe(reinterpret_cast<pointer>(static_cast<char*>(buffer_->contents()) + offset),
-                         data_src,
-                         std::span<const size_t, N>(dimensions.begin(), N),
-                         std::span<const ssize_t, N>(strides1.begin(), N),
-                         std::span<const ssize_t, N>(strides2.begin(), N));
-  }
-
   /// Size returns the size of the entire buffer.
   size_t Size() const                                     { return size_; }
 
   /// Data returns a pointer to the data buffer.
-  pointer Data()                                          { return static_cast<pointer>(buffer_->contents()); }
+  pointer Data()                                          { return std::to_address(pointer_); }
 
   /// Data returns a const_pointer to the data buffer.
-  const_pointer Data() const                              { return static_cast<const_pointer>(buffer_->contents()); }
+  const_pointer Data() const                              { return std::to_address(pointer_); }
 
   // Buffer returns the MTL buffer - internal use only
-  MTL::Buffer* Buffer()                                    { return buffer_; }
+  MTL::Buffer* Buffer()                                    { return pointer_.Buffer(); }
 
   // Buffer returns the MTL buffer - internal use only
-  const MTL::Buffer* Buffer() const                        { return buffer_; }
+  const MTL::Buffer* Buffer() const                        { return pointer_.Buffer(); }
 
  protected:
-  size_t  size_;
-  MTL::Buffer* buffer_;
+  allocator           allocator_;
+  size_t              size_;
+  allocator::pointer  pointer_;
 };
 
 } // end of namespace libai

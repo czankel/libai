@@ -28,6 +28,7 @@ class Array<T, DeviceMemory<device::CPU>>
   using value_type = T;
   using pointer = value_type*;
   using const_pointer = const value_type*;
+  using allocator = std::allocator<T>;
 
  public:
   Array() = default;
