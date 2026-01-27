@@ -28,15 +28,15 @@ using libai::view::Extent;
 namespace libai {
 
 /// LLaMAModelT is the templated version of the LLaMAModel class for data type and backend.
-template <typename T, typename Dev>
+template <typename T, typename TDevice>
 class LLaMAModelT : public LLaMAModel
 {
   friend class KarpathyFile;
   friend class GgmlFile;
 
   /// Using two tensor types, a dynamically allocated default tensor and a memory-mapped file tensors.
-  using Tensor1D = Tensor<T, 1, DeviceMemory<Dev>>;
-  using Tensor2D = Tensor<T, 2, DeviceMemory<Dev>>;
+  using Tensor1D = Tensor<T, 1, DeviceMemory<TDevice>>;
+  using Tensor2D = Tensor<T, 2, DeviceMemory<TDevice>>;
 
  protected:
   LLaMAModelT() = default;
@@ -48,7 +48,7 @@ class LLaMAModelT : public LLaMAModel
   virtual void Predict(std::string_view prompt, size_t steps);
 
   /// Load loads the LLaMA model from the provided file.
-  static LLaMAModelT<T, Dev>* Load(LLaMAFile& file);
+  static LLaMAModelT<T, TDevice>* Load(LLaMAFile& file);
 
  protected:
   // EncodeBPE encodes the prompt into a token vector using byte-pair encoding
@@ -106,10 +106,10 @@ class LLaMAModelT : public LLaMAModel
 };
 
 
-template <typename T, typename Dev>
-LLaMAModelT<T, Dev>* LLaMAModelT<T, Dev>::Load(LLaMAFile& file)
+template <typename T, typename TDevice>
+LLaMAModelT<T, TDevice>* LLaMAModelT<T, TDevice>::Load(LLaMAFile& file)
 {
-  auto* model = new LLaMAModelT<T, Dev>();
+  auto* model = new LLaMAModelT<T, TDevice>();
 
   file.GetParameters(model->parameters_);
   file.GetTokenizer(model->vocab_);
@@ -161,8 +161,8 @@ LLaMAModelT<T, Dev>* LLaMAModelT<T, Dev>::Load(LLaMAFile& file)
 
 
 // Byte-Pair Encoding
-template <typename T, typename Dev>
-void LLaMAModelT<T, Dev>::EncodeBPE(std::string_view prompt, std::vector<LLaMAVocab::token>& tokens)
+template <typename T, typename TDevice>
+void LLaMAModelT<T, TDevice>::EncodeBPE(std::string_view prompt, std::vector<LLaMAVocab::token>& tokens)
 {
   if (vocab_.add_bos_token_)
     tokens.push_back(vocab_.bos_token_);
@@ -231,8 +231,8 @@ void LLaMAModelT<T, Dev>::EncodeBPE(std::string_view prompt, std::vector<LLaMAVo
 }
 
 
-template <typename T, typename Dev>
-std::string LLaMAModelT<T, Dev>::Decode(LLaMAVocab::token prev, LLaMAVocab::token token)
+template <typename T, typename TDevice>
+std::string LLaMAModelT<T, TDevice>::Decode(LLaMAVocab::token prev, LLaMAVocab::token token)
 {
   std::string symbol = vocab_.scores_[token].text;
 
@@ -267,8 +267,8 @@ std::string LLaMAModelT<T, Dev>::Decode(LLaMAVocab::token prev, LLaMAVocab::toke
 
 // Note that this is a "lower-rank" implementation going through the calculation for each
 // token vector instead of combining a sequence into a matrix and using higher-rank tensors.
-template <typename T, typename Dev>
-void LLaMAModelT<T, Dev>::Forward(LLaMAVocab::token token, size_t pos)
+template <typename T, typename TDevice>
+void LLaMAModelT<T, TDevice>::Forward(LLaMAVocab::token token, size_t pos)
 {
   using namespace libai;
 
@@ -353,8 +353,8 @@ void LLaMAModelT<T, Dev>::Forward(LLaMAVocab::token token, size_t pos)
   logits_ = Matmul(output_, RmsNorm(x_) * output_norm_);
 }
 
-template <typename T, typename Dev>
-LLaMAVocab::token LLaMAModelT<T, Dev>::SampleArgMax()
+template <typename T, typename TDevice>
+LLaMAVocab::token LLaMAModelT<T, TDevice>::SampleArgMax()
 {
   float max_p = std::numeric_limits<float>::lowest();
   int max_i = 0;
@@ -372,16 +372,16 @@ LLaMAVocab::token LLaMAModelT<T, Dev>::SampleArgMax()
   return max_i;
 }
 
-template <typename T, typename Dev>
-LLaMAVocab::token LLaMAModelT<T, Dev>::Sample()
+template <typename T, typename TDevice>
+LLaMAVocab::token LLaMAModelT<T, TDevice>::Sample()
 {
   // greedy argmax sampling: return the token with the highest probability
   // TODO: implement entropy sampling: if (temperature_ == value_type(0))
   return SampleArgMax();
 }
 
-template <typename T, typename Dev>
-void LLaMAModelT<T, Dev>::Predict(std::string_view prompt, size_t steps)
+template <typename T, typename TDevice>
+void LLaMAModelT<T, TDevice>::Predict(std::string_view prompt, size_t steps)
 {
   using token = LLaMAVocab::token;
 
