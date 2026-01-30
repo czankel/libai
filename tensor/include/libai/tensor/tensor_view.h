@@ -40,7 +40,7 @@ std::remove_pointer_t<T>* pointer_cast(S pointer)
 ///
 /// Note that a view cannot be created from a temporary rval; it will return a tensor.
 template <PrimitiveTensor TTensor, size_t TViewRank>
-class TensorView : Array<typename TTensor::value_type, View<typename TTensor::memory_type>>
+class TensorView
 {
  public:
   using value_type = typename TTensor::value_type;
@@ -61,7 +61,7 @@ class TensorView : Array<typename TTensor::value_type, View<typename TTensor::me
              const std::array<ssize_t, TViewRank>& strides,
              size_t size,
              size_t offset = 0UL)
-    : array_type(tensor, size, offset),
+    : array_(tensor.array_, size, offset),
       dimensions_(dimensions),
       strides_(strides),
       size_(size),
@@ -115,24 +115,25 @@ class TensorView : Array<typename TTensor::value_type, View<typename TTensor::me
   /// Data returns a pointer to the data buffer of the view.
   pointer Data()
   {
-    return reinterpret_cast<pointer>(pointer_cast<char*>(array_type::Data())) + offset_;
+    return reinterpret_cast<pointer>(pointer_cast<char*>(array_.Data())) + offset_;
   }
 
   const_pointer Data() const
   {
-    return reinterpret_cast<const_pointer>(pointer_cast<const char*>(array_type::Data())) + offset_;
+    return reinterpret_cast<const_pointer>(pointer_cast<const char*>(array_.Data())) + offset_;
   }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
-  auto Buffer()                                           { return array_type::array_.Buffer(); }
+  auto Buffer()                                           { return array_.array_.Buffer(); }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
-  auto Buffer() const                                     { return array_type::array_.Buffer(); }
+  auto Buffer() const                                     { return array_.array_.Buffer(); }
 
   /// Offset returns the offset in the buffer.
   size_t Offset() const                                   { return offset_; }
 
  private:
+  array_type                      array_;
   std::array<size_t, TViewRank>   dimensions_;
   std::array<ssize_t, TViewRank>  strides_;
   size_t                          size_;
