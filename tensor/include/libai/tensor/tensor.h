@@ -43,7 +43,7 @@ namespace libai {
 ///
 ///   rank              NRank
 ///   value_type        T
-///   memory_type       TMemory
+///   allocator_type    TAllocator
 ///   pointer           Pointer type; depends on the implementation
 ///   const_pointer     Constant pointer type; depends on the implementation
 ///
@@ -54,7 +54,7 @@ namespace libai {
 ///   std::array<ssize_t, rank>  Strides() const
 ///   pointer                    Data()
 ///   const_pointer              Data() const
-template <typename T, size_t NRank, typename TDevice, typename TMemory>
+template <typename T, size_t NRank, typename TDevice, typename TAllocator>
 class Tensor
 {
   template <PrimitiveTensor, size_t> friend class TensorView;
@@ -71,12 +71,12 @@ class Tensor
  public:
   using value_type = T;
   using device_type = TDevice;
-  using memory_type = TMemory;
+  using allocator_type = TAllocator;
   using pointer = value_type*;
   using reference = value_type&;
   using const_pointer = const value_type*;
   using const_reference = const value_type&;
-  using array_type = Array<value_type, memory_type>;
+  using array_type = Array<value_type, allocator_type>;
   constexpr static size_t rank = NRank;
 
 
@@ -105,7 +105,7 @@ class Tensor
   template <Arithmetic S, size_t... N>
   Tensor(S(&&... init)[N])
     : array_(get_array(std::move(init)...)),
-      dimensions_(mem_ext<memory_type>::array),
+      dimensions_(mem_ext<allocator_type>::array),
       strides_{make_strides(dimensions_)}
   {}
 
@@ -113,7 +113,7 @@ class Tensor
   template <Arithmetic S, size_t... M, size_t... N>
   Tensor(S((&&... init)[M])[N])
     : array_(get_array(std::move(init)...)),
-      dimensions_(mem_ext<memory_type>::array),
+      dimensions_(mem_ext<allocator_type>::array),
       strides_{make_strides(dimensions_)}
   {}
 
@@ -456,7 +456,7 @@ class Tensor
 
 
  private:
-  Array<value_type, memory_type>    array_;
+  Array<value_type, allocator_type> array_;
   std::array<size_t, rank>          dimensions_;
   std::array<ssize_t, rank>         strides_;
 };
@@ -576,10 +576,10 @@ template <Arithmetic T, size_t N, typename Dev = device::CPU>
 Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(any_tensor)
-template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Mem = libai::DeviceMemory<libai::device::CPU>>
+template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Alloc = libai::DeviceMemory<libai::device::CPU>>
 requires (!std::is_same_v<typename TTensor::device_type, Dev> ||
-          !std::is_same_v<typename TTensor::memory_type, Mem>)
-Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Mem>;
+          !std::is_same_v<typename TTensor::allocator_type, Alloc>)
+Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Alloc>;
 
 // Tensor rules for tensor view argument
 template <typename TTensor, size_t NRank, typename Dev = device::CPU>

@@ -79,11 +79,6 @@ template<class TTensor> struct tensor_is_primitive_helper :
 template<class TTensor>
 struct tensor_is_primitive : tensor_is_primitive_helper<std::remove_reference_t<TTensor>> {};
 
-// has_memory_type_v checks if a tensor has the provided memory type
-template <typename TTensor, typename TMemory>
-inline constexpr bool has_memory_type_v =
-  std::is_same<typename std::remove_cvref_t<TTensor>::memory_type, TMemory>::value;
-
 //
 // Concepts
 //
@@ -113,8 +108,8 @@ struct tensor_is_convertible_to
 // Use "CPU" as the default device if none is defined. TODO: can this be removed (and include above)?
 template <typename> struct tensor_device { using type = device::CPU; };
 
-template <template <typename, size_t, typename, typename> typename TTensor, typename T, size_t NRank, typename TDevice, typename TMemory>
-struct tensor_device<TTensor<T, NRank, TDevice, TMemory>> { using type = TDevice; };
+template <template <typename, size_t, typename, typename> typename TTensor, typename T, size_t NRank, typename TDevice, typename TAllocator>
+struct tensor_device<TTensor<T, NRank, TDevice, TAllocator>> { using type = TDevice; };
 
 template <PrimitiveTensor TTensor, size_t TViewRank> class TensorView;
 template <PrimitiveTensor TTensor, size_t TViewRank>
@@ -125,6 +120,19 @@ struct tensor_device<TOperator> { using type = tensor_device<typename to_tensor<
 
 template <typename TTensor>
 using tensor_device_t = tensor_device<std::remove_cvref_t<TTensor>>::type;
+
+template <typename> struct tensor_allocator {};
+
+template <template <typename, size_t, typename, typename> typename TTensor, typename T, size_t NRank, typename TDevice, typename TAllocator>
+struct tensor_allocator<TTensor<T, NRank, TDevice, TAllocator>> { using type = TAllocator; };
+
+template <PrimitiveTensor TTensor, size_t TViewRank>
+struct tensor_allocator<TensorView<TTensor, TViewRank>> { using type = tensor_allocator<std::remove_cvref_t<TTensor>>::type; };
+
+template <typename TTensor>
+using tensor_allocator_t = tensor_allocator<std::remove_cvref_t<TTensor>>::type;
+
+
 
 } // end of namespace libai
 

@@ -32,6 +32,7 @@ class Generator : public TensorOperation<typename std::remove_cvref_t<TTensor>::
   using typename Generator::TensorOperation::value_type;
   using Generator::TensorOperation::rank;
   using device_type = tensor_device_t<TTensor>;
+  using allocator_type = tensor_allocator_t<TTensor>;
 
   explicit Generator(const size_t(&&dims)[rank])
     : TensorOperation<value_type, rank, Generator<TTensor, TOperation>>(*this),

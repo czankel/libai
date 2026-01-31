@@ -86,7 +86,8 @@ class Binary : public TensorOperation<std::common_type_t<typename std::remove_cv
   auto operator()() const
   {
     using device_type = tensor_device_t<TTensor1>;
-    using tensor_type = Tensor<value_type, rank, device_type, DeviceMemory<device_type>>;
+    using allocator_type = tensor_allocator_t<TTensor1>;
+    using tensor_type = Tensor<value_type, rank, device_type, allocator_type>;
     auto dimensions = BroadcastDimensions(tensor1_, tensor2_);
     auto result = tensor_type(dimensions, std::type_identity<value_type>{});
 

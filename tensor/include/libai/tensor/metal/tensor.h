@@ -12,12 +12,13 @@
 #define LIBAI_TENSOR_METAL_TENSOR_H
 
 #include "array.h"
+#include "device.h"
 
 namespace libai {
 
 // TODO: use GPU copy from Metal to Metal
 template <AnyTensor T1, AnyTensor T2>
-requires has_memory_type_v<T1, DeviceMemory<device::Metal>>
+requires std::is_same_v<tensor_device_t<T1>, device::Metal>
 inline void Copy(T1& tensor1, const T2& tensor2)
 {
   auto dimensions = tensor1.Dimensions();

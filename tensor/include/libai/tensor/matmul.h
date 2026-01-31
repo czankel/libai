@@ -48,6 +48,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
                               Matmul<TTensor1, TTensor2>>
 {
   using device_type = tensor_device_t<TTensor1>;
+  using allocator_type = tensor_allocator_t<TTensor1>;
 
  public:
   using Matmul::TensorOperation::rank;
@@ -88,7 +89,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (tensor1_.Dimensions()[0] != tensor2_.Dimensions()[0])
       throw std::runtime_error("mismatching dimensions in vector product");
 
-    auto result = Tensor<value_type, 0, device_type, DeviceMemory<device_type>>{value_type{0}};
+    auto result = Tensor<value_type, 0, device_type, allocator_type>{value_type{0}};
     operator_(tensor1_, tensor2_, result);
     return result;
   }
@@ -101,7 +102,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (dims1[1] != dims2[0])
       throw std::runtime_error("mismatching dimensions in matrix multiplication");
 
-    auto result = Tensor<value_type, 2, device_type, DeviceMemory<device_type>>({dims1[0], dims2[1]}, std::type_identity<value_type>{});
+    auto result = Tensor<value_type, 2, device_type, allocator_type>({dims1[0], dims2[1]}, std::type_identity<value_type>{});
     operator_(tensor1_, tensor2_, result);
     return result;
   }
@@ -114,7 +115,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (dims1[1] != dims2[0])
       throw std::runtime_error("mismatching dimensions in matrix multiplication");
 
-    auto result = Tensor<value_type, 1, device_type, DeviceMemory<device_type>>(dims1[0], std::type_identity<value_type>{});
+    auto result = Tensor<value_type, 1, device_type, allocator_type>(dims1[0], std::type_identity<value_type>{});
     operator_(tensor1_, tensor2_, result);
     return result;
   }
@@ -127,7 +128,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (dims1[0] != dims2[0])
       throw std::runtime_error("mismatching dimensions in matrix multiplication");
 
-    auto result = Tensor<value_type, 1, device_type, DeviceMemory<device_type>>(dims2[1], std::type_identity<value_type>{});
+    auto result = Tensor<value_type, 1, device_type, allocator_type>(dims2[1], std::type_identity<value_type>{});
     operator_(tensor1_, tensor2_, result);
     return result;
   }

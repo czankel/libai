@@ -44,12 +44,12 @@ class TensorView
 {
  public:
   using value_type = typename TTensor::value_type;
-  using memory_type = typename TTensor::memory_type;
+  using allocator_type = tensor_allocator_t<TTensor>;
   using pointer = decltype(std::declval<TTensor>().Data());
   using reference = decltype(*std::declval<TTensor>().Data());
   using const_pointer = typename TTensor::const_pointer;
   using const_reference = typename TTensor::const_reference;
-  using array_type = Array<typename TTensor::value_type, View<typename TTensor::memory_type>>;
+  using array_type = Array<typename TTensor::value_type, View<allocator_type>>;
   constexpr static size_t rank = TViewRank;
 
   /// Default constructor

@@ -30,11 +30,11 @@ struct TensorMetalType
   {
    public:
     using libai::Tensor<T, NRank, TDevice, TMemory>::Tensor;
-    using memory_type = libai::DeviceMemory<libai::device::Metal>;
+    using allocator_type = libai::DeviceMemory<libai::device::Metal>;
 
-    Tensor(const libai::Tensor<T, NRank, libai::device::Metal, memory_type>& other)
+    Tensor(const libai::Tensor<T, NRank, libai::device::Metal, allocator_type>& other)
       : libai::Tensor<T, NRank, TDevice, TMemory>(other) {}
-    Tensor(libai::Tensor<T, NRank, libai::device::Metal, memory_type>&& other)
+    Tensor(libai::Tensor<T, NRank, libai::device::Metal, allocator_type>&& other)
       : libai::Tensor<T, NRank, TDevice, TMemory>(other) {}
   };
 
@@ -82,10 +82,10 @@ struct TensorMetalType
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
   Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, libai::DeviceMemory<Dev>>;
 
-  template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Mem = libai::DeviceMemory<libai::device::CPU>>
+  template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Alloc = libai::DeviceMemory<libai::device::CPU>>
   requires (!std::is_same_v<typename TTensor::device_type, Dev> ||
-            !std::is_same_v<typename TTensor::memory_type, Mem>)
-  Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Mem>;
+            !std::is_same_v<typename TTensor::allocator_type, Alloc>)
+  Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Alloc>;
 
   template <typename TTensor, size_t NRank, typename Dev = libai::device::Metal>
   Tensor(libai::TensorView<TTensor, NRank>&&) -> Tensor<typename TTensor::value_type, NRank, Dev, libai::DeviceMemory<Dev>>;
@@ -102,7 +102,7 @@ struct TensorMetalType
   template <typename T>
   Array(size_t, T) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
 
-  template <typename T, typename Mem = libai::DeviceMemory<libai::device::Metal>>
+  template <typename T>
   Array(size_t, std::type_identity<T>) -> Array<T, libai::DeviceMemory<libai::device::Metal>>;
 
   template <typename T, size_t N>
