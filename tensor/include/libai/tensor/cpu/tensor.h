@@ -11,8 +11,6 @@
 #ifndef LIBAI_TENSOR_CPU_TENSOR_H
 #define LIBAI_TENSOR_CPU_TENSOR_H
 
-#include "array.h"
-
 namespace libai {
 
 template <AnyTensor T1, AnyTensor T2>

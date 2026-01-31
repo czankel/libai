@@ -14,7 +14,6 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "libai/tensor/cpu/array.h"
 #include "tensor_cpu.h"
 
 #ifdef BUILD_METAL
