@@ -18,15 +18,15 @@
 namespace libai {
 
 template <typename> class MatmulOperator;
-template <typename, size_t, typename> class Tensor;
+template <typename, size_t, typename, typename> class Tensor;
 
 namespace
 {
   template <typename TTensor1, typename TTensor2>
   struct MatmulRank
   {
-    using tensor1_type = std::remove_reference_t<TTensor1>;
-    using tensor2_type = std::remove_reference_t<TTensor2>;
+    using tensor1_type = std::remove_cvref_t<TTensor1>;
+    using tensor2_type = std::remove_cvref_t<TTensor2>;
     constexpr static size_t rank =
       tensor1_type::rank != 1 || tensor2_type::rank != 1 ? std::min(tensor1_type::rank, tensor2_type::rank) : 0;
   };
@@ -47,7 +47,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
                               MatmulRank<TTensor1, TTensor2>::rank,
                               Matmul<TTensor1, TTensor2>>
 {
-  using device = tensor_device_t<TTensor1>;
+  using device_type = tensor_device_t<TTensor1>;
 
  public:
   using Matmul::TensorOperation::rank;
@@ -88,7 +88,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (tensor1_.Dimensions()[0] != tensor2_.Dimensions()[0])
       throw std::runtime_error("mismatching dimensions in vector product");
 
-    auto result = Tensor<value_type, 0, DeviceMemory<device>>{value_type{0}};
+    auto result = Tensor<value_type, 0, device_type, DeviceMemory<device_type>>{value_type{0}};
     operator_(tensor1_, tensor2_, result);
     return result;
   }
@@ -101,7 +101,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (dims1[1] != dims2[0])
       throw std::runtime_error("mismatching dimensions in matrix multiplication");
 
-    auto result = Tensor<value_type, 2, DeviceMemory<device>>({dims1[0], dims2[1]}, std::type_identity<value_type>{});
+    auto result = Tensor<value_type, 2, device_type, DeviceMemory<device_type>>({dims1[0], dims2[1]}, std::type_identity<value_type>{});
     operator_(tensor1_, tensor2_, result);
     return result;
   }
@@ -114,7 +114,7 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (dims1[1] != dims2[0])
       throw std::runtime_error("mismatching dimensions in matrix multiplication");
 
-    auto result = Tensor<value_type, 1, DeviceMemory<device>>(dims1[0], std::type_identity<value_type>{});
+    auto result = Tensor<value_type, 1, device_type, DeviceMemory<device_type>>(dims1[0], std::type_identity<value_type>{});
     operator_(tensor1_, tensor2_, result);
     return result;
   }
@@ -127,13 +127,13 @@ class Matmul : TensorOperation<std::common_type_t<typename std::remove_cvref_t<T
     if (dims1[0] != dims2[0])
       throw std::runtime_error("mismatching dimensions in matrix multiplication");
 
-    auto result = Tensor<value_type, 1, DeviceMemory<device>>(dims2[1], std::type_identity<value_type>{});
+    auto result = Tensor<value_type, 1, device_type, DeviceMemory<device_type>>(dims2[1], std::type_identity<value_type>{});
     operator_(tensor1_, tensor2_, result);
     return result;
   }
 
  private:
-  MatmulOperator<device> operator_;
+  MatmulOperator<device_type> operator_;
   TTensor1 tensor1_;
   TTensor2 tensor2_;
 };

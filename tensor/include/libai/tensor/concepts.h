@@ -47,8 +47,8 @@ struct to_tensor<TTensor>
   using type = TTensor;
 };
 
-template <template <template <typename, size_t, typename> typename, typename, size_t, typename...> typename TOperator,
-          template <typename, size_t, typename> typename TTensor,
+template <template <template <typename, size_t, typename, typename> typename, typename, size_t, typename...> typename TOperator,
+          template <typename, size_t, typename, typename> typename TTensor,
           typename T, size_t TRank, typename... TTensors>
 struct to_tensor<TOperator<TTensor, T, TRank, TTensors...>>
 {
@@ -64,7 +64,7 @@ struct to_tensor<TFunction<TOperator, TTensors...>>
 // is_same_tensor<TENSOR1, TENSOR2> checks if two tensors are of the same type.
 template <typename, template <typename, size_t, typename...> typename> struct is_same_tensor_as : std::false_type {};
 
-template <template <typename, size_t, typename...> typename TTensor, typename T, size_t TRank, typename... TAllocator>
+template <template <typename, size_t, typename, typename...> typename TTensor, typename T, size_t TRank, typename... TAllocator>
 struct is_same_tensor_as<TTensor<T, TRank, TAllocator...>, TTensor> : std::true_type {};
 
 
@@ -105,7 +105,7 @@ template <typename TTensor>
 concept TensorConvertible = is_tensor_v<TTensor> || is_operator_v<TTensor>;
 
 // FIXME doesn't work for Views directly, assuming it converts View to Tensor before??
-template <typename TFrom, template <typename, size_t, typename...> typename TTensor, typename TDevice>
+template <typename TFrom, template <typename, size_t, typename, typename...> typename TTensor, typename TDevice>
 struct tensor_is_convertible_to
   : std::is_assignable<TTensor<typename TFrom::value_type, TFrom::rank, DeviceMemory<TDevice>>, TFrom>
 {};
@@ -113,8 +113,8 @@ struct tensor_is_convertible_to
 // Use "CPU" as the default device if none is defined. TODO: can this be removed (and include above)?
 template <typename> struct tensor_device { using type = device::CPU; };
 
-template <template <typename, size_t, typename> typename TTensor, typename T, size_t TRank, typename TDevice>
-struct tensor_device<TTensor<T, TRank, DeviceMemory<TDevice>>> { using type = TDevice; };
+template <template <typename, size_t, typename, typename> typename TTensor, typename T, size_t NRank, typename TDevice, typename TMemory>
+struct tensor_device<TTensor<T, NRank, TDevice, TMemory>> { using type = TDevice; };
 
 template <PrimitiveTensor TTensor, size_t TViewRank> class TensorView;
 template <PrimitiveTensor TTensor, size_t TViewRank>

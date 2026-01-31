@@ -54,11 +54,11 @@ namespace libai {
 ///   std::array<ssize_t, Rank>  Strides() const
 ///   pointer                    Data()
 ///   const_pointer              Data() const
-template <typename T, size_t TRank, typename TMemory>
+template <typename T, size_t TRank, typename TDevice, typename TMemory>
 class Tensor
 {
   template <PrimitiveTensor P, size_t R> friend class TensorView;
-  template <typename, size_t, typename> friend class Tensor;
+  template <typename, size_t, typename, typename> friend class Tensor;
 
   // helper to extract the template parameters for StaticMemory
   template <typename> struct mem_ext;
@@ -70,6 +70,7 @@ class Tensor
 
  public:
   using value_type = T;
+  using device_type = TDevice;
   using memory_type = TMemory;
   using pointer = value_type*;
   using reference = value_type&;
@@ -469,25 +470,25 @@ class Tensor
 
 // Tensor{T} -> Rank-0 tensor with a static/local array
 template <Arithmetic T>
-explicit Tensor(T) -> Tensor<T, 0, Scalar>;
+explicit Tensor(T) -> Tensor<T, 0, libai::device::CPU, libai::Scalar>;
 
 // Tensor{std::type_identity<T>} -> Rank-0 tensor with a static/local array
 template <Arithmetic T>
-explicit Tensor(std::type_identity<T>) -> Tensor<T, 0, Scalar>;
+explicit Tensor(std::type_identity<T>) -> Tensor<T, 0, device::CPU, Scalar>;
 
 // Tensor with Static Allocator - Brace-initializer List
 
 // Tensor{Ts...} -> Rank-1 tensor with a static/local array (brace-initializer).
 template <Arithmetic... Ts>
-Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, StaticMemory<sizeof...(Ts)>>;
+Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, device::CPU, StaticMemory<sizeof...(Ts)>>;
 
 // Tensor{{...},...} -> Rank-2 tensor with a static/local array (brace-initializer).
 template <Arithmetic T, size_t... N>
-Tensor(T(&&... l)[N]) -> Tensor<T, 2, StaticMemory<sizeof...(N), std::max({N...})>>;
+Tensor(T(&&... l)[N]) -> Tensor<T, 2, device::CPU, StaticMemory<sizeof...(N), std::max({N...})>>;
 
 // Tensor{{{...},...},...} -> Rank-3 tensor with a static/local array (brace-initializer).
 template <Arithmetic T, size_t... M, size_t... N>
-Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, StaticMemory<sizeof...(M), std::max({M...}), std::max({N...})>>;
+Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, device::CPU, StaticMemory<sizeof...(M), std::max({M...}), std::max({N...})>>;
 
 // Tensor rules for allocating dynamic device memory with dimensions provded as arguments
 
@@ -500,27 +501,27 @@ Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, StaticMemory<sizeof...(M), std::max({M.
 
 // Tensor(uint,T) -> Rank-1 tensor with a dynamically allocated buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, T) -> Tensor<T, 1, DeviceMemory<Dev>>;
+Tensor(size_t, T) -> Tensor<T, 1, Dev, DeviceMemory<Dev>>;
 
 // Tensor(uint, std::type_identity<T>) -> Rank-1 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, std::type_identity<T>) -> Tensor<T, 1, DeviceMemory<Dev>>;
+Tensor(size_t, std::type_identity<T>) -> Tensor<T, 1, Dev, DeviceMemory<Dev>>;
 
 // Tensor(uint, uint, T) -> Rank-2 tensor with a dynamically allocated buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, T) -> Tensor<T, 2, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, T) -> Tensor<T, 2, Dev, DeviceMemory<Dev>>;
 
 // Tensor(uint, std::type_identity<T>) -> Rank-2 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, std::type_identity<T>) -> Tensor<T, 2, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, std::type_identity<T>) -> Tensor<T, 2, Dev, DeviceMemory<Dev>>;
 
 // Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Rank-3 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, size_t, T) -> Tensor<T, 3, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, size_t, T) -> Tensor<T, 3, Dev, DeviceMemory<Dev>>;
 
 // Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Rank-3 tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Tensor<T, 3, DeviceMemory<Dev>>;
+Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Tensor<T, 3, Dev, DeviceMemory<Dev>>;
 
 #endif
 
@@ -528,81 +529,83 @@ Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Tensor<T, 3, DeviceMemo
 
 // Tensor(&[], &[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&[], &[], std::type_identity<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], const ssize_t(&)[N], std::type_identity<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], const ssize_t(&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&&[], &&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&&[], &&[]) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(size_t(&&)[N], ssize_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(size_t(&&)[N], ssize_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&[], std::type_identity<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], std::type_identity<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&&)[N], T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(&&[], std::type_identity<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(const size_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(array, T)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(array, array, T)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(array, std::type_identity<T>)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, std::type_identity<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(array, array, std::type_identity<T>)
 template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, DeviceMemory<Dev>>;
+Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(any_tensor)
 template <AnyTensor TTensor, typename Mem = DeviceMemory<device::CPU>>
 requires (!std::is_same_v<typename TTensor::memory_type, Mem>)
-Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Mem>;
+Tensor(const TTensor& other)
+  -> Tensor<typename TTensor::value_type, TTensor::rank, typename Mem::device_type, Mem>;
 
 // Tensor rules for tensor view argument
 template <typename TTensor, size_t TRank, typename Dev = device::CPU>
-Tensor(TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
+Tensor(TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, Dev, DeviceMemory<Dev>>;
 template <typename TTensor, size_t TRank, typename Dev = device::CPU>
-Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, DeviceMemory<Dev>>;
+Tensor(const TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, Dev, DeviceMemory<Dev>>;
 
 // Tensor rules for operator arguments
 
 template <libai::AnyOperator TOperator, typename Dev = device::CPU>
-Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, libai::DeviceMemory<Dev>>;
+Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, Dev, DeviceMemory<Dev>>;
 
 template <libai::AnyOperator TOperator, typename Dev = device::CPU>
-Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::rank, libai::DeviceMemory<Dev>>;
+Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::rank, Dev, DeviceMemory<Dev>>;
 
 // Tensor rules for memory-mapped arguments
 
 template <Arithmetic T, size_t N>
-Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
+Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, device::CPU, libai::MemoryMapped>;
 template <Arithmetic T, size_t N>
-Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, libai::MemoryMapped>;
+Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, device::CPU, libai::MemoryMapped>;
 
 // Copy/Move constructors
-template <typename T, size_t R, typename M> Tensor(const Tensor<T, R, M>&) -> Tensor<T, R, M>;
-template <typename T, size_t R, typename M> Tensor(Tensor<T, R, M>&&) -> Tensor<T, R, M>;
+// gcc 13.3 deduces an implicit rule for just the class and treats copy/move constructors as ambiguous
+template <typename T, size_t R, typename D, typename M> Tensor(const Tensor<T, R, D, M>&) -> Tensor<T, R, D, M>;
+template <typename T, size_t R, typename D, typename M> Tensor(Tensor<T, R, D, M>&&) -> Tensor<T, R, D, M>;
 
 
 //

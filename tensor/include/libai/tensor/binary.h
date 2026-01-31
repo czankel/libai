@@ -20,7 +20,7 @@ namespace libai {
 
 /// BinaryOperation is a empty definition for device-specific operators.
 template <template <typename> typename, typename> class BinaryOperation;
-template <typename, size_t, typename> class Tensor;
+template <typename, size_t, typename, typename> class Tensor;
 
 
 //
@@ -85,9 +85,10 @@ class Binary : public TensorOperation<std::common_type_t<typename std::remove_cv
   /// operator()() evaluates the binary operator and returns a tensor.
   auto operator()() const
   {
+    using device_type = tensor_device_t<TTensor1>;
+    using tensor_type = Tensor<value_type, rank, device_type, DeviceMemory<device_type>>;
     auto dimensions = BroadcastDimensions(tensor1_, tensor2_);
-    using ResultTensor = Tensor<value_type, rank, DeviceMemory<tensor_device_t<TTensor1>>>;
-    auto result = ResultTensor(dimensions, std::type_identity<value_type>{});
+    auto result = tensor_type(dimensions, std::type_identity<value_type>{});
 
     operator_(tensor1_, tensor2_, result);
 
