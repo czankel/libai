@@ -9,13 +9,10 @@
 #ifndef LIBAI_TENSOR_CONCEPTS_H
 #define LIBAI_TENSOR_CONCEPTS_H
 
-#include "device.h"
-#include "memory.h"
-
-// "CPU" is the default device for Tensors
-#include "cpu/device.h"
-
 namespace libai {
+
+template <typename> struct DeviceMemory;
+namespace device { class CPU; }
 
 //
 // Tensor Traits
