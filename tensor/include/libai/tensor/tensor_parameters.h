@@ -9,7 +9,9 @@
 #ifndef LIBAI_TENSOR_TENSOR_PARAMETERS_H
 #define LIBAI_TENSOR_TENSOR_PARAMETERS_H
 
+#include <array>
 #include <algorithm>
+#include <stdexcept>
 #include <utility>
 
 #include "concepts.h"

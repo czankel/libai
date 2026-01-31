@@ -9,12 +9,13 @@
 #ifndef LIBAI_TENSOR_GENERATOR_H
 #define LIBAI_TENSOR_GENERATOR_H
 
-#include "tensor.h"
+#include "tensor_operation.h"
 #include "tensor_parameters.h"
 
 namespace libai {
 
 template <typename> class GeneratorOperation;
+template <typename, size_t, typename, typename> class Tensor;
 
 /// @brief Generator generates a sequence of elements filling a tensor
 ///
@@ -33,6 +34,7 @@ class Generator : public TensorOperation<typename std::remove_cvref_t<TTensor>::
   using Generator::TensorOperation::rank;
   using device_type = tensor_device_t<TTensor>;
   using allocator_type = tensor_allocator_t<TTensor>;
+  using tensor_type = Tensor<value_type, rank, device_type, allocator_type>;
 
   explicit Generator(const size_t(&&dims)[rank])
     : TensorOperation<value_type, rank, Generator<TTensor, TOperation>>(*this),
@@ -47,7 +49,7 @@ class Generator : public TensorOperation<typename std::remove_cvref_t<TTensor>::
   /// operator()() evaluates the unary operator and returns a tensor.
   auto operator()() const
   {
-    auto result = TTensor(dimensions_, std::type_identity<value_type>());
+    auto result = tensor_type(dimensions_, std::type_identity<value_type>());
     GeneratorOperation<device_type>{}(result, operator_);
     return result;
   }

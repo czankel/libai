@@ -9,8 +9,9 @@
 #ifndef LIBAI_TENSOR_TENSOR_OPERATION_H
 #define LIBAI_TENSOR_TENSOR_OPERATION_H
 
-namespace libai {
+#include <cstddef>
 
+namespace libai {
 
 /// TensorOperation is a base class and wrapper for tensor operations.
 ///
