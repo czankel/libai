@@ -11,6 +11,9 @@
 #ifndef LIBAI_TENSOR_METAL_ALLOCATOR_H
 #define LIBAI_TENSOR_METAL_ALLOCATOR_H
 
+#include <Metal/Metal.hpp>
+#include "device.h"
+
 namespace libai {
 template<typename> class MetalPointer;
 }
@@ -119,7 +122,7 @@ class MetalAllocator
 
     // Allocate new buffer
     size_t mode = MTL::ResourceStorageModeShared | MTL::ResourceHazardTrackingModeTracked;
-    auto& device = device::Metal::GetDevice();
+    auto& device = libai::device::Metal::GetDevice();
     auto* buffer = device.NewBuffer(size, mode);
     if (buffer == nullptr)
       throw std::runtime_error("failed to allocate buffer");

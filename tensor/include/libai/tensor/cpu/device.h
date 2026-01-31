@@ -19,6 +19,8 @@ namespace libai::device {
 class CPU : public Device
 {
  public:
+  template <typename T> using allocator_type = std::allocator<T>;
+
   static inline size_t GetConcurrentThreadCount()
   {
     if (concurrent_thread_count_ == 0)

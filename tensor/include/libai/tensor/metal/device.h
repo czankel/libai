@@ -10,9 +10,12 @@
 #define LIBAI_TENSOR_METAL_DEVICE_H
 
 #include <Metal/Metal.hpp>
-#include <libai/tensor/device.h>
 
-#include <string>
+#include "../device.h"
+
+namespace libai {
+  template <typename> class MetalAllocator;
+}
 
 namespace libai::device {
 
@@ -72,6 +75,8 @@ class Metal : public Device
   Metal& operator=(Metal&) = delete;
 
  public:
+  template <typename T> using allocator_type = MetalAllocator<T>;
+
   ~Metal()
   {
     for (auto& k : kernels_) {

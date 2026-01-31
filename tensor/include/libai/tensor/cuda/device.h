@@ -9,7 +9,8 @@
 #ifndef LIBAI_TENSOR_CUDA_DEVICE_H
 #define LIBAI_TENSOR_CUDA_DEVICE_H
 
-#include <libai/tensor/device.h>
+#include "allocator.h"
+#include "../device.h"
 
 namespace libai::device {
 
@@ -20,6 +21,8 @@ class Cuda : public Device
   Cuda& operator =(Cuda&) = delete;
 
  public:
+  template <typename T> using allocator_type = CudaAllocator<T>;
+
   ~Cuda();
 
   /// @brief Returns the default devices (using a singleton)
