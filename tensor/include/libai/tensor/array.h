@@ -163,7 +163,7 @@ class Array<T, StaticMemory<Ns...>>
   // Explicity disallow default, copy, and move constructors for StaticMemory arrays.
   Array() = delete;
   Array(const Array& other) = delete;
-  Array(Array&& other) = delete;
+  Array(Array&& other) : array_(std::move(other.array_)) {}
 
   // Explicitly disallow copy and move assign operators for StaticMemory arays.
   Array& operator=(Array&& other) = delete;
