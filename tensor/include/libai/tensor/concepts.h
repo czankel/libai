@@ -49,10 +49,10 @@ struct to_tensor<TTensor>
 
 template <template <template <typename, size_t, typename, typename> typename, typename, size_t, typename...> typename TOperator,
           template <typename, size_t, typename, typename> typename TTensor,
-          typename T, size_t TRank, typename... TTensors>
-struct to_tensor<TOperator<TTensor, T, TRank, TTensors...>>
+          typename T, size_t NRank, typename... TTensors>
+struct to_tensor<TOperator<TTensor, T, NRank, TTensors...>>
 {
-  using type = decltype(std::declval<TOperator<TTensor, T, TRank, TTensors...>>().operator()());
+  using type = decltype(std::declval<TOperator<TTensor, T, NRank, TTensors...>>().operator()());
 };
 
 template <template <typename, typename...> typename TFunction, typename TOperator, typename... TTensors>
@@ -62,10 +62,10 @@ struct to_tensor<TFunction<TOperator, TTensors...>>
 };
 
 // is_same_tensor<TENSOR1, TENSOR2> checks if two tensors are of the same type.
-template <typename, template <typename, size_t, typename...> typename> struct is_same_tensor_as : std::false_type {};
+template <typename, template <typename, size_t, typename, typename...> typename> struct is_same_tensor_as : std::false_type {};
 
-template <template <typename, size_t, typename, typename...> typename TTensor, typename T, size_t TRank, typename... TAllocator>
-struct is_same_tensor_as<TTensor<T, TRank, TAllocator...>, TTensor> : std::true_type {};
+template <template <typename, size_t, typename, typename...> typename TTensor, typename T, size_t NRank, typename TDevice, typename... TAllocator>
+struct is_same_tensor_as<TTensor<T, NRank, TDevice, TAllocator...>, TTensor> : std::true_type {};
 
 
 // tensor_is_primitive checks if a tensor includes a Data() member function that returns an
@@ -105,9 +105,9 @@ template <typename TTensor>
 concept TensorConvertible = is_tensor_v<TTensor> || is_operator_v<TTensor>;
 
 // FIXME doesn't work for Views directly, assuming it converts View to Tensor before??
-template <typename TFrom, template <typename, size_t, typename, typename...> typename TTensor, typename TDevice>
+template <typename TFrom, template <typename, size_t, typename, typename...> typename TTensor, typename TDevice, typename TAllocator>
 struct tensor_is_convertible_to
-  : std::is_assignable<TTensor<typename TFrom::value_type, TFrom::rank, DeviceMemory<TDevice>>, TFrom>
+  : std::is_assignable<TTensor<typename TFrom::value_type, TFrom::rank, TDevice, TAllocator>, TFrom>
 {};
 
 // Use "CPU" as the default device if none is defined. TODO: can this be removed (and include above)?
