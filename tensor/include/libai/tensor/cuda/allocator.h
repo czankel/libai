@@ -28,8 +28,8 @@ struct std::iterator_traits<libai::CudaPointer<T>>
 
 namespace libai {
 
-void CudaMallocManaged(void** ptr, size_t size);
-void CudaFree(void* ptr);
+void CudaMallocManaged(void**, size_t);
+void CudaFree(void*);
 
 template <typename T>
 class CudaPointer
@@ -64,7 +64,7 @@ class CudaPointer
   }
 
   std::conditional<std::is_void<value_type>::value, void_type, value_type>::type&
-  operator*() const { return *ptr_; }
+  operator*() const     { return *ptr_; }
   T* operator->() const { return ptr_; }
 
   auto& operator++()    { ++ptr_; return *this; }
