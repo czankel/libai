@@ -21,7 +21,6 @@
 #endif
 
 #ifdef BUILD_CUDA
-#include "libai/tensor/cuda/array.h"
 #include "tensor_cuda.h"
 #endif
 

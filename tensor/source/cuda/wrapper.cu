@@ -8,8 +8,6 @@
 
 #include <stdexcept>
 
-#include <libai/tensor/cuda/array.h>
-
 namespace libai {
 
 void CudaMalloc(void** ptr, size_t size)
