@@ -35,8 +35,8 @@ class LLaMAModelT : public LLaMAModel
   friend class GgmlFile;
 
   /// Using two tensor types, a dynamically allocated default tensor and a memory-mapped file tensors.
-  using Tensor1D = Tensor<T, 1, TDevice, DeviceMemory<TDevice>>;
-  using Tensor2D = Tensor<T, 2, TDevice, DeviceMemory<TDevice>>;
+  using Tensor1D = Tensor<T, 1, TDevice>;
+  using Tensor2D = Tensor<T, 2, TDevice>;
 
  protected:
   LLaMAModelT() = default;
