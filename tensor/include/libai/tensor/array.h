@@ -12,7 +12,7 @@
 #include <span>
 
 #include "concepts.h"
-#include "memory.h"
+#include "allocator.h"
 
 namespace libai {
 
@@ -147,7 +147,7 @@ class Array<T, Scalar>
 
 /// Array specialization for static data.
 template <Arithmetic T, size_t... Ns>
-class Array<T, StaticMemory<Ns...>>
+class Array<T, StaticResource<Ns...>>
 {
  public:
   using value_type = T;
@@ -160,12 +160,12 @@ class Array<T, StaticMemory<Ns...>>
   // @brief Iniitializes a constant array
   Array(std::array<T, size>&& array) : array_(array) {}
 
-  // Explicity disallow default, copy, and move constructors for StaticMemory arrays.
+  // Explicity disallow default, copy, and move constructors for StaticResource arrays.
   Array() = delete;
   Array(const Array& other) = delete;
   Array(Array&& other) : array_(std::move(other.array_)) {}
 
-  // Explicitly disallow copy and move assign operators for StaticMemory arays.
+  // Explicitly disallow copy and move assign operators for StaticResource arays.
   Array& operator=(Array&& other) = delete;
   Array& operator=(const Array& other) = delete;
 
@@ -195,12 +195,12 @@ class Array<T, MemoryMapped>
   // @brief Constructor for a memory mapped area
   Array(value_type* data, size_t size) : data_(data), size_(size) {}
 
-  // Explicity disallow default, copy, and move constructors for StaticMemory arrays.
+  // Explicity disallow default, copy, and move constructors for StaticResource arrays.
   Array() = delete;
   Array(const Array& other) = delete;
   Array(Array&& other) = delete;
 
-  // Explicitly disallow copy and move assign operators for StaticMemory arays.
+  // Explicitly disallow copy and move assign operators for StaticResource arays.
   Array& operator=(Array&& other) = delete;
   Array& operator=(const Array& other) = delete;
 

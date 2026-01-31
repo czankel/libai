@@ -23,7 +23,7 @@
 #include "iterator.h"
 #include "generator.h"
 #include "matmul.h"
-#include "memory.h"
+#include "allocator.h"
 #include "tensor_parameters.h"
 #include "tensor_view.h"
 #include "unary.h"
@@ -60,9 +60,9 @@ class Tensor
   template <PrimitiveTensor, size_t> friend class TensorView;
   template <typename, size_t, typename, typename> friend class Tensor;
 
-  // helper to extract the template parameters for StaticMemory
+  // helper to extract the template parameters for StaticResource
   template <typename> struct mem_ext;
-  template <size_t... Ns> struct mem_ext<libai::StaticMemory<Ns...>>
+  template <size_t... Ns> struct mem_ext<libai::StaticResource<Ns...>>
   {
     static constexpr std::array<size_t, sizeof...(Ns)> array{Ns...};
   };
@@ -480,15 +480,15 @@ explicit Tensor(std::type_identity<T>) -> Tensor<T, 0, device::CPU, Scalar>;
 
 // Tensor{Ts...} -> Rank-1 tensor with a static/local array (brace-initializer).
 template <Arithmetic... Ts>
-Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, device::CPU, StaticMemory<sizeof...(Ts)>>;
+Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, device::CPU, StaticResource<sizeof...(Ts)>>;
 
 // Tensor{{...},...} -> Rank-2 tensor with a static/local array (brace-initializer).
 template <Arithmetic T, size_t... N>
-Tensor(T(&&... l)[N]) -> Tensor<T, 2, device::CPU, StaticMemory<sizeof...(N), std::max({N...})>>;
+Tensor(T(&&... l)[N]) -> Tensor<T, 2, device::CPU, StaticResource<sizeof...(N), std::max({N...})>>;
 
 // Tensor{{{...},...},...} -> Rank-3 tensor with a static/local array (brace-initializer).
 template <Arithmetic T, size_t... M, size_t... N>
-Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, device::CPU, StaticMemory<sizeof...(M), std::max({M...}), std::max({N...})>>;
+Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, device::CPU, StaticResource<sizeof...(M), std::max({M...}), std::max({N...})>>;
 
 // Tensor rules for allocating dynamic device memory with dimensions provded as arguments
 

@@ -54,13 +54,13 @@ struct TensorCPUType
   template <libai::Arithmetic T> explicit Tensor(std::type_identity<T>) -> Tensor<T, 0, libai::device::CPU, libai::Scalar>;
 
   template <libai::Arithmetic... Ts>
-  Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, libai::device::CPU, libai::StaticMemory<sizeof...(Ts)>>;
+  Tensor(Ts...) -> Tensor<std::common_type_t<Ts...>, 1, libai::device::CPU, libai::StaticResource<sizeof...(Ts)>>;
 
   template <libai::Arithmetic T, size_t... N>
-  Tensor(T(&&... l)[N]) -> Tensor<T, 2, libai::device::CPU, libai::StaticMemory<sizeof...(N), std::max({N...})>>;
+  Tensor(T(&&... l)[N]) -> Tensor<T, 2, libai::device::CPU, libai::StaticResource<sizeof...(N), std::max({N...})>>;
 
   template <libai::Arithmetic T, size_t... M, size_t... N>
-  Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, libai::device::CPU, libai::StaticMemory<sizeof...(M), std::max({M...}), std::max({N...})>>;
+  Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, libai::device::CPU, libai::StaticResource<sizeof...(M), std::max({M...}), std::max({N...})>>;
 
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::CPU>
   Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, Dev, libai::DeviceMemory<Dev>>;

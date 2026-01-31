@@ -6,19 +6,22 @@
 // The contents of this file are confidential and proprietary to Chris Zankel.
 //
 
-#ifndef LIBAI_TENSOR_MEMORY_H
-#define LIBAI_TENSOR_MEMORY_H
+#ifndef LIBAI_TENSOR_ALLOCATOR_H
+#define LIBAI_TENSOR_ALLOCATOR_H
 
 namespace libai {
 
+// The following declarations describe "non-allocators" that can be used in lieu of an allocator
+
+// TODO: this will be removed once the code changes to allocators
 /// DeviceMemroy defines a dynamically allocated buffer for the specific device.
 template <typename TDevice> struct DeviceMemory {};
 
-/// StaticMemory defines constant static memory in the RO section.
-template <size_t...> struct StaticMemory {};
-
 /// View defines a view of a tensor
 template <typename TTensor> struct View {};
+
+/// StaticResource defines constant static memory in the RO section.
+template <size_t...> struct StaticResource {};
 
 /// MemoryMapped defines a memory mapped file.
 struct MemoryMapped {};
@@ -28,4 +31,4 @@ struct Scalar {};
 
 } // end of namespace libai
 
-#endif  // LIBAI_TENSOR_MEMORY_H
+#endif  // LIBAI_TENSOR_ALLOCATOR_H
