@@ -82,9 +82,10 @@ struct TensorMetalType
   template <libai::Arithmetic T, size_t N, typename Dev = libai::device::Metal>
   Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, libai::DeviceMemory<Dev>>;
 
-  template <libai::AnyTensor TTensor, typename Mem = libai::DeviceMemory<libai::device::Metal>>
-  requires (!std::is_same_v<typename TTensor::memory_type, Mem>)
-  Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, libai::device::Metal, Mem>;
+  template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Mem = libai::DeviceMemory<libai::device::CPU>>
+  requires (!std::is_same_v<typename TTensor::device_type, Dev> ||
+            !std::is_same_v<typename TTensor::memory_type, Mem>)
+  Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Mem>;
 
   template <typename TTensor, size_t NRank, typename Dev = libai::device::Metal>
   Tensor(libai::TensorView<TTensor, NRank>&&) -> Tensor<typename TTensor::value_type, NRank, Dev, libai::DeviceMemory<Dev>>;

@@ -576,10 +576,10 @@ template <Arithmetic T, size_t N, typename Dev = device::CPU>
 Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
 
 // Tensor(any_tensor)
-template <AnyTensor TTensor, typename Mem = DeviceMemory<device::CPU>>
-requires (!std::is_same_v<typename TTensor::memory_type, Mem>)
-Tensor(const TTensor& other)
-  -> Tensor<typename TTensor::value_type, TTensor::rank, typename Mem::device_type, Mem>;
+template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Mem = libai::DeviceMemory<libai::device::CPU>>
+requires (!std::is_same_v<typename TTensor::device_type, Dev> ||
+          !std::is_same_v<typename TTensor::memory_type, Mem>)
+Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Mem>;
 
 // Tensor rules for tensor view argument
 template <typename TTensor, size_t NRank, typename Dev = device::CPU>
