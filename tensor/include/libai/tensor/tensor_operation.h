@@ -28,15 +28,15 @@ namespace libai {
 /// arguments in the Tensor constructor or assign operator.
 ///
 /// @tparam T          value type
-/// @tparam TRank      rank
+/// @tparam NRank      rank
 /// @tparam TOperation wrapped operation
 
-template <typename T, size_t TRank, typename TOperation>
+template <typename T, size_t NRank, typename TOperation>
 class TensorOperation
 {
  public:
   using value_type = T;
-  constexpr static size_t rank = TRank;
+  constexpr static size_t rank = NRank;
 
   /// Constructo
   /// @param op   Tensor operator object

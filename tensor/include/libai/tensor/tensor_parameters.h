@@ -143,12 +143,12 @@ get_array(T((&&... init)[M])[N])
 
 // make_strides returns a std::array with the strides calculated from the provided dimensions and
 // the template type parameter (make_strides<TYPE>(...))
-template <size_t TRank, typename Indices = std::make_index_sequence<TRank>>
-std::array<ssize_t, TRank> make_strides(const std::array<size_t, TRank>& dimensions)
+template <size_t NRank, typename Indices = std::make_index_sequence<NRank>>
+std::array<ssize_t, NRank> make_strides(const std::array<size_t, NRank>& dimensions)
 {
-  std::array<ssize_t, TRank> strides;
+  std::array<ssize_t, NRank> strides;
   ssize_t stride = 1;
-  for (int i = static_cast<int>(TRank) - 1; i >= 0; i--)
+  for (int i = static_cast<int>(NRank) - 1; i >= 0; i--)
   {
     strides[i] = dimensions[i] != 1 ? stride : 0;
     stride *= dimensions[i];

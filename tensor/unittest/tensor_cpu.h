@@ -32,14 +32,14 @@ struct TensorCPUType
 
 struct TensorCPUType
 {
-  template <typename T, size_t TRank, typename TDevice, typename TMemory>
-  class Tensor : public libai::Tensor<T, TRank, TDevice, TMemory>
+  template <typename T, size_t NRank, typename TDevice, typename TMemory>
+  class Tensor : public libai::Tensor<T, NRank, TDevice, TMemory>
   {
    public:
-    using libai::Tensor<T, TRank, TDevice, TMemory>::Tensor;
+    using libai::Tensor<T, NRank, TDevice, TMemory>::Tensor;
 
-    Tensor(const libai::Tensor<T, TRank, TDevice, TMemory>& other) : libai::Tensor<T, TRank, TDevice, TMemory>(other) {}
-    Tensor(libai::Tensor<T, TRank, TDevice, TMemory>&& other) : libai::Tensor<T, TRank, TDevice, TMemory>(std::move(other)) {}
+    Tensor(const libai::Tensor<T, NRank, TDevice, TMemory>& other) : libai::Tensor<T, NRank, TDevice, TMemory>(other) {}
+    Tensor(libai::Tensor<T, NRank, TDevice, TMemory>&& other) : libai::Tensor<T, NRank, TDevice, TMemory>(std::move(other)) {}
   };
 
   template <typename T, typename TMemory>
@@ -103,10 +103,10 @@ struct TensorCPUType
   Tensor(const TTensor& other)
     -> Tensor<typename TTensor::value_type, TTensor::rank, typename Mem::device_type, Mem>;
 
-  template <typename TTensor, size_t TRank, typename Dev = libai::device::CPU>
-  Tensor(libai::TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, Dev, libai::DeviceMemory<Dev>>;
-  template <typename TTensor, size_t TRank, typename Dev = libai::device::CPU>
-  Tensor(const libai::TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, Dev, libai::DeviceMemory<Dev>>;
+  template <typename TTensor, size_t NRank, typename Dev = libai::device::CPU>
+  Tensor(libai::TensorView<TTensor, NRank>&&) -> Tensor<typename TTensor::value_type, NRank, Dev, libai::DeviceMemory<Dev>>;
+  template <typename TTensor, size_t NRank, typename Dev = libai::device::CPU>
+  Tensor(const libai::TensorView<TTensor, NRank>&) -> Tensor<typename TTensor::value_type, NRank, Dev, libai::DeviceMemory<Dev>>;
 
   template <libai::AnyOperator TOperator, typename Dev = libai::device::CPU>
   Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, Dev, libai::DeviceMemory<Dev>>;

@@ -25,17 +25,17 @@ struct TensorMetalType
 
 struct TensorMetalType
 {
-  template <typename T, size_t TRank, typename TDevice, typename TMemory>
-  class Tensor : public libai::Tensor<T, TRank, TDevice, TMemory>
+  template <typename T, size_t NRank, typename TDevice, typename TMemory>
+  class Tensor : public libai::Tensor<T, NRank, TDevice, TMemory>
   {
    public:
-    using libai::Tensor<T, TRank, TDevice, TMemory>::Tensor;
+    using libai::Tensor<T, NRank, TDevice, TMemory>::Tensor;
     using memory_type = libai::DeviceMemory<libai::device::Metal>;
 
-    Tensor(const libai::Tensor<T, TRank, libai::device::Metal, memory_type>& other)
-      : libai::Tensor<T, TRank, TDevice, TMemory>(other) {}
-    Tensor(libai::Tensor<T, TRank, libai::device::Metal, memory_type>&& other)
-      : libai::Tensor<T, TRank, TDevice, TMemory>(other) {}
+    Tensor(const libai::Tensor<T, NRank, libai::device::Metal, memory_type>& other)
+      : libai::Tensor<T, NRank, TDevice, TMemory>(other) {}
+    Tensor(libai::Tensor<T, NRank, libai::device::Metal, memory_type>&& other)
+      : libai::Tensor<T, NRank, TDevice, TMemory>(other) {}
   };
 
   template <typename T, typename TMemory>
@@ -86,10 +86,10 @@ struct TensorMetalType
   requires (!std::is_same_v<typename TTensor::memory_type, Mem>)
   Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, libai::device::Metal, Mem>;
 
-  template <typename TTensor, size_t TRank, typename Dev = libai::device::Metal>
-  Tensor(libai::TensorView<TTensor, TRank>&&) -> Tensor<typename TTensor::value_type, TRank, Dev, libai::DeviceMemory<Dev>>;
-  template <typename TTensor, size_t TRank, typename Dev = libai::device::Metal>
-  Tensor(const libai::TensorView<TTensor, TRank>&) -> Tensor<typename TTensor::value_type, TRank, Dev, libai::DeviceMemory<Dev>>;
+  template <typename TTensor, size_t NRank, typename Dev = libai::device::Metal>
+  Tensor(libai::TensorView<TTensor, NRank>&&) -> Tensor<typename TTensor::value_type, NRank, Dev, libai::DeviceMemory<Dev>>;
+  template <typename TTensor, size_t NRank, typename Dev = libai::device::Metal>
+  Tensor(const libai::TensorView<TTensor, NRank>&) -> Tensor<typename TTensor::value_type, NRank, Dev, libai::DeviceMemory<Dev>>;
 
   template <libai::AnyOperator TOperator, typename Dev = libai::device::Metal>
   Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, Dev, libai::DeviceMemory<Dev>>;
