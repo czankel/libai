@@ -17,7 +17,6 @@
 #include "tensor_cpu.h"
 
 #ifdef BUILD_METAL
-#include "libai/tensor/metal/array.h"
 #include "tensor_metal.h"
 #endif
 

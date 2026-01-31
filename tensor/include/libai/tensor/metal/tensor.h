@@ -11,7 +11,6 @@
 #ifndef LIBAI_TENSOR_METAL_TENSOR_H
 #define LIBAI_TENSOR_METAL_TENSOR_H
 
-#include "array.h"
 #include "device.h"
 
 namespace libai {

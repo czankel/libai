@@ -9,11 +9,14 @@
 // Important: Class template argument deduction for alias templates P1814R0 not supported on all
 // compilers. This requires to duplicate *all* deduction rules in slowcpu/tensor.h
 
+#include <libai/tensor/cuda/device.h>
+#include <libai/tensor/cuda/allocator.h>
+
 struct TensorCudaType
 {
   template <typename T, size_t R>
-  using Tensor = libai::Tensor<T, R, libai::device::Cuda, libai::DeviceMemory<libai::device::Cuda>>;
+  using Tensor = libai::Tensor<T, R, libai::device::Cuda, libai::CudaAllocator<T>>;
 
-  template <typename T>
-  using Array = libai::Array<T, libai::DeviceMemory<libai::device::Cuda>>;
+  template <typename T, size_t R>
+  using Array = libai::Array<T, R, libai::CudaAllocator<T>>;
 };
