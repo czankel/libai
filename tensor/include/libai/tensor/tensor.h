@@ -54,7 +54,9 @@ namespace libai {
 ///   std::array<ssize_t, rank>  Strides() const
 ///   pointer                    Data()
 ///   const_pointer              Data() const
-template <typename T, size_t NRank, typename TDevice, typename TAllocator>
+template <typename T, size_t NRank,
+          typename TDevice = device::CPU,
+          typename TAllocator = typename TDevice::template allocator_type<T>>
 class Tensor
 {
   template <PrimitiveTensor, size_t> friend class TensorView;
@@ -70,12 +72,12 @@ class Tensor
 
  public:
   using value_type = T;
-  using device_type = TDevice;
-  using allocator_type = TAllocator;
   using pointer = value_type*;
   using reference = value_type&;
   using const_pointer = const value_type*;
   using const_reference = const value_type&;
+  using device_type = TDevice;
+  using allocator_type = TAllocator;
   using array_type = Array<value_type, allocator_type>;
   constexpr static size_t rank = NRank;
 
@@ -130,7 +132,7 @@ class Tensor
 
   /// Constructor for a rank-1 tensor (vector) with a dynamically allocated uninitialized buffer.
   Tensor(size_t dimension, std::type_identity<value_type>)
-    : array_(dimension),
+    : array_(dimension, std::type_identity<value_type>{}),
       dimensions_{dimension},
       strides_{make_strides(dimensions_)}
   {}
@@ -144,7 +146,7 @@ class Tensor
 
   /// Constructor for a rank-2 tensor (matrix) with a dynamically allocated uninitialized buffer.
   Tensor(size_t dim_m, size_t dim_n, std::type_identity<value_type>)
-    : array_(dim_m * dim_n),
+    : array_(dim_m * dim_n, std::type_identity<value_type>{}),
       dimensions_{dim_m, dim_n},
       strides_{make_strides(dimensions_)}
   {}
@@ -158,7 +160,7 @@ class Tensor
 
   /// Constructor for a rank-3 tensor (matrix) with a dynamically allocated uninitialized buffer.
   Tensor(size_t dim_m, size_t dim_n, size_t dim_u, std::type_identity<value_type>)
-    : array_(dim_m * dim_n * dim_u),
+    : array_(dim_m * dim_n * dim_u, std::type_identity<value_type>{}),
       dimensions_{dim_m, dim_n, dim_u},
       strides_{make_strides(dimensions_)}
   {}
@@ -176,7 +178,8 @@ class Tensor
   /// Constructor for any rank tensor with a dynamically allocated initialized buffer
   Tensor(std::initializer_list<size_t>&& dimensions, std::type_identity<value_type>)
     : array_(std::accumulate(
-          std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
+               std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()),
+             std::type_identity<value_type>{}),
       dimensions_(get_array<size_t, rank>(std::move(dimensions))),
       strides_{make_strides(dimensions_)}
   {}
@@ -194,7 +197,7 @@ class Tensor
   Tensor(std::initializer_list<size_t>&& dimensions,
          std::initializer_list<ssize_t>&& strides,
          std::type_identity<value_type>)
-    : array_(get_array_size(dimensions, strides)),
+    : array_(get_array_size(dimensions, strides), std::type_identity<value_type>{}),
       dimensions_(get_array<size_t, rank>(std::move(dimensions))),
       strides_(get_array<ssize_t, rank>(std::move(strides)))
   {}
@@ -208,7 +211,7 @@ class Tensor
 
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer
   Tensor(const size_t(&dimensions)[rank], const ssize_t(&strides)[rank], std::type_identity<value_type>)
-    : array_(dimensions, strides),
+    : array_(dimensions, strides, std::type_identity<value_type>{}),
       dimensions_(get_array<size_t, rank>(dimensions)),
       strides_(get_array<ssize_t, rank>(strides))
   {}
@@ -225,7 +228,8 @@ class Tensor
   /// Constructor for any rank tensor with a dynamically allocated uninitialized buffer
   Tensor(const size_t(&dimensions)[rank], std::type_identity<value_type>)
     : array_(
-        std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
+        std::accumulate(std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), std::type_identity<value_type>{}),
+
       dimensions_(get_array<size_t, rank>(dimensions)),
       strides_(make_strides(dimensions))
   {}
@@ -252,7 +256,7 @@ class Tensor
   /// Note: assumes strides are type-aligned.
   Tensor(std::array<size_t, rank> dimensions, std::type_identity<value_type>)
     : array_(std::accumulate(
-          std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>())),
+          std::begin(dimensions), std::end(dimensions), 1, std::multiplies<size_t>()), std::type_identity<value_type>{}),
       dimensions_{dimensions},
       strides_{make_strides(dimensions)}
   {}
@@ -261,7 +265,7 @@ class Tensor
   Tensor(std::array<size_t, rank> dimensions,
          std::array<ssize_t, rank> strides,
          std::type_identity<value_type>)
-    : array_(get_array_size(dimensions, strides)),
+    : array_(get_array_size(dimensions, strides), std::type_identity<value_type>{}),
       dimensions_{dimensions},
       strides_{strides}
   {}
@@ -282,28 +286,25 @@ class Tensor
   /// Constructor from a Tensor of a different value and array type.
   template <AnyTensor TTensor>
   Tensor(const TTensor& other)
-    : array_(other.Data(), other.Dimensions(), other.Strides(), other.Strides()),
+    : array_(other.array_),
       dimensions_{other.Dimensions()},
       strides_{other.Strides()}
   {}
 
+  // FIXNE: add note that we don't pass TensorView as const ref so we can modify it.. provide both?
   template <AnyTensor TTensor>
-  Tensor(const TensorView<TTensor, rank>& view)
-    : array_(view.Size()),
+  Tensor(TensorView<TTensor, rank>& view)
+    : array_(view.array_),
       dimensions_{view.Dimensions()},
       strides_{view.Strides()}
-  {
-    Copy(*this, view);
-  }
+  {}
 
   template <AnyTensor TTensor>
   Tensor(TensorView<TTensor, rank>&& view)
-    : array_(view.Size()),
+    : array_(view.array_),
       dimensions_{view.Dimensions()},
       strides_{view.Strides()}
-  {
-    Copy(*this, view);
-  }
+  {}
 
   // Constructors for converting from a tensor operator.
   // Allow implicit conversions
@@ -320,7 +321,7 @@ class Tensor
   /// Copy constructor
   // TODO: "flatten" new array? check if already contiguous?
   Tensor(const Tensor& other)
-    : array_(other.array_, other.Dimensions(), other.Strides(), other.Strides()),
+    : array_(other.array_),
       dimensions_{other.Dimensions()},
       strides_{other.Strides()}
   {}
@@ -341,9 +342,7 @@ class Tensor
   {
     dimensions_ = other.Dimensions();
     strides_ = other.Strides();
-    if (array_.Size() != other.Size())
-      array_.Realloc(other.Size()); // FIXME it's n-elems..
-    Copy(*this, other);
+    array_ = other.array_;
     return *this;
   }
 
@@ -391,6 +390,7 @@ class Tensor
     return view::Reshape(*this, std::move(dimensions), std::move(strides));
   }
 
+  // TODO: investigate if *this should be rvalue, etc.
   template <size_t TViewRank>
   auto Reshape(const std::array<size_t, TViewRank>& dimensions,
                const std::array<ssize_t, TViewRank>& strides) const
@@ -470,7 +470,7 @@ class Tensor
 
 // Tensor{T} -> Rank-0 tensor with a static/local array
 template <Arithmetic T>
-explicit Tensor(T) -> Tensor<T, 0, libai::device::CPU, libai::Scalar>;
+explicit Tensor(T) -> Tensor<T, 0, device::CPU, Scalar>;
 
 // Tensor{std::type_identity<T>} -> Rank-0 tensor with a static/local array
 template <Arithmetic T>
@@ -488,7 +488,8 @@ Tensor(T(&&... l)[N]) -> Tensor<T, 2, device::CPU, StaticResource<sizeof...(N), 
 
 // Tensor{{{...},...},...} -> Rank-3 tensor with a static/local array (brace-initializer).
 template <Arithmetic T, size_t... M, size_t... N>
-Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, device::CPU, StaticResource<sizeof...(M), std::max({M...}), std::max({N...})>>;
+Tensor(T(&&... l)[M][N])
+  -> Tensor<T, 3, device::CPU, StaticResource<sizeof...(M), std::max({M...}), std::max({N...})>>;
 
 // Tensor rules for allocating dynamic device memory with dimensions provded as arguments
 
@@ -500,113 +501,103 @@ Tensor(T(&&... l)[M][N]) -> Tensor<T, 3, device::CPU, StaticResource<sizeof...(M
 #if 0
 
 // Tensor(uint,T) -> Rank-1 tensor with a dynamically allocated buffer.
-template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, T) -> Tensor<T, 1, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, typename TDevice = device::CPU>
+Tensor(size_t, T) -> Tensor<T, 1, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(uint, std::type_identity<T>) -> Rank-1 tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, std::type_identity<T>) -> Tensor<T, 1, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, typename TDevice = device::CPU>
+Tensor(size_t, std::type_identity<T>) -> Tensor<T, 1, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(uint, uint, T) -> Rank-2 tensor with a dynamically allocated buffer.
-template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, T) -> Tensor<T, 2, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, typename TDevice = device::CPU>
+Tensor(size_t, size_t, T) -> Tensor<T, 2, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(uint, std::type_identity<T>) -> Rank-2 tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, std::type_identity<T>) -> Tensor<T, 2, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, typename TDevice = device::CPU>
+Tensor(size_t, size_t, std::type_identity<T>) -> Tensor<T, 2, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Rank-3 tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, size_t, T) -> Tensor<T, 3, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, typename TDevice = device::CPU>
+Tensor(size_t, size_t, size_t, T) -> Tensor<T, 3, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Rank-3 tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, typename Dev = device::CPU>
-Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Tensor<T, 3, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, typename TDevice = device::CPU>
+Tensor(size_t, size_t, size_t, std::type_identity<T>) -> Tensor<T, 3, TDevice, typename TDevice::template allocator_type<T>>;
 
 #endif
 
 // Tensor rules for allocation dynamic device memory with dimensions and optional strides provided as arrays
 
 // Tensor(&[], &[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(const size_t(&)[N], const ssize_t(&)[N], T) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&[], &[], std::type_identity<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], const ssize_t(&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(const size_t(&)[N], const ssize_t(&)[N], std::type_identity<T>) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&&[], &&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(size_t(&&)[N], ssize_t(&&)[N], T) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&&[], &&[]) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(size_t(&&)[N], ssize_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(size_t(&&)[N], ssize_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(const size_t(&)[N], T) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&[], std::type_identity<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(const size_t(&)[N], std::type_identity<T>) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&&[], T) -> Rank-N tensor with a dynamically allocated initialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&&)[N], T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(const size_t(&&)[N], T) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(&&[], std::type_identity<T>) -> Rank-N tensor with a dynamically allocated uninitialized buffer.
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(const size_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(const size_t(&&)[N], std::type_identity<T>) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(array, T)
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(std::array<size_t, N>, T) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(array, array, T)
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(std::array<size_t, N>, std::array<ssize_t, N>, T) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(array, std::type_identity<T>)
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(std::array<size_t, N>, std::type_identity<T>) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
 // Tensor(array, array, std::type_identity<T>)
-template <Arithmetic T, size_t N, typename Dev = device::CPU>
-Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, Dev, DeviceMemory<Dev>>;
+template <Arithmetic T, size_t N, typename TDevice = device::CPU>
+Tensor(std::array<size_t, N>, std::array<ssize_t, N>, std::type_identity<T>) -> Tensor<T, N, TDevice, typename TDevice::template allocator_type<T>>;
 
-// Tensor(any_tensor)
-template <libai::AnyTensor TTensor, typename Dev = libai::device::CPU, typename Alloc = libai::DeviceMemory<libai::device::CPU>>
-requires (!std::is_same_v<typename TTensor::device_type, Dev> ||
-          !std::is_same_v<typename TTensor::allocator_type, Alloc>)
-Tensor(const TTensor& other) -> Tensor<typename TTensor::value_type, TTensor::rank, Dev, Alloc>;
+template <AnyTensor TTensor, typename TDevice = device::CPU>
+Tensor(const TTensor& other)
+  -> Tensor<typename TTensor::value_type, TTensor::rank, TDevice, typename TDevice::template allocator_type<typename TTensor::value_type>>;
 
-// Tensor rules for tensor view argument
-template <typename TTensor, size_t NRank, typename Dev = device::CPU>
-Tensor(TensorView<TTensor, NRank>&&) -> Tensor<typename TTensor::value_type, NRank, Dev, DeviceMemory<Dev>>;
-template <typename TTensor, size_t NRank, typename Dev = device::CPU>
-Tensor(const TensorView<TTensor, NRank>&) -> Tensor<typename TTensor::value_type, NRank, Dev, DeviceMemory<Dev>>;
 
-// Tensor rules for operator arguments
+template <libai::AnyOperator TOperator, typename TDevice = device::CPU>
+Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, TDevice, typename TDevice::template allocator_type<typename TOperator::value_type>>;
 
-template <libai::AnyOperator TOperator, typename Dev = device::CPU>
-Tensor(TOperator&&) -> Tensor<typename TOperator::value_type, TOperator::rank, Dev, DeviceMemory<Dev>>;
+template <libai::AnyOperator TOperator, typename TDevice = device::CPU>
+Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::rank, TDevice, typename TDevice::template allocator_type<typename TOperator::value_type>>;
 
-template <libai::AnyOperator TOperator, typename Dev = device::CPU>
-Tensor(const TOperator&) -> Tensor<typename TOperator::value_type, TOperator::rank, Dev, DeviceMemory<Dev>>;
-
-// Tensor rules for memory-mapped arguments
-
+/// Tensor rules for memory-mapped arguments
 template <Arithmetic T, size_t N>
 Tensor(const size_t(&)[N], const std::tuple<T*, size_t>&) -> Tensor<T, N, device::CPU, libai::MemoryMapped>;
 template <Arithmetic T, size_t N>
 Tensor(const std::array<size_t, N>&, const std::tuple<T*, size_t>&) -> Tensor<T, N, device::CPU, libai::MemoryMapped>;
 
 // Copy/Move constructors
-// gcc 13.3 deduces an implicit rule for just the class and treats copy/move constructors as ambiguous
-template <typename T, size_t R, typename D, typename M> Tensor(const Tensor<T, R, D, M>&) -> Tensor<T, R, D, M>;
-template <typename T, size_t R, typename D, typename M> Tensor(Tensor<T, R, D, M>&&) -> Tensor<T, R, D, M>;
-
+template <typename T, size_t NRank, typename TDevice, typename TAllocator>
+Tensor(const Tensor<T, NRank, TDevice, TAllocator>&) -> Tensor<T, NRank, TDevice, TAllocator>;
+template <typename T, size_t NRank, typename TDevice, typename TAllocator>
+Tensor(Tensor<T, NRank, TDevice, TAllocator>&&) -> Tensor<T, NRank, TDevice, TAllocator>;
 
 //
 // Arithmentic operator overloading
@@ -714,3 +705,4 @@ std::ostream& operator<<(std::ostream& os, const libai::AnyTensor auto& tensor)
 }
 
 #endif  // LIBAI_TENSOR_TENSOR_H
+//

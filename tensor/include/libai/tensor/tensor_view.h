@@ -42,18 +42,19 @@ std::remove_pointer_t<T>* pointer_cast(S pointer)
 template <PrimitiveTensor TTensor, size_t TViewRank>
 class TensorView
 {
+  template <typename, size_t, typename, typename> friend class Tensor;
  public:
   using value_type = typename TTensor::value_type;
-  using allocator_type = tensor_allocator_t<TTensor>;
   using pointer = decltype(std::declval<TTensor>().Data());
   using reference = decltype(*std::declval<TTensor>().Data());
   using const_pointer = typename TTensor::const_pointer;
   using const_reference = typename TTensor::const_reference;
-  using array_type = Array<typename TTensor::value_type, View<allocator_type>>;
+  using allocator_type = View<typename TTensor::allocator_type>;
+  using array_type = Array<value_type, View<typename TTensor::allocator_type>>;
   constexpr static size_t rank = TViewRank;
 
   /// Default constructor
-  TensorView() = default;
+  TensorView() = delete;
 
   /// Constructor with arguments
   TensorView(TTensor& tensor,
@@ -67,7 +68,22 @@ class TensorView
       size_(size),
       offset_(offset)
   {
-    if (offset_ + size_ > tensor.Size())
+    if (offset_ + size_ > tensor.array_.Size())
+      throw std::runtime_error("view parameters exceed the tensor size");
+  }
+
+  TensorView(TTensor&& tensor,
+             const std::array<size_t,  TViewRank>& dimensions,
+             const std::array<ssize_t, TViewRank>& strides,
+             size_t size,
+             size_t offset = 0UL)
+    : array_(std::move(tensor.array_), size, offset),
+      dimensions_(dimensions),
+      strides_(strides),
+      size_(size),
+      offset_(offset)
+  {
+    if (offset_ + size_ > tensor.array_.Size())
       throw std::runtime_error("view parameters exceed the tensor size");
   }
 
@@ -80,7 +96,7 @@ class TensorView
     return *this;
   }
 
-  template <AnyOperator TOperator> // FIXME requires PrimitiveTensor<to_tensor(TOperator)>
+  template <AnyOperator TOperator> // TODO: requires PrimitiveTensor<to_tensor(TOperator)> ?
   auto operator=(const TOperator& oper)
   {
     return operator=(oper());
@@ -124,10 +140,10 @@ class TensorView
   }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
-  auto Buffer()                                           { return array_.array_.Buffer(); }
+  auto Buffer()                                           { return array_.Buffer(); }
 
   template <typename = void> requires requires (TTensor&& t) {t.Buffer();}
-  auto Buffer() const                                     { return array_.array_.Buffer(); }
+  auto Buffer() const                                     { return array_.Buffer(); }
 
   /// Offset returns the offset in the buffer.
   size_t Offset() const                                   { return offset_; }
@@ -273,8 +289,6 @@ inline auto View(TTensor& tensor, Ts&&... ts)
   return TensorView(tensor, view_dims, view_strides, view_size, view_offset);
 }
 
-// FIXME: offset should be in n-lemes
-/// Reshape returns a view of the provide tensor with a new shape.
 template <typename TTensor, size_t Rank>
 inline auto Reshape(TTensor& tensor,
                     const std::array<size_t, Rank>& dimensions,
@@ -295,6 +309,30 @@ inline auto Reshape(TTensor& tensor,
   size_t size = get_array_size(dimensions, strides);
   // assert orig-size >= size + offset
   return TensorView(tensor, dimensions, strides, size, offset);
+}
+
+
+/// Reshape returns a view of the provide tensor with a new shape.
+template <typename TTensor, size_t Rank>
+inline auto Reshape(TTensor&& tensor,
+                    const std::array<size_t, Rank>& dimensions,
+                    size_t offset = 0)
+{
+  auto strides = make_strides(dimensions);
+  size_t size = get_array_size(dimensions, strides);
+  // assert orig-size >= size + offset
+  return TensorView(std::move(tensor), dimensions, strides, size, offset);
+}
+
+template <typename TTensor, size_t Rank>
+inline auto Reshape(TTensor&& tensor,
+                    const std::array<size_t, Rank>& dimensions,
+                    const std::array<ssize_t, Rank>& strides,
+                    size_t offset = 0)
+{
+  size_t size = get_array_size(dimensions, strides);
+  // assert orig-size >= size + offset
+  return TensorView(std::move(tensor), dimensions, strides, size, offset);
 }
 
 } // end of namespace view

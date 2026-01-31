@@ -9,10 +9,12 @@
 #ifndef LIBAI_TENSOR_ARRAY_H
 #define LIBAI_TENSOR_ARRAY_H
 
+#include <cstring>
 #include <span>
 
-#include "concepts.h"
 #include "allocator.h"
+#include "concepts.h"
+#include "tensor_parameters.h"
 
 namespace libai {
 
@@ -103,7 +105,143 @@ inline void initialize_unsafe(T* dst, size_t size, T init)
 ///
 /// The buffer can be statically or dynamically allocated, and in system memory or device memory.
 /// The array size defines the number of elements and is not the size in bytes.
-template <typename, typename> class Array;
+template <typename T, typename TAllocator>
+class Array
+{
+  template <typename, typename> friend class Array;
+
+  using value_type = T;
+  using allocator_type = TAllocator;
+  using pointer = std::allocator_traits<TAllocator>::pointer;
+  using const_pointer = std::allocator_traits<TAllocator>::const_pointer;
+
+ public:
+  Array() = default;
+
+  ~Array()
+  {
+    if (pointer_ != nullptr)
+      allocator_.deallocate(pointer_, size_);
+  }
+
+  // @brief Allocates a buffer of the provided size.
+  explicit Array(size_t size) : size_(size)
+  {
+    pointer_ = allocator_.allocate(size);
+  }
+
+  // @brief Allocates a buffer of the provided size.
+  Array(size_t size, std::type_identity<value_type>) : size_(size)
+  {
+    pointer_ = allocator_.allocate(size);
+  }
+
+  // @brief Constructor for a contiguous array with the provided size with initialization.
+  Array(size_t size, value_type init) : size_(size)
+  {
+    pointer_ = allocator_.allocate(size);
+    details::initialize_unsafe(Data(), size_, init);
+  }
+
+  // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
+    : size_(get_array_size(dimensions, strides))
+  {
+    pointer_ = allocator_.allocate(size_);
+  }
+
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions,
+        const std::array<ssize_t, N>& strides,
+        std::type_identity<value_type>)
+    : size_(get_array_size(dimensions, strides))
+  {
+    pointer_ = allocator_.allocate(size_);
+  }
+
+
+  // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
+    : size_(get_array_size(dimensions, strides))
+  {
+    pointer_ = allocator_.allocate(size_);
+    details::initialize_unsafe(Data(), std::span(dimensions), std::span(strides), init);
+  }
+
+  // @brief Copy constructor of contiguous arrays.
+  Array(const Array& other) : size_(other.Size())
+  {
+    pointer_ = allocator_.allocate(size_);
+    std::memcpy(std::to_address(pointer_), std::to_address(other.pointer_), other.Size() * sizeof(value_type));
+  }
+
+  // @brief Move constructor.
+  Array(Array&& other)
+    : size_(other.Size()),
+      pointer_(std::move(other.pointer_))
+  {
+    other.pointer_ = nullptr;
+  }
+
+  // @brief Constructor from arrays with different allocators
+  template <typename A>
+  Array(const Array<value_type, A>& other) : size_(other.Size())
+  {
+    pointer_ = allocator_.allocate(size_);
+    std::memcpy(std::to_address(pointer_), other.Data(), size_ * sizeof(value_type));
+  }
+
+  /// @brief Move assignement
+  Array& operator=(Array&& other)
+  {
+    if (pointer_ != nullptr)
+      allocator_.deallocate(pointer_, size_);
+
+    size_ = other.Size();
+    pointer_ = std::move(other.pointer_);
+    other.pointer_ = nullptr;
+
+    return *this;
+  }
+
+  template <typename A>
+  Array& operator=(const Array<value_type, A>& other)
+  {
+    if (other.Size() != size_)
+    {
+      allocator_.deallocate(pointer_, size_);
+      allocator_.allocate(other.Size());
+      size_ = other.Size();
+    }
+    std::memcpy(std::to_address(pointer_), other.Data(), size_ * sizeof(value_type));
+
+    return *this;
+  }
+
+  /// Size returns the size of the entire buffer.
+  size_t Size() const                                     { return size_; }
+
+  /// Data returns a pointer to the data buffer.
+  value_type* Data()                                      { return &*pointer_; }
+
+  /// Data returns a pointer to the data buffer.
+  const value_type* Data() const                          { return &*pointer_; }
+
+  // TODO: temporary addition to support Metal buffers
+
+  // Buffer returns the MTL buffer - internal use only
+  auto Buffer()                                           { return pointer_.Buffer(); }
+
+  // Buffer returns the MTL buffer - internal use only
+  auto Buffer() const                                     { return pointer_.Buffer(); }
+
+ private:
+  allocator_type  allocator_;
+  size_t          size_;
+  pointer         pointer_;
+};
 
 
 /// Array specialization for storing a single scalar
@@ -140,7 +278,7 @@ class Array<T, Scalar>
   /// Data returns a pointer to the data buffer.
   const_pointer Data() const                              { return &data_; }
 
- protected:
+ private:
   value_type  data_;
 };
 
@@ -160,9 +298,11 @@ class Array<T, StaticResource<Ns...>>
   // @brief Iniitializes a constant array
   Array(std::array<T, size>&& array) : array_(array) {}
 
-  // Explicity disallow default, copy, and move constructors for StaticResource arrays.
+  // Explicity disallow default and copy constructors for StaticResource arrays.
   Array() = delete;
   Array(const Array& other) = delete;
+
+  // Support move construction (TODO: revisit)
   Array(Array&& other) : array_(std::move(other.array_)) {}
 
   // Explicitly disallow copy and move assign operators for StaticResource arays.
@@ -170,7 +310,7 @@ class Array<T, StaticResource<Ns...>>
   Array& operator=(const Array& other) = delete;
 
   /// Size returns the size of the entire buffer.
-  size_t Size() const                                     { return size; }
+  constexpr size_t Size() const                           { return size; }
 
   /// Data returns a pointer to the data buffer.
   pointer Data()                                          { return array_.data(); }
@@ -178,7 +318,7 @@ class Array<T, StaticResource<Ns...>>
   /// Data returns a pointer to the data buffer.
   const_pointer Data() const                              { return array_.data(); }
 
- protected:
+ private:
   const std::array<value_type, size>  array_;
 };
 
@@ -193,14 +333,14 @@ class Array<T, MemoryMapped>
 
  public:
   // @brief Constructor for a memory mapped area
-  Array(value_type* data, size_t size) : data_(data), size_(size) {}
+  Array(value_type* data, size_t size) : pointer_(data), size_(size) {}
 
-  // Explicity disallow default, copy, and move constructors for StaticResource arrays.
+  // Explicity disallow default, copy, and move constructors for static memory arrays.
   Array() = delete;
   Array(const Array& other) = delete;
   Array(Array&& other) = delete;
 
-  // Explicitly disallow copy and move assign operators for StaticResource arays.
+  // Explicitly disallow copy and move assign operators for static memory arays.
   Array& operator=(Array&& other) = delete;
   Array& operator=(const Array& other) = delete;
 
@@ -208,25 +348,26 @@ class Array<T, MemoryMapped>
   size_t Size() const                                     { return size_; }
 
   /// Data returns a pointer to the data buffer.
-  pointer Data()                                          { return data_; }
+  pointer Data()                                          { return pointer_; }
 
   /// Data returns a pointer to the data buffer.
-  const_pointer Data() const                              { return data_; }
+  const_pointer Data() const                              { return pointer_; }
 
- protected:
-  value_type* data_;
-  const size_t size_;
+ private:
+  pointer       pointer_;
+  const size_t  size_;
 };
 
 
 // Array specialization for a view
-template <typename T, typename M>
-class Array<T, View<M>>
+template <typename T, typename Allocator>
+class Array<T, View<Allocator>>
 {
-  using array_type = Array<T, M>;
+  using array_type = Array<T, Allocator>;
   using value_type = T;
   using pointer = value_type*;
   using const_pointer = const value_type*;
+  using allocator_type = Allocator;
 
  public:
 
@@ -234,44 +375,57 @@ class Array<T, View<M>>
   ~Array() = default;
 
   // @brief Constructor for a view from an array.
-  Array(Array<value_type, M>& array, size_t size, size_t offset)
+  Array(Array<value_type, allocator_type>& array, size_t size, size_t offset)
     : array_(array), size_(size), offset_(offset)
+  {}
+
+  Array(Array<value_type, allocator_type>&& array, size_t size, size_t offset)
+    : array_(std::move(array)), size_(size), offset_(offset)
   {}
 
   // @brief Copy constructor.
   Array(const Array& other)
-    : array_(other.array_), size_(other.size_), offset_(other.offset_)
+    : array_(other.array_), size_(other.Size()), offset_(other.offset_)
   {}
 
-  //   /// Size returns the size of the view.
+  // @brief Move constructor.
+  Array(Array&& other)
+    : array_(other.array_), size_(other.Size()), offset_(other.offset_)
+  {}
+
+
+  Array& operator=(const Array<value_type, allocator_type>& other)
+  {
+    array_ = other.array_;
+    size_ = other.Size();
+    offset_ = other.offset_;
+  }
+
+  /// Size returns the size of the view.
   size_t Size() const                                     { return size_; }
 
   /// Data returns a pointer to the data buffer.
-  auto Data()                                             { return array_.Data(); }
+  value_type* Data()                                      { return array_.Data(); }
 
   /// Data returns a pointer to the data buffer.
-  const_pointer Data() const                              { return array_.Data(); }
+  const value_type* Data() const                          { return array_.Data(); }
 
-  array_type& array_;
+  // Buffer returns the MTL buffer - internal use only
+  auto Buffer()                                           { return array_.Buffer(); }
+
+  // Buffer returns the MTL buffer - internal use only
+  auto Buffer() const                                     { return array_.Buffer(); }
+
 
  private:
+  array_type& array_;
   size_t      size_;
   size_t      offset_;
 };
 
-
-template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
-Array(size_t, T) -> Array<T, Mem>;
-
-template <typename T, typename Mem = libai::DeviceMemory<device::CPU>>
-Array(size_t, std::type_identity<T>) -> Array<T, Mem>;
-
-template <typename T, size_t N, typename Mem = libai::DeviceMemory<device::CPU>>
-Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T) -> Array<T, Mem>;
-
-template <typename T, size_t N, typename Mem = libai::DeviceMemory<device::CPU>>
-Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, std::type_identity<T>)
-  -> Array<T, Mem>;
+// CTAD rules (gcc 13.3.0 get's confused)
+template <typename T, typename Alloc> Array(const Array<T, Alloc>&) -> Array<T, Alloc>;
+template <typename T, typename Alloc> Array(Array<T, Alloc>&&) -> Array<T, Alloc>;
 
 
 } // end of namespace libai
