@@ -105,15 +105,16 @@ inline void initialize_unsafe(T* dst, size_t size, T init)
 ///
 /// The buffer can be statically or dynamically allocated, and in system memory or device memory.
 /// The array size defines the number of elements and is not the size in bytes.
-template <typename T, typename TAllocator>
+template <typename T, size_t NRank, typename TAllocator>
 class Array
 {
-  template <typename, typename> friend class Array;
+  template <typename, size_t, typename> friend class Array;
 
   using value_type = T;
   using allocator_type = TAllocator;
   using pointer = std::allocator_traits<TAllocator>::pointer;
   using const_pointer = std::allocator_traits<TAllocator>::const_pointer;
+  constexpr static size_t rank = NRank;
 
  public:
   Array() = default;
@@ -125,7 +126,10 @@ class Array
   }
 
   // @brief Allocates a buffer of the provided size.
-  explicit Array(size_t size) : size_(size)
+  explicit Array(size_t size)
+    : dimensions_({1}),
+      strides_({1}),
+      size_(size)
   {
     pointer_ = allocator_.allocate(size);
   }
@@ -143,10 +147,43 @@ class Array
     details::initialize_unsafe(Data(), size_, init);
   }
 
-  // @brief Constructor for a non-contiguous array with the provided dimensions and strides.
   template <size_t N>
-  Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides)
-    : size_(get_array_size(dimensions, strides))
+  Array(const std::array<size_t, N>& dimensions)
+    : dimensions_(dimensions),
+      strides_(make_strides(dimensions)),
+      size_(get_array_size(dimensions_, strides_))
+  {
+    pointer_ = allocator_.allocate(size_);
+  }
+
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions,
+        std::type_identity<value_type>)
+    : dimensions_(dimensions),
+      strides_(make_strides(dimensions_)),
+      size_(get_array_size(dimensions_, strides_))
+  {
+    pointer_ = allocator_.allocate(size_);
+  }
+
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions,
+        value_type init)
+    : dimensions_(dimensions),
+      strides_(make_strides(dimensions_)),
+      size_(get_array_size(dimensions_, strides_))
+  {
+    pointer_ = allocator_.allocate(size_);
+    details::initialize_unsafe(Data(), std::span(dimensions_), std::span(strides_), init);
+  }
+
+
+  template <size_t N>
+  Array(const std::array<size_t, N>& dimensions,
+       const std::array<ssize_t, N>& strides)
+    : dimensions_(dimensions),
+      strides_(strides),
+      size_(get_array_size(dimensions, strides))
   {
     pointer_ = allocator_.allocate(size_);
   }
@@ -155,23 +192,32 @@ class Array
   Array(const std::array<size_t, N>& dimensions,
         const std::array<ssize_t, N>& strides,
         std::type_identity<value_type>)
-    : size_(get_array_size(dimensions, strides))
+    : dimensions_(dimensions),
+      strides_(strides),
+      size_(get_array_size(dimensions, strides))
   {
     pointer_ = allocator_.allocate(size_);
   }
 
-
-  // @brief Constructor for a non-contiguous array with the provided dimensions and strides with initialization.
   template <size_t N>
-  Array(const std::array<size_t, N>& dimensions, const std::array<ssize_t, N>& strides, value_type init)
-    : size_(get_array_size(dimensions, strides))
+  Array(const std::array<size_t, N>& dimensions,
+        const std::array<ssize_t, N>& strides,
+        value_type init)
+    : dimensions_(dimensions),
+      strides_(strides),
+      size_(get_array_size(dimensions, strides))
   {
     pointer_ = allocator_.allocate(size_);
     details::initialize_unsafe(Data(), std::span(dimensions), std::span(strides), init);
   }
 
+
+  // TODO: make it contigous, find a way to support a 1:1 and an optimization?
   // @brief Copy constructor of contiguous arrays.
-  Array(const Array& other) : size_(other.Size())
+  Array(const Array& other)
+    : dimensions_(other.Dimensions()),
+      strides_(other.Strides()),
+      size_(other.Size())
   {
     pointer_ = allocator_.allocate(size_);
     std::memcpy(std::to_address(pointer_), std::to_address(other.pointer_), other.Size() * sizeof(value_type));
@@ -179,7 +225,9 @@ class Array
 
   // @brief Move constructor.
   Array(Array&& other)
-    : size_(other.Size()),
+    : dimensions_(other.Dimensions()),
+      strides_(other.Strides()),
+      size_(other.Size()),
       pointer_(std::move(other.pointer_))
   {
     other.pointer_ = nullptr;
@@ -187,7 +235,10 @@ class Array
 
   // @brief Constructor from arrays with different allocators
   template <typename A>
-  Array(const Array<value_type, A>& other) : size_(other.Size())
+  Array(const Array<value_type, rank, A>& other)
+    : dimensions_(other.Dimensions()),
+      strides_(other.Strides()),
+      size_(other.Size())
   {
     pointer_ = allocator_.allocate(size_);
     std::memcpy(std::to_address(pointer_), other.Data(), size_ * sizeof(value_type));
@@ -199,6 +250,9 @@ class Array
     if (pointer_ != nullptr)
       allocator_.deallocate(pointer_, size_);
 
+    dimensions_ = other.Dimensions();
+    strides_ = other.Strides();
+
     size_ = other.Size();
     pointer_ = std::move(other.pointer_);
     other.pointer_ = nullptr;
@@ -207,8 +261,11 @@ class Array
   }
 
   template <typename A>
-  Array& operator=(const Array<value_type, A>& other)
+  Array& operator=(const Array<value_type, rank, A>& other)
   {
+    dimensions_ = other.Dimensions();
+    strides_ = make_strides(dimensions_);
+
     if (other.Size() != size_)
     {
       allocator_.deallocate(pointer_, size_);
@@ -219,6 +276,15 @@ class Array
 
     return *this;
   }
+
+  /// Rank returns the rank of the tensor.
+  constexpr static size_t Rank()                          { return rank; }
+
+  /// Dimensions returns the dimensions for the axis.
+  const std::array<size_t, rank>& Dimensions() const      { return dimensions_; }
+
+  /// Strides returns the strides for the axis.
+  const std::array<ssize_t, rank>& Strides() const        { return strides_; }
 
   /// Size returns the size of the entire buffer.
   size_t Size() const                                     { return size_; }
@@ -238,20 +304,23 @@ class Array
   auto Buffer() const                                     { return pointer_.Buffer(); }
 
  private:
-  allocator_type  allocator_;
-  size_t          size_;
-  pointer         pointer_;
+  allocator_type            allocator_;
+  std::array<size_t, rank>  dimensions_;
+  std::array<ssize_t, rank> strides_;
+  size_t                    size_;
+  pointer                   pointer_;
 };
 
 
 /// Array specialization for storing a single scalar
 template <Arithmetic T>
-class Array<T, Scalar>
+class Array<T, 0, Scalar>
 {
  public:
   using value_type = T;
   using pointer = value_type*;
   using const_pointer = const value_type*;
+  constexpr static size_t rank = 0UL;
 
  public:
   Array() = default;
@@ -269,6 +338,13 @@ class Array<T, Scalar>
       throw std::runtime_error("internal error: invalid size for Array<Scalar>");
   }
 
+  /// Dimensions returns the dimensions for the axis.
+  const std::array<size_t, rank> Dimensions() const       { return std::array<size_t, 0>(); }
+
+  /// Strides returns the strides for the axis.
+  const std::array<ssize_t, rank> Strides() const         { return std::array<ssize_t, 0>(); }
+
+
   /// Size returns the size of the entire buffer.
   size_t Size() const                                     { return 1UL; }
 
@@ -285,18 +361,23 @@ class Array<T, Scalar>
 
 /// Array specialization for static data.
 template <Arithmetic T, size_t... Ns>
-class Array<T, StaticResource<Ns...>>
+class Array<T, sizeof...(Ns), StaticResource<Ns...>>
 {
  public:
   using value_type = T;
   using pointer = const value_type*;
   using const_pointer = const value_type*;
   static constexpr size_t size = (... * Ns);
+  constexpr static size_t rank = sizeof...(Ns);
 
 
  public:
   // @brief Iniitializes a constant array
-  Array(std::array<T, size>&& array) : array_(array) {}
+  Array(const std::array<size_t, rank>& dimensions, std::array<T, size>&& array)
+    : array_(array),
+      dimensions_(dimensions),
+      strides_(make_strides(dimensions))
+  {}
 
   // Explicity disallow default and copy constructors for StaticResource arrays.
   Array() = delete;
@@ -309,6 +390,12 @@ class Array<T, StaticResource<Ns...>>
   Array& operator=(Array&& other) = delete;
   Array& operator=(const Array& other) = delete;
 
+  /// Dimensions returns the dimensions for the axis.
+  const std::array<size_t, rank>& Dimensions() const      { return dimensions_; }
+
+  /// Strides returns the strides for the axis.
+  const std::array<ssize_t, rank>& Strides() const        { return strides_; }
+
   /// Size returns the size of the entire buffer.
   constexpr size_t Size() const                           { return size; }
 
@@ -320,20 +407,27 @@ class Array<T, StaticResource<Ns...>>
 
  private:
   const std::array<value_type, size>  array_;
+  std::array<size_t, rank>            dimensions_;
+  std::array<ssize_t, rank>           strides_;
 };
 
 
 // Arrray specialization for MemoryMapped memory
-template <typename T>
-class Array<T, MemoryMapped>
+template <typename T, size_t NRank>
+class Array<T, NRank, MemoryMapped>
 {
   using value_type = T;
   using pointer = const value_type*;
   using const_pointer = const value_type*;
+  constexpr static size_t rank = NRank;
 
  public:
   // @brief Constructor for a memory mapped area
-  Array(value_type* data, size_t size) : pointer_(data), size_(size) {}
+  Array(value_type* data, const std::array<size_t, rank>& dimensions)
+    : dimensions_(dimensions),
+      strides_(make_strides(dimensions_)),
+      pointer_(data), size_(get_array_size(dimensions_, strides_))
+  {}
 
   // Explicity disallow default, copy, and move constructors for static memory arrays.
   Array() = delete;
@@ -343,6 +437,14 @@ class Array<T, MemoryMapped>
   // Explicitly disallow copy and move assign operators for static memory arays.
   Array& operator=(Array&& other) = delete;
   Array& operator=(const Array& other) = delete;
+
+
+  /// Dimensions returns the dimensions for the axis.
+  const std::array<size_t, rank>& Dimensions() const      { return dimensions_; }
+
+  /// Strides returns the strides for the axis.
+  const std::array<ssize_t, rank>& Strides() const        { return strides_; }
+
 
   /// Size returns the size of the entire buffer.
   size_t Size() const                                     { return size_; }
@@ -354,20 +456,22 @@ class Array<T, MemoryMapped>
   const_pointer Data() const                              { return pointer_; }
 
  private:
-  pointer       pointer_;
-  const size_t  size_;
+  std::array<size_t, rank>  dimensions_;
+  std::array<ssize_t, rank> strides_;
+  pointer                   pointer_;
+  const size_t              size_;
 };
 
 
 // Array specialization for a view
-template <typename T, typename Allocator>
-class Array<T, View<Allocator>>
+template <typename T, size_t NViewRank, size_t NRank, typename TAllocator>
+class Array<T, NViewRank, View<NRank, TAllocator>>
 {
-  using array_type = Array<T, Allocator>;
   using value_type = T;
   using pointer = value_type*;
   using const_pointer = const value_type*;
-  using allocator_type = Allocator;
+  using allocator_type = TAllocator;
+  using array_type = Array<T, NRank, TAllocator>;
 
  public:
 
@@ -375,12 +479,28 @@ class Array<T, View<Allocator>>
   ~Array() = default;
 
   // @brief Constructor for a view from an array.
-  Array(Array<value_type, allocator_type>& array, size_t size, size_t offset)
-    : array_(array), size_(size), offset_(offset)
+  Array(Array<value_type, NRank, allocator_type>& array,
+        const std::array<size_t, NViewRank>& dimensions,
+        const std::array<ssize_t, NViewRank>& strides,
+        size_t size,
+        size_t offset)
+    : array_(array),
+      dimensions_(dimensions),
+      strides_(strides),
+      size_(size),
+      offset_(offset)
   {}
 
-  Array(Array<value_type, allocator_type>&& array, size_t size, size_t offset)
-    : array_(std::move(array)), size_(size), offset_(offset)
+  Array(Array<value_type, NRank, allocator_type>&& array,
+        const std::array<size_t, NViewRank>& dimensions,
+        const std::array<ssize_t, NViewRank>& strides,
+        size_t size,
+        size_t offset)
+    : array_(std::move(array)),
+      dimensions_(dimensions),
+      strides_(strides),
+      size_(size),
+      offset_(offset)
   {}
 
   // @brief Copy constructor.
@@ -390,16 +510,29 @@ class Array<T, View<Allocator>>
 
   // @brief Move constructor.
   Array(Array&& other)
-    : array_(other.array_), size_(other.Size()), offset_(other.offset_)
+    : array_(other.array_),
+      dimensions_(other.Dimensions()),
+      strides_(other.Strides()),
+      size_(other.Size()),
+      offset_(other.offset_)
   {}
 
-
-  Array& operator=(const Array<value_type, allocator_type>& other)
+  //Array& operator=(const Array<value_type, NViewRank, allocator_type>& other)
+  Array& operator=(const Array& other)
   {
     array_ = other.array_;
+    dimensions_ = other.Dimensions();
+    strides_ = other.Strides();
     size_ = other.Size();
     offset_ = other.offset_;
   }
+
+  /// Dimensions returns the dimensions for the axis.
+  const std::array<size_t, NViewRank>& Dimensions() const { return dimensions_; }
+
+  /// Strides returns the strides for the axis.
+  const std::array<ssize_t, NViewRank>& Strides() const   { return strides_; }
+
 
   /// Size returns the size of the view.
   size_t Size() const                                     { return size_; }
@@ -418,16 +551,34 @@ class Array<T, View<Allocator>>
 
 
  private:
-  array_type& array_;
-  size_t      size_;
-  size_t      offset_;
+  array_type&                     array_;
+  std::array<size_t, NViewRank>   dimensions_;
+  std::array<ssize_t, NViewRank>  strides_;
+  size_t                          size_;
+  size_t                          offset_;
 };
 
 // CTAD rules (gcc 13.3.0 get's confused)
-template <typename T, typename Alloc> Array(const Array<T, Alloc>&) -> Array<T, Alloc>;
-template <typename T, typename Alloc> Array(Array<T, Alloc>&&) -> Array<T, Alloc>;
+template <typename T, size_t NRank, typename TAlloc>
+Array(const Array<T, NRank, TAlloc>&) -> Array<T, NRank, TAlloc>;
+
+template <typename T, size_t NRank, typename TAlloc>
+Array(Array<T, NRank, TAlloc>&&) -> Array<T, NRank, TAlloc>;
 
 
+template <typename T, typename TAllocator = std::allocator<T>>
+Array(size_t, T) -> Array<T, 0, TAllocator>;
+
+template <typename T, typename TAllocator = std::allocator<T>>
+Array(size_t, std::type_identity<T>) -> Array<T, 0, TAllocator>;
+
+template <typename T, size_t NRank, typename TAllocator = std::allocator<T>>
+Array(const std::array<size_t, NRank>&, const std::array<ssize_t, NRank>&, T)
+  -> Array<T, NRank, TAllocator>;
+
+template <typename T, size_t NRank, typename TAllocator = std::allocator<T>>
+Array(const std::array<size_t, NRank>&, const std::array<ssize_t, NRank>&, std::type_identity<T>)
+  -> Array<T, NRank, TAllocator>;
 } // end of namespace libai
 
 #endif // LIBAI_TENSOR_ARRAY_H

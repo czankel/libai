@@ -39,7 +39,7 @@ std::remove_pointer_t<T>* pointer_cast(S pointer)
 /// TensorView<Tensor, Rank> implements a view of a tensor.
 ///
 /// Note that a view cannot be created from a temporary rval; it will return a tensor.
-template <PrimitiveTensor TTensor, size_t TViewRank>
+template <PrimitiveTensor TTensor, size_t NViewRank>
 class TensorView
 {
   template <typename, size_t, typename, typename> friend class Tensor;
@@ -49,20 +49,20 @@ class TensorView
   using reference = decltype(*std::declval<TTensor>().Data());
   using const_pointer = typename TTensor::const_pointer;
   using const_reference = typename TTensor::const_reference;
-  using allocator_type = View<typename TTensor::allocator_type>;
-  using array_type = Array<value_type, View<typename TTensor::allocator_type>>;
-  constexpr static size_t rank = TViewRank;
+  using allocator_type = View<TTensor::rank, typename TTensor::allocator_type>;
+  using array_type = Array<value_type, NViewRank, View<TTensor::rank, typename TTensor::allocator_type>>;
+  constexpr static size_t rank = NViewRank;
 
   /// Default constructor
   TensorView() = delete;
 
   /// Constructor with arguments
   TensorView(TTensor& tensor,
-             const std::array<size_t,  TViewRank>& dimensions,
-             const std::array<ssize_t, TViewRank>& strides,
+             const std::array<size_t,  NViewRank>& dimensions,
+             const std::array<ssize_t, NViewRank>& strides,
              size_t size,
              size_t offset = 0UL)
-    : array_(tensor.array_, size, offset),
+    : array_(tensor.array_, dimensions, strides, size, offset),
       dimensions_(dimensions),
       strides_(strides),
       size_(size),
@@ -72,12 +72,13 @@ class TensorView
       throw std::runtime_error("view parameters exceed the tensor size");
   }
 
+  // TODO: is size useful or needed?
   TensorView(TTensor&& tensor,
-             const std::array<size_t,  TViewRank>& dimensions,
-             const std::array<ssize_t, TViewRank>& strides,
+             const std::array<size_t,  NViewRank>& dimensions,
+             const std::array<ssize_t, NViewRank>& strides,
              size_t size,
              size_t offset = 0UL)
-    : array_(std::move(tensor.array_), size, offset),
+    : array_(std::move(tensor.array_), dimensions, strides, size, offset),
       dimensions_(dimensions),
       strides_(strides),
       size_(size),
@@ -89,7 +90,7 @@ class TensorView
 
 
   /// operator=(Tensor) copies data from the rhs tensor (or view) into the view of the dependent tensor.
-  template <AnyTensor TFromTensor> requires (TFromTensor::rank == TViewRank)
+  template <AnyTensor TFromTensor> requires (TFromTensor::rank == rank)
   auto operator=(const TFromTensor& rhs)
   {
     Copy(*this, rhs);
@@ -117,13 +118,13 @@ class TensorView
 
 
   /// Rank returns the rank of the tensor.
-  constexpr static size_t Rank()                          { return TViewRank; }
+  constexpr static size_t Rank()                          { return rank; }
 
   /// Dimensions returns the dimensions of the tensor.
-  const std::array<size_t, TViewRank>& Dimensions() const { return dimensions_; }
+  const std::array<size_t, rank>& Dimensions() const      { return dimensions_; }
 
   /// Strides returns the strides of the tensor.
-  const std::array<ssize_t, TViewRank>& Strides() const   { return strides_; }
+  const std::array<ssize_t, rank>& Strides() const        { return strides_; }
 
   /// Size returns the data buffer size.
   size_t Size() const                                     { return size_; }
@@ -149,11 +150,11 @@ class TensorView
   size_t Offset() const                                   { return offset_; }
 
  private:
-  array_type                      array_;
-  std::array<size_t, TViewRank>   dimensions_;
-  std::array<ssize_t, TViewRank>  strides_;
-  size_t                          size_;
-  size_t                          offset_;
+  array_type                  array_;
+  std::array<size_t, rank>    dimensions_;
+  std::array<ssize_t, rank>   strides_;
+  size_t                      size_;
+  size_t                      offset_;
 };
 
 

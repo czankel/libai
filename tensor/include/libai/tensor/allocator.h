@@ -18,7 +18,7 @@ namespace libai {
 template <typename TDevice> struct DeviceMemory {};
 
 /// View defines a view of a tensor
-template <typename TTensor> struct View {};
+template <size_t NRank, typename TAllocator> struct View {};
 
 /// StaticResource defines constant static memory in the RO section.
 template <size_t...> struct StaticResource {};

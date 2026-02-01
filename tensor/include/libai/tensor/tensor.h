@@ -78,7 +78,7 @@ class Tensor
   using const_reference = const value_type&;
   using device_type = TDevice;
   using allocator_type = TAllocator;
-  using array_type = Array<value_type, allocator_type>;
+  using array_type = Array<value_type, NRank, allocator_type>;
   constexpr static size_t rank = NRank;
 
 
@@ -97,7 +97,8 @@ class Tensor
   /// Constructor for a rank-1 tensor (vector) with static brace initialization.
   template <Arithmetic... Ts>
   explicit Tensor(Ts&&... ts)
-    : array_(std::to_array({std::forward<Ts>(ts)...})),
+    : array_(std::to_array({sizeof...(Ts)}),
+             std::to_array({std::forward<Ts>(ts)...})),
       dimensions_(std::to_array({sizeof...(Ts)})),
       strides_{1}
   {}
@@ -106,7 +107,7 @@ class Tensor
   /// allow implicit conversion, e.g. from brace
   template <Arithmetic S, size_t... N>
   Tensor(S(&&... init)[N])
-    : array_(get_array(std::move(init)...)),
+    : array_(mem_ext<allocator_type>::array, get_array(std::move(init)...)),
       dimensions_(mem_ext<allocator_type>::array),
       strides_{make_strides(dimensions_)}
   {}
@@ -114,7 +115,7 @@ class Tensor
   /// Constructor for a rank-3 tensor with static brace initialization.
   template <Arithmetic S, size_t... M, size_t... N>
   Tensor(S((&&... init)[M])[N])
-    : array_(get_array(std::move(init)...)),
+    : array_(mem_ext<allocator_type>::array, get_array(std::move(init)...)),
       dimensions_(mem_ext<allocator_type>::array),
       strides_{make_strides(dimensions_)}
   {}
@@ -127,7 +128,7 @@ class Tensor
   Tensor(size_t dimension, value_type init)
     : array_(dimension, init),
       dimensions_{dimension},
-      strides_{make_strides(dimensions_)}
+      strides_{1}
   {}
 
   /// Constructor for a rank-1 tensor (vector) with a dynamically allocated uninitialized buffer.
@@ -272,16 +273,22 @@ class Tensor
 
   /// Constructor for memory mapped arrays
   Tensor(const std::array<size_t, rank>& dimensions, const std::tuple<pointer, size_t>& mmap)
-    : array_(std::get<0>(mmap), std::get<1>(mmap)),
+    : array_(std::get<0>(mmap), dimensions),
       dimensions_{dimensions},
       strides_{make_strides(dimensions_)}
-  {}
+  {
+    if (get_array_size(dimensions_, strides_) > std::get<1>(mmap))
+      throw std::runtime_error("tensor dimensions and strides exceed mmaped area");
+  }
 
   Tensor(const size_t(& dimensions)[rank], const std::tuple<T*, size_t>& mmap)
-    : array_(std::get<0>(mmap), std::get<1>(mmap)),
+    : array_(std::get<0>(mmap), std::to_array(dimensions)),
       dimensions_(std::to_array(dimensions)),
       strides_{make_strides(dimensions_)}
-  {}
+  {
+    if (get_array_size(dimensions_, strides_) > std::get<1>(mmap))
+      throw std::runtime_error("tensor dimensions and strides exceed mmaped area");
+  }
 
   /// Constructor from a Tensor of a different value and array type.
   template <AnyTensor TTensor>
@@ -456,9 +463,9 @@ class Tensor
 
 
  private:
-  Array<value_type, allocator_type> array_;
-  std::array<size_t, rank>          dimensions_;
-  std::array<ssize_t, rank>         strides_;
+  Array<value_type, rank, allocator_type> array_;
+  std::array<size_t, rank>                dimensions_;
+  std::array<ssize_t, rank>               strides_;
 };
 
 

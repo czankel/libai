@@ -21,8 +21,8 @@ struct TensorMetalType
   template <typename T, size_t R>
   using Tensor = libai::Tensor<T, R, libai::device::Metal, libai::MetalAllocator<T>>;
 
-  template <typename T>
-  using Array = libai::Array<T, libai::MetalAllocator<T>>;
+  template <typename T, size_t R>
+  using Array = libai::Array<T, R, libai::MetalAllocator<T>>;
 };
 
 #else
@@ -125,18 +125,18 @@ struct TensorMetalType
 
   // CTAD for Array
   template <typename T>
-  Array(size_t, T) -> Array<T, device::Metal, MetalAllocator<T>>;
+  Array(size_t, T) -> Array<T, 0, MetalAllocator<T>>;
 
   template <typename T, typename Mem = device::Metal, MetalAllocator<T>>
-  Array(size_t, std::type_identity<T>) -> Array<T, device::Metal, MetalAllocator<T>>;
+  Array(size_t, std::type_identity<T>) -> Array<T, 0, MetalAllocator<T>>;
 
   template <typename T, size_t N>
   Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T)
-    -> Array<T, device::Metal, MetalAllocator<T>>;
+    -> Array<T, N, MetalAllocator<T>>;
 
   template <typename T, size_t N>
   Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, std::type_identity<T>)
-    -> Array<T, device::Metal, MetalAllocator<T>>;
+    -> Array<T, N, MetalAllocator<T>>;
 };
 
 #endif

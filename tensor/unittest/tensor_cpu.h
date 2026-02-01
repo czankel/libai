@@ -27,8 +27,8 @@ struct TensorCPUType
   template <typename T, size_t N>
   using Tensor = libai::Tensor<T, N, libai::device::CPU, std::allocator<T>>;
 
-  template <typename T>
-  using Array = libai::Array<T, std::allocator<T>>;
+  template <typename T, size_t N>
+  using Array = libai::Array<T, N, std::allocator<T>>;
 };
 
 #else
@@ -164,17 +164,18 @@ struct TensorCPUType
   // CTAD for Array
 
   template <typename T>
-  Array(size_t, T) -> Array<T, std::allocator<T>>;
+  Array(size_t, T) -> Array<T, 0, std::allocator<T>>;
 
   template <typename T>
-  Array(size_t, std::type_identity<T>) -> Array<T, std::allocator<T>>;
+  Array(size_t, std::type_identity<T>) -> Array<T, 0, std::allocator<T>>;
 
   template <typename T, size_t N>
-  Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T) -> Array<T, std::allocator<T>>;
+  Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, T)
+    -> Array<T, N, std::allocator<T>>;
 
   template <typename T, size_t N>
   Array(const std::array<size_t, N>&, const std::array<ssize_t, N>&, std::type_identity<T>)
-    -> Array<T, std::allocator<T>>;
+    -> Array<T, N, std::allocator<T>>;
 };
 
 #endif
