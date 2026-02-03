@@ -127,21 +127,45 @@ class Array
 
   // @brief Allocates a buffer of the provided size.
   explicit Array(size_t size)
-    : dimensions_({1}),
+    : dimensions_({size}),
       strides_({1}),
       size_(size)
   {
     pointer_ = allocator_.allocate(size);
   }
 
+  Array(std::type_identity<value_type>)
+    : dimensions_(),
+      strides_(),
+      size_(1)
+  {
+    pointer_ = allocator_.allocate(1);
+  }
+
+
+  Array(value_type init)
+    : dimensions_(),
+      strides_(),
+      size_(1)
+  {
+    pointer_ = allocator_.allocate(1);
+    *pointer_ = init;
+  }
+
   // @brief Allocates a buffer of the provided size.
-  Array(size_t size, std::type_identity<value_type>) : size_(size)
+  Array(size_t size, std::type_identity<value_type>)
+    : dimensions_({size}),
+      strides_({1}),
+      size_(size)
   {
     pointer_ = allocator_.allocate(size);
   }
 
   // @brief Constructor for a contiguous array with the provided size with initialization.
-  Array(size_t size, value_type init) : size_(size)
+  Array(size_t size, value_type init)
+    : dimensions_({size}),
+      strides_({1}),
+      size_(size)
   {
     pointer_ = allocator_.allocate(size);
     details::initialize_unsafe(Data(), size_, init);
@@ -167,14 +191,15 @@ class Array
   }
 
   template <size_t N>
-  Array(const std::array<size_t, N>& dimensions,
-        value_type init)
+  Array(const std::array<size_t, N>& dimensions, value_type init)
     : dimensions_(dimensions),
       strides_(make_strides(dimensions_)),
       size_(get_array_size(dimensions_, strides_))
   {
     pointer_ = allocator_.allocate(size_);
-    details::initialize_unsafe(Data(), std::span(dimensions_), std::span(strides_), init);
+    details::initialize_unsafe(Data(),
+                               std::span(std::as_const(dimensions_)),
+                               std::span(std::as_const(strides_)), init);
   }
 
 
@@ -208,7 +233,9 @@ class Array
       size_(get_array_size(dimensions, strides))
   {
     pointer_ = allocator_.allocate(size_);
-    details::initialize_unsafe(Data(), std::span(dimensions), std::span(strides), init);
+    details::initialize_unsafe(Data(),
+                               std::span(std::as_const(dimensions_)),
+                               std::span(std::as_const(strides_)), init);
   }
 
 
@@ -338,11 +365,13 @@ class Array<T, 0, Scalar>
       throw std::runtime_error("internal error: invalid size for Array<Scalar>");
   }
 
+  constexpr static std::array<size_t, 0> dimensions_{};
+  constexpr static std::array<ssize_t, 0> strides_{};
   /// Dimensions returns the dimensions for the axis.
-  const std::array<size_t, rank> Dimensions() const       { return std::array<size_t, 0>(); }
+  const std::array<size_t, rank>& Dimensions() const      { return dimensions_; }
 
   /// Strides returns the strides for the axis.
-  const std::array<ssize_t, rank> Strides() const         { return std::array<ssize_t, 0>(); }
+  const std::array<ssize_t, rank>& Strides() const        { return strides_; }
 
 
   /// Size returns the size of the entire buffer.
@@ -567,10 +596,10 @@ Array(Array<T, NRank, TAlloc>&&) -> Array<T, NRank, TAlloc>;
 
 
 template <typename T, typename TAllocator = std::allocator<T>>
-Array(size_t, T) -> Array<T, 0, TAllocator>;
+Array(size_t, T) -> Array<T, 1, TAllocator>;
 
 template <typename T, typename TAllocator = std::allocator<T>>
-Array(size_t, std::type_identity<T>) -> Array<T, 0, TAllocator>;
+Array(size_t, std::type_identity<T>) -> Array<T, 1, TAllocator>;
 
 template <typename T, size_t NRank, typename TAllocator = std::allocator<T>>
 Array(const std::array<size_t, NRank>&, const std::array<ssize_t, NRank>&, T)
