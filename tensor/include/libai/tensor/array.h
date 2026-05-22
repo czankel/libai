@@ -77,7 +77,7 @@ template <Arithmetic T>
 inline void
 initialize_unsafe(T* dst, std::span<const size_t, 1> dimensions, std::span<const ssize_t, 1> strides, T init)
 {
-  for (size_t i = 0; i < dimensions[0]; i++, reinterpret_cast<char*&>(dst) += strides[0])
+  for (size_t i = 0; i < dimensions[0]; i++, dst += strides[0])
     *dst = init;
 }
 
@@ -85,7 +85,7 @@ template <Arithmetic T, size_t N>
 inline void
 initialize_unsafe(T* dst, std::span<const size_t, N> dimensions, std::span<const ssize_t, N> strides, T init)
 {
-  for (size_t i = 0; i < dimensions[0]; i++, reinterpret_cast<char*&>(dst) += strides[0])
+  for (size_t i = 0; i < dimensions[0]; i++, dst += strides[0])
     initialize_unsafe(dst,
                       std::span<const size_t, N - 1>(dimensions.begin() + 1, dimensions.end()),
                       std::span<const ssize_t, N - 1>(strides.begin() + 1, strides.end()),
