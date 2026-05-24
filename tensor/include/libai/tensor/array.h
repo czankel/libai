@@ -353,16 +353,12 @@ class Array<T, 0, Scalar>
   Array() = default;
 
   // @brief Initializes the data value to init.
-  Array(size_t s, value_type init) : data_(init)
+  Array(value_type init) : data_(init)
   {
-    if (s != 1)
-      throw std::runtime_error("internal error: invalid size for Array<Scalar>");
   }
 
-  Array(size_t s)
+  Array(std::type_identity<T>)
   {
-    if (s != 1)
-      throw std::runtime_error("internal error: invalid size for Array<Scalar>");
   }
 
   constexpr static std::array<size_t, 0> dimensions_{};
