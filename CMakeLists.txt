@@ -310,7 +310,7 @@ target_include_directories(libai PUBLIC ${libai_HEADER_DIRS})
 ##
 
 if (BUILD_CUDA)
-  set_target_properties(libai PROPERTIES CUDA_ARCHITECTURES "75")
+  set_target_properties(libai PROPERTIES CUDA_ARCHITECTURES "120;75")
   set_target_properties(libai PROPERTIES CUDA_STANDARD 20)
   enable_language(CUDA)
   target_compile_definitions(libai PUBLIC BUILD_CUDA=1)
